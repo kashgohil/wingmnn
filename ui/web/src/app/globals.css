@@ -7,59 +7,6 @@ body {
 }
 
 @layer base {
-	:root {
-		--background: 0 0% 100%;
-		--foreground: 240 10% 3.9%;
-		--card: 0 0% 100%;
-		--card-foreground: 240 10% 3.9%;
-		--popover: 0 0% 100%;
-		--popover-foreground: 240 10% 3.9%;
-		--primary: 240 5.9% 10%;
-		--primary-foreground: 0 0% 98%;
-		--secondary: 240 4.8% 95.9%;
-		--secondary-foreground: 240 5.9% 10%;
-		--muted: 240 4.8% 95.9%;
-		--muted-foreground: 240 3.8% 46.1%;
-		--accent: 240 4.8% 95.9%;
-		--accent-foreground: 240 5.9% 10%;
-		--destructive: 0 84.2% 60.2%;
-		--destructive-foreground: 0 0% 98%;
-		--border: 240 5.9% 90%;
-		--input: 240 5.9% 90%;
-		--ring: 240 10% 3.9%;
-		--chart-1: 12 76% 61%;
-		--chart-2: 173 58% 39%;
-		--chart-3: 197 37% 24%;
-		--chart-4: 43 74% 66%;
-		--chart-5: 27 87% 67%;
-		--radius: 0.5rem;
-	}
-	.dark {
-		--background: 160 7 8;
-		--foreground: 0 0% 98%;
-		--card: 240 10% 3.9%;
-		--card-foreground: 0 0% 98%;
-		--popover: 240 10% 3.9%;
-		--popover-foreground: 0 0% 98%;
-		--primary: 0 0% 98%;
-		--primary-foreground: 240 5.9% 10%;
-		--secondary: 240 3.7% 15.9%;
-		--secondary-foreground: 0 0% 98%;
-		--muted: 240 3.7% 15.9%;
-		--muted-foreground: 240 5% 64.9%;
-		--accent: 240 3.7% 15.9%;
-		--accent-foreground: 0 0% 98%;
-		--destructive: 0 62.8% 30.6%;
-		--destructive-foreground: 0 0% 98%;
-		--border: 240 3.7% 15.9%;
-		--input: 240 3.7% 15.9%;
-		--ring: 240 4.9% 83.9%;
-		--chart-1: 220 70% 50%;
-		--chart-2: 160 60% 45%;
-		--chart-3: 30 80% 55%;
-		--chart-4: 280 65% 60%;
-		--chart-5: 340 75% 55%;
-	}
 }
 
 @layer base {
@@ -69,4 +16,316 @@ body {
 	body {
 		@apply bg-background text-foreground;
 	}
+}
+
+:root {
+	--background: 240 10% 3.9%;
+	--foreground: 0 0% 98%;
+
+	--black-1: 0 0 4;
+	--black-2: 0 0 12;
+	--black-3: 0 0 20;
+	--black-4: 0 0 28;
+
+	--white-1: 0 0 100;
+	--white-2: 0 0 92;
+	--white-3: 0 0 84;
+	--white-4: 0 0 76;
+
+	--gray-1: 0 0 44;
+	--gray-2: 0 0 52;
+	--gray-3: 0 0 60;
+	--gray-4: 0 0 68;
+
+	--red-1: 0 100 20;
+	--red-2: 0 100 36;
+	--red-3: 0 100 52;
+	--red-4: 0 100 68;
+
+	--cyan-1: 180 100 20;
+	--cyan-2: 180 100 36;
+	--cyan-3: 180 100 52;
+	--cyan-4: 180 100 68;
+
+	--pink-1: 330 100 20;
+	--pink-2: 330 100 36;
+	--pink-3: 330 100 52;
+	--pink-4: 330 100 68;
+
+	--indigo-1: 275 100 20;
+	--indigo-2: 275 100 36;
+	--indigo-3: 275 100 52;
+	--indigo-4: 275 100 68;
+
+	--brown-1: 30 60 20;
+	--brown-2: 30 60 36;
+	--brown-3: 30 60 52;
+	--brown-4: 30 60 68;
+
+	--yellow-1: 60 95 25;
+	--yellow-2: 60 96 40;
+	--yellow-3: 60 97 55;
+	--yellow-4: 60 98 70;
+
+	--blue-1: 240 100 20;
+	--blue-2: 240 100 36;
+	--blue-3: 240 100 52;
+	--blue-4: 240 100 68;
+
+	--green-1: 120 100 20;
+	--green-2: 120 100 36;
+	--green-3: 120 100 52;
+	--green-4: 120 100 68;
+
+	--orange-1: 30 100 20;
+	--orange-2: 30 100 36;
+	--orange-3: 30 100 52;
+	--orange-4: 30 100 68;
+
+	--violet-1: 270 100 20;
+	--violet-2: 270 100 36;
+	--violet-3: 270 100 52;
+	--violet-4: 270 100 68;
+
+	--emerald-1: 140 100 20;
+	--emerald-2: 140 100 36;
+	--emerald-3: 140 100 52;
+	--emerald-4: 140 100 68;
+
+	--sky-1: 200 100 20;
+	--sky-2: 200 100 36;
+	--sky-3: 200 100 52;
+	--sky-4: 200 100 68;
+
+	--amber-1: 45 100 20;
+	--amber-2: 45 100 36;
+	--amber-3: 45 100 52;
+	--amber-4: 45 100 68;
+
+	--purple-1: 290 100 20;
+	--purple-2: 290 100 36;
+	--purple-3: 290 100 52;
+	--purple-4: 290 100 68;
+
+	--teal-1: 165 100 20;
+	--teal-2: 165 100 36;
+	--teal-3: 165 100 52;
+	--teal-4: 165 100 68;
+
+	--lime-1: 85 100 20;
+	--lime-2: 85 100 36;
+	--lime-3: 85 100 52;
+	--lime-4: 85 100 68;
+
+	--rose-1: 345 100 20;
+	--rose-2: 345 100 36;
+	--rose-3: 345 100 52;
+	--rose-4: 345 100 68;
+
+	--periwinkle-1: 230 85 20;
+	--periwinkle-2: 230 85 36;
+	--periwinkle-3: 230 85 52;
+	--periwinkle-4: 230 85 68;
+
+	--seafoam-1: 150 85 20;
+	--seafoam-2: 150 85 36;
+	--seafoam-3: 150 85 52;
+	--seafoam-4: 150 85 68;
+
+	--coral-1: 15 90 20;
+	--coral-2: 15 90 36;
+	--coral-3: 15 90 52;
+	--coral-4: 15 90 68;
+
+	--mauve-1: 300 30 20;
+	--mauve-2: 300 30 36;
+	--mauve-3: 300 30 52;
+	--mauve-4: 300 30 68;
+
+	--aubergine-1: 320 50 20;
+	--aubergine-2: 320 50 36;
+	--aubergine-3: 320 50 52;
+	--aubergine-4: 320 50 68;
+
+	--turquoise-1: 175 95 20;
+	--turquoise-2: 175 95 36;
+	--turquoise-3: 175 95 52;
+	--turquoise-4: 175 95 68;
+
+	--plum-1: 285 45 20;
+	--plum-2: 285 45 36;
+	--plum-3: 285 45 52;
+	--plum-4: 285 45 68;
+
+	--sage-1: 95 35 20;
+	--sage-2: 95 35 36;
+	--sage-3: 95 35 52;
+	--sage-4: 95 35 68;
+
+	/* pastel colors */
+	--pastel-peach-1: 25 35 75;
+	--pastel-peach-2: 25 35 80;
+	--pastel-peach-3: 25 35 85;
+	--pastel-peach-4: 25 35 90;
+
+	--pastel-yellow-1: 45 35 75;
+	--pastel-yellow-2: 45 35 80;
+	--pastel-yellow-3: 45 35 85;
+	--pastel-yellow-4: 45 35 90;
+
+	--pastel-lilac-1: 285 25 75;
+	--pastel-lilac-2: 285 25 80;
+	--pastel-lilac-3: 285 25 85;
+	--pastel-lilac-4: 285 25 90;
+
+	--pastel-aqua-1: 180 30 75;
+	--pastel-aqua-2: 180 30 80;
+	--pastel-aqua-3: 180 30 85;
+	--pastel-aqua-4: 180 30 90;
+
+	--pastel-pink-1: 350 30 75;
+	--pastel-pink-2: 350 30 80;
+	--pastel-pink-3: 350 30 85;
+	--pastel-pink-4: 350 30 90;
+
+	--pastel-blue-1: 210 35 75;
+	--pastel-blue-2: 210 35 80;
+	--pastel-blue-3: 210 35 85;
+	--pastel-blue-4: 210 35 90;
+
+	--pastel-lavender-1: 270 25 75;
+	--pastel-lavender-2: 270 25 80;
+	--pastel-lavender-3: 270 25 85;
+	--pastel-lavender-4: 270 25 90;
+
+	--pastel-mint-1: 150 30 75;
+	--pastel-mint-2: 150 30 80;
+	--pastel-mint-3: 150 30 85;
+	--pastel-mint-4: 150 30 90;
+
+	--pastel-pistachio-1: 95 30 75;
+	--pastel-pistachio-2: 95 30 80;
+	--pastel-pistachio-3: 95 30 85;
+	--pastel-pistachio-4: 95 30 90;
+
+	--pastel-wisteria-1: 280 30 75;
+	--pastel-wisteria-2: 280 30 80;
+	--pastel-wisteria-3: 280 30 85;
+	--pastel-wisteria-4: 280 30 90;
+
+	--pastel-sky-1: 195 30 75;
+	--pastel-sky-2: 195 30 80;
+	--pastel-sky-3: 195 30 85;
+	--pastel-sky-4: 195 30 90;
+
+	--pastel-apricot-1: 20 35 75;
+	--pastel-apricot-2: 20 35 80;
+	--pastel-apricot-3: 20 35 85;
+	--pastel-apricot-4: 20 35 90;
+
+	--pastel-rose-1: 330 30 75;
+	--pastel-rose-2: 330 30 80;
+	--pastel-rose-3: 330 30 85;
+	--pastel-rose-4: 330 30 90;
+
+	/* funky colors */
+	--toxic-green-1: 150 100 25;
+	--toxic-green-2: 150 100 40;
+	--toxic-green-3: 150 100 55;
+	--toxic-green-4: 150 100 70;
+
+	--electric-blue-1: 195 100 25;
+	--electric-blue-2: 195 100 40;
+	--electric-blue-3: 195 100 55;
+	--electric-blue-4: 195 100 70;
+
+	--neon-orange-1: 25 100 25;
+	--neon-orange-2: 25 100 40;
+	--neon-orange-3: 25 100 55;
+	--neon-orange-4: 25 100 70;
+
+	--plasma-pink-1: 315 100 25;
+	--plasma-pink-2: 315 100 40;
+	--plasma-pink-3: 315 100 55;
+	--plasma-pink-4: 315 100 70;
+
+	--electric-purple-1: 290 100 25;
+	--electric-purple-2: 290 100 40;
+	--electric-purple-3: 290 100 55;
+	--electric-purple-4: 290 100 70;
+
+	--neon-green-1: 105 100 25;
+	--neon-green-2: 105 100 40;
+	--neon-green-3: 105 100 55;
+	--neon-green-4: 105 100 70;
+
+	--hot-pink-1: 330 100 25;
+	--hot-pink-2: 330 100 40;
+	--hot-pink-3: 330 100 55;
+	--hot-pink-4: 330 100 70;
+
+	--acid-yellow-1: 65 100 25;
+	--acid-yellow-2: 65 100 40;
+	--acid-yellow-3: 65 100 55;
+	--acid-yellow-4: 65 100 70;
+
+	--cyber-lime-1: 80 100 25;
+	--cyber-lime-2: 80 100 40;
+	--cyber-lime-3: 80 100 55;
+	--cyber-lime-4: 80 100 70;
+
+	--laser-blue-1: 225 100 25;
+	--laser-blue-2: 225 100 40;
+	--laser-blue-3: 225 100 55;
+	--laser-blue-4: 225 100 70;
+
+	--atomic-tangerine-1: 20 100 25;
+	--atomic-tangerine-2: 20 100 40;
+	--atomic-tangerine-3: 20 100 55;
+	--atomic-tangerine-4: 20 100 70;
+
+	--radioactive-teal-1: 175 100 25;
+	--radioactive-teal-2: 175 100 40;
+	--radioactive-teal-3: 175 100 55;
+	--radioactive-teal-4: 175 100 70;
+
+	--fusion-red-1: 355 100 25;
+	--fusion-red-2: 355 100 40;
+	--fusion-red-3: 355 100 55;
+	--fusion-red-4: 355 100 70;
+
+	--plasma-violet-1: 270 100 25;
+	--plasma-violet-2: 270 100 40;
+	--plasma-violet-3: 270 100 55;
+	--plasma-violet-4: 270 100 70;
+
+	/* Borders */
+	--border-subtle: 0 0 90;
+	--border-default: 0 0 85;
+	--border-medium: 0 0 75;
+	--border-strong: 0 0 65;
+
+	--card: 240 10% 3.9%;
+	--card-foreground: 0 0% 98%;
+	--popover: 240 10% 3.9%;
+	--popover-foreground: 0 0% 98%;
+	--primary: 0 0% 98%;
+	--primary-foreground: 240 5.9% 10%;
+	--secondary: 240 3.7% 15.9%;
+	--secondary-foreground: 0 0% 98%;
+	--muted: 240 3.7% 15.9%;
+	--muted-foreground: 240 5% 64.9%;
+	--accent: 240 3.7% 15.9%;
+	--accent-foreground: 0 0% 98%;
+	--destructive: 0 62.8% 30.6%;
+	--destructive-foreground: 0 0% 98%;
+	--border: 240 3.7% 15.9%;
+	--input: 240 3.7% 15.9%;
+	--ring: 240 4.9% 83.9%;
+	--chart-1: 220 70% 50%;
+	--chart-2: 160 60% 45%;
+	--chart-3: 30 80% 55%;
+	--chart-4: 280 65% 60%;
+	--chart-5: 340 75% 55%;
+	--radius: 0.5rem;
 }
