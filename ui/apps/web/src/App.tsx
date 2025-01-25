@@ -1,10 +1,3 @@
-import './App.css'
-
-function App() {
-
-  return (
-    <div>What is this behaviour</div>
-  )
+export default function App() {
+	return <div className="bg-mint-600">What is this behavior</div>;
 }
-
-export default App
