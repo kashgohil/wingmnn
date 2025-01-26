@@ -21,7 +21,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    "baseUrl": ".",
     "paths": {
+      "@/*": ["./src/*"],
       "@routes/*": ["./src/routes/*"],
       "@services/*": ["./src/services/*"],
       "@hero/*": ["./src/modules/hero/*"],
@@ -40,5 +42,5 @@
       "@wellness/*": ["./src/modules/wellness/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "tailwind.config.js"]
 }
