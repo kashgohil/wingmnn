@@ -3,8 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "workspaces": [
-    "packages/*",
-    "apps/*"
+    "web"
   ],
   "description": "ui for wingmnn app",
   "main": "index.js",
