@@ -2,14 +2,18 @@
 type TSAny = any;
 
 interface BaseDetails {
-  id: string;
-  label: string;
-  description: string;
+	id: string;
+	label: string;
+	description: string;
 }
 
 interface Metadata {
-  createdBy: string;
-  updatedBy: string;
-  createdAt: string;
-  updatedAt: string;
+	createdBy: string;
+	updatedBy: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+interface MapOf<T> {
+	[k: string]: T;
 }
