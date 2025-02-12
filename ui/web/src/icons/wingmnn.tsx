@@ -1,17 +1,12 @@
-export interface IconProps
-  extends React.DetailedHTMLProps<
-    React.SVGAttributes<SVGSVGElement>,
-    SVGSVGElement
-  > {
-  color?: string;
-}
+import { IconProps } from "./types";
+
 export function Wingmnn(props: IconProps) {
-  const { height = 24, width = 24, fill = "currentColor", ...rest } = props;
+  const { fill = "currentColor", ...rest } = props;
+
   return (
     <svg
       {...rest}
       fill={fill}
-      height={height}
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
     >
