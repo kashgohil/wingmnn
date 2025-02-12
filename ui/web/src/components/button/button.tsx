@@ -1,14 +1,42 @@
+import { classVariance } from "@utility/classVariance";
+import { cx } from "@utility/cx";
+
 export interface ButtonProps
   extends React.DetailedHTMLProps<
-    React.HTMLAttributes<HTMLButtonElement>,
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     HTMLButtonElement
   > {
   variant?: "primary" | "secondary";
   size?: "sm" | "md" | "lg";
 }
 
-export function Button(props: ButtonProps) {
-  const { children, ...rest } = props;
+const variantClasses = classVariance({
+  primary: "bg-black-500 text-white-100 hover:bg-black-300",
+  secondary: "bg-white-400 text-black-100 hover:bg-white-700",
+  sm: "px-4 py-2",
+  md: "px-8 py-4",
+  lg: "px-12 py-8",
+});
 
-  return <button {...rest}>{children}</button>;
+export function Button(props: ButtonProps) {
+  const {
+    children,
+    className,
+    size = "md",
+    variant = "primary",
+    ...rest
+  } = props;
+
+  return (
+    <button
+      {...rest}
+      className={cx(
+        "rounded-lg active:scale-95 transition-all duration-100 cursor-pointer focus-within:outline-black-200 focus-within:outline-2 outline-offset-2",
+        variantClasses(variant, size),
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
 }
