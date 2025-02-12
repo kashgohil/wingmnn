@@ -8,22 +8,23 @@
       "name": "web",
       "version": "0.0.0",
       "dependencies": {
-        "@tailwindcss/vite": "^4.0.0",
-        "@tanstack/react-query": "^5.65.0",
-        "@tanstack/react-router": "^1.97.23",
+        "@tailwindcss/vite": "^4.0.3",
+        "@tanstack/react-query": "^5.66.0",
+        "@tanstack/react-router": "^1.99.0",
         "@vitejs/plugin-react": "^4.3.4",
         "babel-plugin-react-compiler": "^19.0.0-beta-27714ef-20250124",
         "lucide-react": "^0.474.0",
         "react": "~19.0.0",
         "react-dom": "~19.0.0",
         "react-scan": "^0.1.1",
-        "tailwindcss": "^4.0.0",
+        "tailwind-merge": "^3.0.1",
+        "tailwindcss": "^4.0.3",
         "vite-tsconfig-paths": "^5.1.4",
       },
       "devDependencies": {
         "@eslint/js": "^9.19.0",
-        "@tanstack/router-devtools": "^1.97.23",
-        "@tanstack/router-plugin": "^1.97.23",
+        "@tanstack/router-devtools": "^1.99.0",
+        "@tanstack/router-plugin": "^1.99.0",
         "@types/react": "~19.0.8",
         "@types/react-dom": "~19.0.3",
         "eslint": "^9.19.0",
@@ -31,7 +32,7 @@
         "eslint-plugin-react-refresh": "^0.4.18",
         "globals": "^15.14.0",
         "typescript": "~5.6.3",
-        "typescript-eslint": "^8.21.0",
+        "typescript-eslint": "^8.22.0",
         "vite": "^6.0.11",
       },
     },
@@ -590,6 +591,8 @@
     "strip-json-comments": ["strip-json-comments@3.1.1", "", {}, "sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig=="],
 
     "supports-color": ["supports-color@7.2.0", "", { "dependencies": { "has-flag": "^4.0.0" } }, "sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw=="],
+
+    "tailwind-merge": ["tailwind-merge@3.0.1", "", {}, "sha512-AvzE8FmSoXC7nC+oU5GlQJbip2UO7tmOhOfQyOmPhrStOGXHU08j8mZEHZ4BmCqY5dWTCo4ClWkNyRNx1wpT0g=="],
 
     "tailwindcss": ["tailwindcss@4.0.3", "", {}, "sha512-ImmZF0Lon5RrQpsEAKGxRvHwCvMgSC4XVlFRqmbzTEDb/3wvin9zfEZrMwgsa3yqBbPqahYcVI6lulM2S7IZAA=="],
 
