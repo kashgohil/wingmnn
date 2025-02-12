@@ -12,6 +12,32 @@
 }
 
 @theme {
+  /* White variants - decreasing lightness with minimal chroma */
+  --color-white-50: oklch(100% 0 0); /* Pure white */
+  --color-white-100: oklch(97% 0 0);
+  --color-white-200: oklch(94% 0 0);
+  --color-white-300: oklch(91% 0 0);
+  --color-white-400: oklch(88% 0 0);
+  --color-white-500: oklch(85% 0 0);
+  --color-white-600: oklch(82% 0 0);
+  --color-white-700: oklch(79% 0 0);
+  --color-white-800: oklch(76% 0 0);
+  --color-white-900: oklch(73% 0 0);
+  --color-white-950: oklch(70% 0 0);
+
+  /* Black variants - very low to low lightness */
+  --color-black-50: oklch(30% 0 0);
+  --color-black-100: oklch(27% 0 0);
+  --color-black-200: oklch(24% 0 0);
+  --color-black-300: oklch(21% 0 0);
+  --color-black-400: oklch(18% 0 0);
+  --color-black-500: oklch(15% 0 0);
+  --color-black-600: oklch(12% 0 0);
+  --color-black-700: oklch(9% 0 0);
+  --color-black-800: oklch(6% 0 0);
+  --color-black-900: oklch(3% 0 0);
+  --color-black-950: oklch(0% 0 0); /* Pure black */
+
   /* Wisteria */
   --color-wisteria-50: oklch(97% 0.02 320);
   --color-wisteria-100: oklch(94% 0.04 320);
@@ -118,4 +144,6 @@
 
   --spacing-*: initial;
   --spacing: 4px;
+
+  --animate-slow-spin: spin 20s linear infinite;
 }
