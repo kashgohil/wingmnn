@@ -1,19 +1,15 @@
 import { Landing } from "@landing/landing";
-import { Outlet } from "@tanstack/react-router";
 import { Navigation } from "@navigation/navigation";
 import { AuthService } from "@services/authService";
+import { Outlet } from "@tanstack/react-router";
 
 export function RouterWrapper() {
   if (AuthService.isAuthenticated()) {
-    return (
-      <div className="w-full h-screen flex">
-        <Landing />
-      </div>
-    );
+    return <Landing />;
   }
 
   return (
-    <div className="w-full h-screen flex">
+    <div className="w-full h-full flex">
       <Navigation />
       <div className="flex-1 overflow-hidden h-full">
         <Outlet />
