@@ -13,24 +13,23 @@ const variant = classVariance({
   horizontal: "h-[2px] flex-1 bg-black",
 });
 
+const parentVariant = classVariance({
+  horizontal: "flex items-center w-full",
+  vertical: "flex flex-col items-center h-full",
+});
+
 export function Separator(props: SeparatorProps) {
   const {
     children,
-    orientation = "horizontal",
-    className,
     content,
+    className,
+    orientation = "horizontal",
     ...rest
   } = props;
 
   if (!children) {
     return (
-      <div
-        className={cx(
-          orientation === "horizontal"
-            ? "flex items-center w-full"
-            : "flex flex-col items-center h-full",
-        )}
-      >
+      <div className={parentVariant(orientation)}>
         <div className={cx(variant(orientation), className)} {...rest}></div>
         {content ? (
           <>
