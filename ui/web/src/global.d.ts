@@ -2,18 +2,24 @@
 type TSAny = any;
 
 interface BaseDetails {
-	id: string;
-	label: string;
-	description: string;
+  id: string;
+  label: string;
+  description: string;
 }
 
 interface Metadata {
-	createdBy: string;
-	updatedBy: string;
-	createdAt: string;
-	updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface MapOf<T> {
-	[k: string]: T;
+  [k: string]: T;
+}
+
+interface Option extends BaseDetails, Metadata {
+  type: "value" | "heading";
+  iconCode?: string;
+  colorCode?: string;
 }
