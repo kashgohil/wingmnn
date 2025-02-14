@@ -1,12 +1,12 @@
 import "./index.css";
 
-import { scan } from "react-scan";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { scan } from "react-scan";
 
-import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "@routes/routeTree";
 import { QueryClient } from "@tanstack/react-query";
+import { createRouter, RouterProvider } from "@tanstack/react-router";
 
 const queryClient = new QueryClient();
 
