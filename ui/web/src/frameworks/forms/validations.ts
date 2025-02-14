@@ -21,8 +21,12 @@ import {
 import { forEachArray } from "@utility/forEach";
 
 export type ValidationResult =
-  | { valid: true; error: undefined }
-  | { valid: false; error: string };
+  | {
+      valid: true;
+      error: undefined;
+      childValidations?: Array<ValidationResult>;
+    }
+  | { valid: false; error: string; childValidations?: Array<ValidationResult> };
 
 export const Validations = (function () {
   // private
@@ -157,10 +161,10 @@ export const Validations = (function () {
     const { validations, dataType } = field;
     switch (dataType) {
       case DataType.STRING:
+      case DataType.PASSWORD:
         return _string(value, validations);
-      case DataType.NUMBER: {
+      case DataType.NUMBER:
         return _number(value, validations);
-      }
     }
   }
 
@@ -192,18 +196,19 @@ export const Validations = (function () {
 
     let ans: boolean = baseValidation.valid;
     let error: string | undefined = "";
+    const childValidations: Array<ValidationResult> = [];
 
     forEachArray(childFields, (childField) => {
       const validation = validate(childField, value[childField.id]);
+      childValidations.push(validation);
       ans &&= validation.valid;
       error = validation.error;
-      if (!ans) return false;
     });
 
     if (ans) {
-      return { valid: true, error: undefined };
+      return { valid: true, error: undefined, childValidations };
     } else {
-      return { valid: false, error };
+      return { valid: false, error, childValidations };
     }
   }
 

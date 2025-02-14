@@ -15,6 +15,7 @@ export enum DataType {
   STRING = "STRING",
   NUMBER = "NUMBER",
   BOOLEAN = "BOOLEAN",
+  PASSWORD = "PASSWORD",
   COMPOSITE = "COMPOSITE",
 
   LIST_OF_STRING = "LIST_OF_STRING",
@@ -41,9 +42,9 @@ export interface DateTimeValidations extends BaseValidations {
   max: number;
 }
 
-interface Option extends BaseDetails, Metadata {}
-
-interface BaseField extends BaseDetails, Metadata {}
+interface BaseField extends BaseDetails, Metadata {
+  remark?: string;
+}
 
 interface SingleSelectField extends BaseField {
   type: FieldType.SELECT;
@@ -75,8 +76,8 @@ export interface RadioField extends BaseField {
 
 interface TextInputField extends BaseField {
   type: FieldType.INPUT;
-  dataType: DataType.STRING;
   validations: StringValidations;
+  dataType: DataType.STRING | DataType.PASSWORD;
 }
 
 interface NumberInputField extends BaseField {
@@ -147,12 +148,12 @@ export type Field =
 
 export type FieldTypeMap = {
   [FieldType.SELECT]: SelectField;
-  [FieldType.INPUT]: SelectField;
-  [FieldType.RADIO]: SelectField;
-  [FieldType.RICH_TEXT]: SelectField;
-  [FieldType.CHECKBOX]: SelectField;
-  [FieldType.COMPOSITE]: SelectField;
-  [FieldType.DATE]: SelectField;
-  [FieldType.TIME]: SelectField;
-  [FieldType.DATE_TIME]: SelectField;
+  [FieldType.INPUT]: InputField;
+  [FieldType.RADIO]: RadioField;
+  [FieldType.RICH_TEXT]: RichTextField;
+  [FieldType.CHECKBOX]: CheckboxField;
+  [FieldType.COMPOSITE]: CompositeField;
+  [FieldType.DATE]: DateField;
+  [FieldType.TIME]: TimeField;
+  [FieldType.DATE_TIME]: DateTimeField;
 };

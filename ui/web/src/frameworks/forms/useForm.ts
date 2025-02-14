@@ -29,9 +29,14 @@ export function useForm(
 
   const formData = useMemo(() => {
     const validations: FormData["validations"] = {};
+    const isDirty = someObj(dirty, (value) => value);
 
     forEachArray(fields, (field) => {
-      validations[field.id] = Validations.field(field, values[field.id]);
+      if (dirty[field.id]) {
+        validations[field.id] = Validations.field(field, values[field.id]);
+      } else {
+        validations[field.id] = { valid: true, error: undefined };
+      }
     });
 
     return {
@@ -39,13 +44,14 @@ export function useForm(
       values,
       validations,
 
-      isDirty: someObj(dirty, (value) => value),
-      isValid: everyObj(validations, (validation) => validation.valid),
+      isDirty,
+      isValid:
+        isDirty && everyObj(validations, (validation) => validation.valid),
     };
   }, [fields, values, dirty]);
 
   const checkDirty = useCallback((fieldId: string, value: TSAny) => {
-    return isEqual(value, initialValuesRef.current[fieldId]);
+    return !isEqual(value, initialValuesRef.current[fieldId]);
   }, []);
 
   const update = useCallback(
