@@ -15,6 +15,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kashgohil/wingmnn/backend/modules/auth"
 	"github.com/kashgohil/wingmnn/backend/server"
+	"github.com/kashgohil/wingmnn/backend/utility/cookie"
 )
 
 func main() {
@@ -44,16 +45,63 @@ func main() {
 	server.Server.Use(middleware.URLFormat)
 	server.Server.Use(middleware.Timeout(60 * time.Second))
 
+	// middleware to check csrf token
+	server.Server.Use(func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			CSRFToken := r.Header.Get("X-CSRF-Token")
+			CSRFCookie, err := r.Cookie("csrf_token")
+
+			if err != nil {
+				log.Println("[CSRF] cannot extract csrf cookie from request", err)
+				cookie.RemoveCookie(w, "csrf_token")
+				cookie.RemoveCookie(w, "auth_token")
+				cookie.RemoveCookie(w, "refresh_token")
+				http.Error(w, "unauthorized access. redirecting you to login page", http.StatusUnauthorized)
+				return
+			}
+
+			if CSRFToken == "" {
+				log.Println("[CSRF] no csrf token found in request header")
+				cookie.RemoveCookie(w, "csrf_token")
+				cookie.RemoveCookie(w, "auth_token")
+				cookie.RemoveCookie(w, "refresh_token")
+				http.Error(w, "unauthorized access. redirecting you to login page", http.StatusUnauthorized)
+				return
+			}
+
+			if CSRFCookie.Value == "" {
+				log.Println("[CSRF] no csrf cookie found in request")
+				cookie.RemoveCookie(w, "csrf_token")
+				cookie.RemoveCookie(w, "auth_token")
+				cookie.RemoveCookie(w, "refresh_token")
+				http.Error(w, "unauthorized access. redirecting you to login page", http.StatusUnauthorized)
+				return
+			}
+
+			if CSRFCookie.Value != CSRFToken {
+				log.Println("[CSRF] mismatching csrf token")
+				cookie.RemoveCookie(w, "csrf_token")
+				cookie.RemoveCookie(w, "auth_token")
+				cookie.RemoveCookie(w, "refresh_token")
+				http.Error(w, "unauthorized access. redirecting you to login page", http.StatusUnauthorized)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(fn)
+	})
+
 	server.Server.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
 
-	auth.Auth()
+	auth.Endpoints()
 
 	log.Println("server running on port: ", os.Getenv("PORT"))
 	http.ListenAndServe(":"+os.Getenv("PORT"), server.Server)
