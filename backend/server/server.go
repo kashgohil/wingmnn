@@ -8,3 +8,5 @@ import (
 var Server *chi.Mux
 
 var DBPool *pgxpool.Pool
+
+const UserID = "user_id"
