@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/kashgohil/wingmnn/backend/modules/user"
 	"github.com/kashgohil/wingmnn/backend/utility"
 	"github.com/kashgohil/wingmnn/backend/utility/query"
@@ -38,13 +37,15 @@ func login(w http.ResponseWriter, r *http.Request) {
 		query.NewCondition("username", []interface{}{req.Username}, query.Eq),
 	})
 
-	if err == pgx.ErrNoRows {
-		log.Println("[AUTH][LOGIN] no user found for username: ", req.Username)
-		http.Error(w, "no user found. please make sure you have registered", http.StatusUnauthorized)
-		return
-	} else if err != nil {
+	if err != nil {
 		log.Println("[AUTH][LOGIN] something went wrong: ", err)
 		http.Error(w, "Server error", http.StatusInternalServerError)
+		return
+	}
+
+	if len(users) == 0 {
+		log.Println("[AUTH][LOGIN] no user found for username: ", req.Username)
+		http.Error(w, "no user found. please make sure you have registered", http.StatusUnauthorized)
 		return
 	}
 
@@ -83,7 +84,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "auth-token",
+		Name:     "auth_token",
 		Value:    token,
 		Expires:  expiry.Add(time.Hour),
 		SameSite: http.SameSiteStrictMode,
@@ -91,7 +92,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh-token",
+		Name:     "refresh_token",
 		Value:    refreshToken,
 		Expires:  time.Now().Add(24 * 7 * time.Hour),
 		HttpOnly: true,
@@ -160,7 +161,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "auth-token",
+		Name:     "auth_token",
 		Value:    token,
 		Expires:  expiry.Add(time.Hour),
 		SameSite: http.SameSiteStrictMode,
@@ -168,7 +169,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh-token",
+		Name:     "refresh_token",
 		Value:    refreshToken,
 		Expires:  time.Now().Add(24 * 7 * time.Hour),
 		HttpOnly: true,
