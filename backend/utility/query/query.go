@@ -50,13 +50,14 @@ type query[T any] struct {
 
 func NewQuery[T any](Table tables.TableNames, Operation TableOperation) *query[T] {
 	return &query[T]{
-		Table:      Table,
-		Operation:  Operation,
-		Fields:     []string{"*"},
-		Conditions: []Condition{},
-		Actions:    []Action{},
-		OrderBy:    "",
-		GroupBy:    "",
+		Table:       Table,
+		Operation:   Operation,
+		Fields:      []string{"*"},
+		Conditions:  []Condition{},
+		Actions:     []Action{},
+		OrderBy:     "",
+		GroupBy:     "",
+		paramsCount: 1,
 	}
 }
 
@@ -79,13 +80,13 @@ func (q *query[T]) hardDeleteOperation() (string, []interface{}) {
 	return fmt.Sprintf("DELETE FROM %s WHERE %s", q.Table, conditions), values
 }
 
-func (q *query[T]) softDeleteOperation() (string, []interface{}) {
+func (q *query[T]) softDeleteOperation(context context.Context) (string, []interface{}) {
 	q.AddAction(NewAction(deleted, true, Set))
-	return q.updateOperation()
+	return q.updateOperation(context)
 }
 
-func (q *query[T]) updateOperation() (string, []interface{}) {
-	userID := context.Background().Value(server.UserID)
+func (q *query[T]) updateOperation(context context.Context) (string, []interface{}) {
+	userID := context.Value(server.UserID)
 
 	q.AddAction(NewAction(updatedBy, userID, Set))
 	q.AddAction(NewAction(updatedAt, time.Now().UnixMilli(), Set))
@@ -95,8 +96,11 @@ func (q *query[T]) updateOperation() (string, []interface{}) {
 	return fmt.Sprintf("UPDATE %s SET %s WHERE %s RETURNING %s", q.Table, actionFields, conditions, strings.Join(conversion.GetDBTags[T](q.Fields), ", ")), append(values, conditionValues...)
 }
 
-func (q *query[T]) insertOperation() (string, []interface{}) {
-	userID := context.Background().Value(server.UserID)
+func (q *query[T]) insertOperation(context context.Context) (string, []interface{}) {
+	userID, ok := context.Value(server.UserID).(string)
+	if !ok {
+		userID = "SYSTEM"
+	}
 
 	q.AddAction(NewAction(id, uuid.New().String(), Set))
 	q.AddAction(NewAction(createdBy, userID, Set))
@@ -108,16 +112,16 @@ func (q *query[T]) insertOperation() (string, []interface{}) {
 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) RETURNING %s", q.Table, actionFields, actionValues, strings.Join(conversion.GetDBTags[T](q.Fields), ", ")), values
 }
 
-func (q *query[T]) Build() (string, []interface{}) {
+func (q *query[T]) Build(context context.Context) (string, []interface{}) {
 	switch q.Operation {
 	case "SELECT":
 		return q.selectOperation()
 	case "INSERT":
-		return q.insertOperation()
+		return q.insertOperation(context)
 	case "UPDATE":
-		return q.updateOperation()
+		return q.updateOperation(context)
 	case "DELETE":
-		return q.softDeleteOperation()
+		return q.softDeleteOperation(context)
 	default:
 		return "", nil
 	}

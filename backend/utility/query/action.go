@@ -41,10 +41,10 @@ func (q *query[T]) buildActions() (string, string, []interface{}) {
 		values := []interface{}{}
 
 		for _, action := range q.Actions {
-			q.paramsCount++
 			actionFields = append(actionFields, conversion.GetDBTag[T](action.Field))
 			actionValues = append(actionValues, fmt.Sprintf("$%d", q.paramsCount))
 			values = append(values, action.Value)
+			q.paramsCount++
 		}
 
 		return strings.Join(actionFields, ", "), strings.Join(actionValues, ", "), values
@@ -53,7 +53,6 @@ func (q *query[T]) buildActions() (string, string, []interface{}) {
 		updateQuery := []string{}
 		values := []interface{}{}
 		for _, action := range q.Actions {
-			q.paramsCount++
 			switch action.Type {
 			case Set:
 				updateQuery = append(updateQuery, fmt.Sprintf("%s = $%d", conversion.GetDBTag[T](action.Field), q.paramsCount))
@@ -66,6 +65,7 @@ func (q *query[T]) buildActions() (string, string, []interface{}) {
 				updateQuery = append(updateQuery, fmt.Sprintf("%s = $%d", conversion.GetDBTag[T](action.Field), q.paramsCount))
 				values = append(values, action.Value)
 			}
+			q.paramsCount++
 		}
 		return strings.Join(updateQuery, ", "), "", values
 

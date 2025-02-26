@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-
-	"github.com/kashgohil/wingmnn/backend/utility/conversion"
 )
 
 type Operator string
@@ -83,16 +81,40 @@ func (q *query[T]) buildConditions() (string, []interface{}) {
 	values := []interface{}{}
 
 	for _, condition := range q.Conditions {
-		q.paramsCount++
 		sqlOperator := OPERATORS[condition.Operator]
+		var conditionValue interface{}
+
+		switch condition.Operator {
+		case In:
+		case NotIn:
+			conditionValue = condition.Value
+		default:
+			conditionValue = condition.Value[0]
+		}
+
+		var clause string
+		switch condition.Operator {
+		case In:
+		case NotIn:
+			var clauses []string
+			for _, v := range condition.Value {
+				clauses = append(clauses, fmt.Sprintf("$%d", q.paramsCount))
+				values = append(values, v)
+				q.paramsCount++
+			}
+			clause = `(` + strings.Join(clauses, ", ") + `)`
+		default:
+			clause = fmt.Sprintf("$%d", q.paramsCount)
+		}
 
 		if sqlOperator == "" {
 			log.Println("Invalid operator: ", q.Operation, " Defaulting to '='")
 			sqlOperator = "="
 		}
 
-		conditionQuery = append(conditionQuery, fmt.Sprintf("%s %s $%d", conversion.GetDBTag[T](condition.Field), sqlOperator, q.paramsCount))
-		values = append(values, condition.Value)
+		conditionQuery = append(conditionQuery, fmt.Sprintf("%s %s %s", condition.Field, sqlOperator, clause))
+		values = append(values, conditionValue)
+		q.paramsCount++
 	}
 	return strings.Join(conditionQuery, " AND "), values
 }
