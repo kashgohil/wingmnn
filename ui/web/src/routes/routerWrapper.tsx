@@ -4,7 +4,7 @@ import { AuthService } from "@services/authService";
 import { Outlet } from "@tanstack/react-router";
 
 export function RouterWrapper() {
-  if (AuthService.isAuthenticated()) {
+  if (!AuthService.isAuthenticated()) {
     return <Landing />;
   }
 
