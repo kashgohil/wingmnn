@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
@@ -9,8 +10,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/kashgohil/wingmnn/backend/modules/user"
+	"github.com/kashgohil/wingmnn/backend/server"
 	"github.com/kashgohil/wingmnn/backend/utility"
 	"github.com/kashgohil/wingmnn/backend/utility/query"
 	"golang.org/x/oauth2"
@@ -52,6 +53,9 @@ func googleCallback(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")
 
+	ctx := context.WithValue(r.Context(), server.UserID, "SYSTEM")
+	r = r.WithContext(ctx)
+
 	if !validateState(state) { // Implement state validation
 		log.Println("[AUTH][CALLBACK][GOOGLE] invalid state in callback url", http.StatusBadRequest)
 		http.Error(w, "something went wrong while logging you in", http.StatusBadRequest)
@@ -87,19 +91,21 @@ func googleCallback(w http.ResponseWriter, r *http.Request) {
 
 	users, err := user.Get(r.Context(), []query.Condition{query.NewCondition("email", []interface{}{userInfo["email"]}, query.Eq)})
 
-	if err != nil && err != pgx.ErrNoRows {
+	if err != nil {
 		log.Println("[AUTH][CALLBACK][GOOGLE] could not get user: ", err, http.StatusInternalServerError)
 		http.Error(w, "something went wrong while looging you in", http.StatusInternalServerError)
 		return
 	}
 
-	if err == pgx.ErrNoRows {
+	if len(users) == 0 {
 		actions := []query.Action{
-			query.NewAction("email", []interface{}{userInfo["email"]}, query.Set),
-			query.NewAction("name", []interface{}{userInfo["name"]}, query.Set),
-			query.NewAction("profilePicture", []interface{}{userInfo["picture"]}, query.Set),
-			query.NewAction("verifiedEmail", []interface{}{userInfo["verified_email"].(bool)}, query.Set),
+			query.NewAction("name", userInfo["name"].(string), query.Set),
+			query.NewAction("email", userInfo["email"].(string), query.Set),
+			query.NewAction("username", userInfo["name"].(string), query.Set),
+			query.NewAction("profilePicture", userInfo["picture"].(string), query.Set),
+			query.NewAction("verifiedEmail", userInfo["verified_email"].(bool), query.Set),
 		}
+
 		users, err = user.Create(r.Context(), actions)
 		if err != nil {
 			log.Println("[AUTH][CALLBACK][GOOGLE] could not create user: ", err, http.StatusInternalServerError)
@@ -137,7 +143,7 @@ func googleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "auth-token",
+		Name:     "auth_token",
 		Value:    jwtToken,
 		Expires:  expiry.Add(time.Hour),
 		SameSite: http.SameSiteStrictMode,
@@ -145,7 +151,7 @@ func googleCallback(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh-token",
+		Name:     "refresh_token",
 		Value:    refreshToken,
 		Expires:  time.Now().Add(24 * 7 * time.Hour),
 		HttpOnly: true,
