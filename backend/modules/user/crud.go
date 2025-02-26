@@ -62,9 +62,9 @@ func updateByID(r *http.Request) ([]User, error) {
 
 	q.AddCondition(query.NewCondition("id", []interface{}{id}, query.Eq))
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	updatedUsers, err := pgx.CollectRows(rows, pgx.RowToStructByName[User])
 
@@ -96,9 +96,9 @@ func get(r *http.Request) ([]User, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	foundUsers, err := pgx.CollectRows(rows, pgx.RowToStructByName[User])
 
@@ -117,9 +117,9 @@ func create(r *http.Request) ([]User, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	createdUsers, err := pgx.CollectRows(rows, pgx.RowToStructByName[User])
 
@@ -138,9 +138,9 @@ func update(r *http.Request) ([]User, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	updatedUsers, err := pgx.CollectRows(rows, pgx.RowToStructByName[User])
 
@@ -159,9 +159,9 @@ func delete(r *http.Request) ([]User, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	deletedUsers, err := pgx.CollectRows(rows, pgx.RowToStructByName[User])
 

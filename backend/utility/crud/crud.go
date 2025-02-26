@@ -26,7 +26,7 @@ func (c *CRUD[T]) Create(context context.Context, actions []query.Action) ([]T, 
 		q.AddAction(action)
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(context)
 
 	rows, err := server.DBPool.Query(context, sql, values...)
 
@@ -46,7 +46,7 @@ func (c *CRUD[T]) Delete(context context.Context, conditions []query.Condition) 
 		q.AddCondition(condition)
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(context)
 
 	rows, err := server.DBPool.Query(context, sql, values...)
 
@@ -70,7 +70,7 @@ func (c *CRUD[T]) Update(context context.Context, conditions []query.Condition, 
 		q.AddAction(action)
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(context)
 
 	rows, err := server.DBPool.Query(context, sql, values...)
 
@@ -90,7 +90,7 @@ func (c *CRUD[T]) Get(context context.Context, conditions []query.Condition) ([]
 		q.AddCondition(condition)
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(context)
 
 	rows, err := server.DBPool.Query(context, sql, values...)
 

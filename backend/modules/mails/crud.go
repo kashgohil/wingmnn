@@ -40,7 +40,7 @@ func getByID(r *http.Request) ([]Mail, error) {
 		return nil, fmt.Errorf("id is required")
 	}
 
-	return Get(context.Background(), []query.Condition{query.NewCondition("id", []interface{}{id}, query.Eq)})
+	return Get(r.Context(), []query.Condition{query.NewCondition("id", []interface{}{id}, query.Eq)})
 }
 
 func updateByID(r *http.Request) ([]Mail, error) {
@@ -60,9 +60,9 @@ func updateByID(r *http.Request) ([]Mail, error) {
 
 	q.AddCondition(query.NewCondition("id", []interface{}{id}, query.Eq))
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	updatedMails, err := pgx.CollectRows(rows, pgx.RowToStructByName[Mail])
 
@@ -81,7 +81,7 @@ func deleteByID(r *http.Request) ([]Mail, error) {
 		return nil, fmt.Errorf("id is required")
 	}
 
-	return Delete(context.Background(), []query.Condition{query.NewCondition("id", []interface{}{id}, query.Eq)})
+	return Delete(r.Context(), []query.Condition{query.NewCondition("id", []interface{}{id}, query.Eq)})
 }
 
 func get(r *http.Request) ([]Mail, error) {
@@ -92,9 +92,9 @@ func get(r *http.Request) ([]Mail, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	mails, err := pgx.CollectRows(rows, pgx.RowToStructByName[Mail])
 
@@ -113,9 +113,9 @@ func update(r *http.Request) ([]Mail, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	mails, err := pgx.CollectRows(rows, pgx.RowToStructByName[Mail])
 
@@ -134,9 +134,9 @@ func create(r *http.Request) ([]Mail, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	mails, err := pgx.CollectRows(rows, pgx.RowToStructByName[Mail])
 
@@ -155,9 +155,9 @@ func delete(r *http.Request) ([]Mail, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	mails, err := pgx.CollectRows(rows, pgx.RowToStructByName[Mail])
 

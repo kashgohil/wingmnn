@@ -62,9 +62,9 @@ func updateByID(r *http.Request) ([]Project, error) {
 
 	q.AddCondition(query.NewCondition("id", []interface{}{id}, query.Eq))
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
-	rows, err := server.DBPool.Query(context.Background(), sql, values...)
+	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
 	updatedProjects, err := pgx.CollectRows(rows, pgx.RowToStructByName[Project])
 
@@ -96,7 +96,7 @@ func get(r *http.Request) ([]Project, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
 	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
@@ -117,7 +117,7 @@ func create(r *http.Request) ([]Project, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
 	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
@@ -138,7 +138,7 @@ func update(r *http.Request) ([]Project, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
 	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
@@ -159,7 +159,7 @@ func delete(r *http.Request) ([]Project, error) {
 		return nil, err
 	}
 
-	sql, values := q.Build()
+	sql, values := q.Build(r.Context())
 
 	rows, err := server.DBPool.Query(r.Context(), sql, values...)
 
