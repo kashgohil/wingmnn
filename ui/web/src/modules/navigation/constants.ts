@@ -1,6 +1,6 @@
 export enum Modules {
-  FEEDS = "FEEDS",
   MAILS = "MAILS",
+  FEEDS = "FEEDS",
   MESSAGES = "MESSAGES",
   CALENDAR = "CALENDAR",
   PROJECTS = "PROJECTS",
