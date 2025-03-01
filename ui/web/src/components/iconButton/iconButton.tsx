@@ -1,13 +1,15 @@
 import { Button, ButtonProps } from "@components/button/button";
+import { cx } from "@utility/cx";
 import { LucideProps } from "lucide-react";
 
 export interface IconButtonProps extends ButtonProps {
   icon: React.JSXElementConstructor<LucideProps>;
   shape?: "circle" | "rounded" | "square";
+  iconProps?: LucideProps;
 }
 
 export function IconButton(props: IconButtonProps) {
-  const { icon: Icon, shape = "rounded", ...rest } = props;
+  const { icon: Icon, shape = "rounded", className, ...rest } = props;
 
   if (!Icon) return null;
 
@@ -15,17 +17,23 @@ export function IconButton(props: IconButtonProps) {
     return (
       <Button
         {...rest}
-        className="flex items-center justify-center rounded-full"
+        className={cx(
+          "flex items-center justify-center rounded-full",
+          className,
+        )}
       >
-        <Icon />
+        <Icon {...props.iconProps} />
       </Button>
     );
   }
 
   if (shape === "rounded") {
     return (
-      <Button {...rest} className="flex items-center justify-center rounded-lg">
-        <Icon />
+      <Button
+        {...rest}
+        className={cx("flex items-center justify-center rounded-lg", className)}
+      >
+        <Icon {...props.iconProps} />
       </Button>
     );
   }
@@ -34,9 +42,12 @@ export function IconButton(props: IconButtonProps) {
     return (
       <Button
         {...rest}
-        className="flex items-center justify-center rounded-none"
+        className={cx(
+          "flex items-center justify-center rounded-none",
+          className,
+        )}
       >
-        <Icon />
+        <Icon {...props.iconProps} />
       </Button>
     );
   }
