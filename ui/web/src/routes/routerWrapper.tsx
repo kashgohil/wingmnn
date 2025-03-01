@@ -9,9 +9,9 @@ export function RouterWrapper() {
   }
 
   return (
-    <div className="w-full h-full flex">
+    <div className="w-full h-full p-2 flex">
       <Navigation />
-      <div className="flex-1 overflow-hidden h-full">
+      <div className="flex-1 overflow-hidden">
         <Outlet />
       </div>
     </div>
