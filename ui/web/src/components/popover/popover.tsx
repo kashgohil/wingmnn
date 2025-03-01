@@ -1,18 +1,28 @@
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
+import { AnimatePresence, HTMLMotionProps, motion } from "motion/react";
 import React from "react";
 import { createPortal } from "react-dom";
 
 export interface PopoverProps
-  extends React.DetailedHTMLProps<
-    React.HTMLAttributes<HTMLDivElement>,
-    HTMLDivElement
+  extends Omit<
+    HTMLMotionProps<"div">,
+    "onAnimationStart" | "onDrag" | "onDragStart" | "onDragEnd"
   > {
   open: boolean;
   onClose(): void;
   anchor: React.RefObject<HTMLElement | null>;
-  placement: "top-left" | "bottom-left" | "top-right" | "bottom-right";
+  placement:
+    | "top-left"
+    | "bottom-left"
+    | "top-right"
+    | "bottom-right"
+    | "left"
+    | "right"
+    | "top"
+    | "bottom";
   variant?: "compact" | "normal";
+  root?: "popover-root" | "tooltip-root";
 }
 
 const variantClasses = classVariance({
@@ -22,6 +32,10 @@ const variantClasses = classVariance({
   "bottom-left": "origin-top-left",
   "top-right": "origin-bottom-right",
   "bottom-right": "origin-top-right",
+  right: "origin-left",
+  left: "origin-right",
+  bottom: "origin-top",
+  top: "origin-bottom",
 });
 
 export function Popover(props: PopoverProps) {
@@ -34,6 +48,7 @@ export function Popover(props: PopoverProps) {
     onKeyDown,
     variant = "normal",
     className,
+    root = "popover-root",
     ...rest
   } = props;
 
@@ -41,7 +56,7 @@ export function Popover(props: PopoverProps) {
 
   const popoverRef = React.useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const updatePosition = () => {
       if (!anchor.current || !popoverRef.current) return;
 
@@ -67,6 +82,22 @@ export function Popover(props: PopoverProps) {
         case "bottom-right":
           top = anchorRect.bottom;
           left = anchorRect.right - popoverRect.width;
+          break;
+        case "top":
+          top = anchorRect.top - popoverRect.height;
+          left = anchorRect.left + (anchorRect.width - popoverRect.width) / 2;
+          break;
+        case "bottom":
+          top = anchorRect.bottom;
+          left = anchorRect.left + (anchorRect.width - popoverRect.width) / 2;
+          break;
+        case "left":
+          top = anchorRect.top + (anchorRect.height - popoverRect.height) / 2;
+          left = anchorRect.left - popoverRect.width;
+          break;
+        case "right":
+          top = anchorRect.top + (anchorRect.height - popoverRect.height) / 2;
+          left = anchorRect.right;
           break;
       }
 
@@ -119,25 +150,31 @@ export function Popover(props: PopoverProps) {
     [onClose, onKeyDown],
   );
 
-  if (!open) return null;
-
-  const popoverRoot = document.getElementById("popoverRoot");
+  const popoverRoot = document.getElementById(root);
 
   if (!popoverRoot) return null;
 
   return createPortal(
-    <div
-      {...rest}
-      onKeyDown={keydown}
-      style={{ ...rest.style, top: position.top, left: position.left }}
-      className={cx(
-        className,
-        "fixed z-50 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5",
-        variantClasses(placement, variant),
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          exit={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          {...rest}
+          ref={popoverRef}
+          onKeyDown={keydown}
+          style={{ ...rest.style, top: position.top, left: position.left }}
+          className={cx(
+            "fixed z-50 bg-white-500 rounded-lg shadow-lg",
+            variantClasses(placement, variant),
+            className,
+          )}
+        >
+          {children}
+        </motion.div>
       )}
-    >
-      {children}
-    </div>,
+    </AnimatePresence>,
     popoverRoot,
   );
 }
