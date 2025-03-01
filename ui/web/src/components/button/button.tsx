@@ -31,7 +31,7 @@ export function Button(props: ButtonProps) {
     <button
       {...rest}
       className={cx(
-        "rounded-lg active:scale-95 transition-all duration-100 cursor-pointer focus-within:outline-black-200 focus-within:outline-2 outline-offset-2",
+        "rounded-lg active:translate-y-1 transition-all duration-200 cursor-pointer focus-within:outline-black-200 focus-within:outline-2 outline-offset-2",
         variantClasses(variant, size),
         className,
       )}
