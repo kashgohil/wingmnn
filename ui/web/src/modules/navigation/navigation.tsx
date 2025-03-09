@@ -1,6 +1,7 @@
 import { IconButton } from "@components/iconButton/iconButton";
 import { Separator } from "@components/separator/separator";
 import { Tooltip } from "@components/tooltip/tooltip";
+import { Link } from "@frameworks/router/Link";
 import { Wingmnn } from "@icons/wingmnn";
 import { map } from "@utility/map";
 import { reduceObj } from "@utility/reduce";
@@ -8,7 +9,7 @@ import React from "react";
 import { ModuleConfig, ModulesConfig } from "./config";
 
 export function Navigation() {
-  const { topModules, bottomModules } = React.useMemo(() => {
+    const { topModules, bottomModules } = React.useMemo(() => {
     return reduceObj(
       ModulesConfig,
       (accm, module) => {
@@ -26,6 +27,7 @@ export function Navigation() {
       },
     );
   }, []);
+
   return (
     <div className="h-full rounded-lg p-2 bg-black-100 flex flex-col">
       <div className="mx-auto flex items-center justify-center py-2">
@@ -39,31 +41,33 @@ export function Navigation() {
       <div className="flex flex-col justify-between flex-1">
         <div className="flex flex-col space-y-1">
           {map(topModules, (module) => {
-            const { id, icon, label } = module;
+            const { id, icon, name, route } = module;
             return (
-              <Tooltip title={label}>
-                <IconButton
-                  key={id}
-                  icon={icon}
-                  iconProps={{ size: 20 }}
-                  className="p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200"
-                />
-              </Tooltip>
+              <Link to={route} key={id} tabIndex={-1}>
+                <Tooltip title={name}>
+                  <IconButton
+                    icon={icon}
+                    iconProps={{ size: 20 }}
+                    className="p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200"
+                  />
+                </Tooltip>
+              </Link>
             );
           })}
         </div>
         <div className="flex flex-col space-y-1">
           {map(bottomModules, (module) => {
-            const { id, icon, label } = module;
+            const { id, icon, name, route } = module;
             return (
-              <Tooltip title={label}>
-                <IconButton
-                  key={id}
-                  icon={icon}
-                  iconProps={{ size: 20 }}
-                  className="p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200"
-                />
-              </Tooltip>
+              <Link to={route} key={id}>
+                <Tooltip title={name}>
+                  <IconButton
+                    icon={icon}
+                    iconProps={{ size: 20 }}
+                    className="p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200"
+                  />
+                </Tooltip>
+              </Link>
             );
           })}
         </div>
