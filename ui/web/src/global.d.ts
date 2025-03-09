@@ -3,7 +3,7 @@ type TSAny = any;
 
 interface BaseDetails {
   id: string;
-  label: string;
+  name: string;
   description: string;
 }
 
@@ -18,8 +18,17 @@ interface MapOf<T> {
   [k: string]: T;
 }
 
-interface Option extends BaseDetails, Metadata {
-  type: "value" | "heading";
+interface Option extends CoreOption, Metadata {}
+
+interface CoreOption extends BaseDetails {
+  type?: "value" | "heading" | "action";
   iconCode?: string;
   colorCode?: string;
+}
+
+interface Attachment extends BaseDetails, Metadata {
+  url: string;
+  size: number;
+  contentType: string;
+  thumbnailUrl?: string;
 }
