@@ -1,16 +1,12 @@
 import "./index.css";
 
+import { AuthRouter } from "@routes/authRouter";
+import { Cookie } from "@utility/browser";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { scan } from "react-scan";
 
-import { routeTree } from "@routes/routeTree";
-import { QueryClient } from "@tanstack/react-query";
-import { createRouter, RouterProvider } from "@tanstack/react-router";
-
-const queryClient = new QueryClient();
-
-const router = createRouter({ routeTree, context: { queryClient } });
+Cookie.setCSRFCookie();
 
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   scan({
@@ -21,6 +17,6 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthRouter />
   </StrictMode>,
 );
