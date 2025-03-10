@@ -1,7 +1,6 @@
 import { Popover, PopoverProps } from "@components/popover/popover";
 import { useBoolean } from "@hooks/useBoolean";
 import React from "react";
-import ReactDOM from "react-dom";
 
 export interface TooltipProps
   extends Omit<
@@ -19,27 +18,25 @@ export function Tooltip(props: TooltipProps) {
   const ref = React.useRef(null);
   const { value: open, toggle } = useBoolean(false);
 
-  const component = ReactDOM.createPortal(
-    <Popover
-      {...rest}
-      open={open}
-      anchor={ref}
-      onClose={toggle}
-      placement={placement}
-      transition={{ delay: 0.3 }}
-      className="!ml-2 !bg-white-500 !text-black-200 !text-xs"
-    >
-      {title}
-    </Popover>,
-    document.getElementById("popover-root")!,
-  );
+  if (!title) return children;
 
   return (
     <>
-      <div ref={ref} onMouseOver={toggle} onMouseOut={toggle}>
+      <div tabIndex={-1} ref={ref} onMouseOver={toggle} onMouseOut={toggle}>
         {children}
       </div>
-      {component}
+      <Popover
+        {...rest}
+        open={open}
+        anchor={ref}
+        onClose={toggle}
+        root="tooltip-root"
+        placement={placement}
+        transition={{ delay: 0.3 }}
+        className="!bg-white-500 !text-black-200 !text-xs"
+      >
+        {title}
+      </Popover>
     </>
   );
 }
