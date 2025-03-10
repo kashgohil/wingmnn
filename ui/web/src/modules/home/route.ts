@@ -1,7 +1,7 @@
-import { rootRoute } from "@routes/rootRoute";
-import { createRoute } from "@tanstack/react-router";
+import { Home } from "./home";
 
-export const HomeRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/",
-}).lazy(() => import("./home").then((r) => r.Route));
+export const HomeRoute = {
+  id: 'HOME',
+  path: '/',
+  Component: Home,
+};

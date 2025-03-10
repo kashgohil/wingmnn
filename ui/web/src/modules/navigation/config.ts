@@ -25,7 +25,7 @@ export type ModuleConfig = BaseDetails & {
   route: string;
 };
 
-export const ModulesConfig: Record<Modules, ModuleConfig> = {
+export const ModulesConfig: Record<Exclude<Modules, Modules.HOME>, ModuleConfig> = {
   [Modules.MAILS]: {
     id: Modules.MAILS,
     name: "Mails",

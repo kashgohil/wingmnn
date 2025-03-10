@@ -1,4 +1,5 @@
 export enum Modules {
+  HOME = "HOME",
   MAILS = "MAILS",
   FEEDS = "FEEDS",
   MESSAGES = "MESSAGES",
