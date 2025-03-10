@@ -1,16 +1,15 @@
 import { IconButton } from "@components/iconButton/iconButton";
 import { useFocusTrap } from "@hooks/useFocusTrap";
+import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import { CrossIcon } from "lucide-react";
+import { X } from "lucide-react";
+import { AnimatePresence, HTMLMotionProps, motion } from "motion/react";
 import React, { MouseEvent } from "react";
 import { createPortal } from "react-dom";
 
-export interface DialogProps
-  extends React.DetailedHTMLProps<
-    React.HTMLAttributes<HTMLDivElement>,
-    HTMLDivElement
-  > {
+export interface DialogProps extends HTMLMotionProps<"div"> {
   open: boolean;
+  size?: "sm" | "md" | "lg" | "xl";
   onClose(): void;
 }
 
@@ -32,11 +31,26 @@ type DialogActionsProps = React.DetailedHTMLProps<
   HTMLDivElement
 >;
 
+const dialogVariants = classVariance({
+  sm: "max-w-1/4",
+  md: "max-w-1/3",
+  lg: "max-w-1/2",
+  xl: "max-w-2/3",
+});
+
 export function Dialog(props: DialogProps) {
-  const { open, children, onClose, className, ref, ...rest } = props;
+  const {
+    open,
+    size = "md",
+    children,
+    onClose,
+    className,
+    ref,
+    ...rest
+  } = props;
 
   const dialogRef = React.useRef<HTMLDivElement>(null);
-  const dialogRoot = document.getElementById("dialogRoot");
+  const dialogRoot = document.getElementById("dialog-root");
 
   React.useImperativeHandle(ref, () => dialogRef.current!);
 
@@ -51,20 +65,33 @@ export function Dialog(props: DialogProps) {
 
   useFocusTrap(dialogRef, open);
 
-  if (!open) return null;
   if (!dialogRoot) return null;
 
   return createPortal(
-    <div className="bg-black-700/25" onClick={clickAwayListener}>
-      <div
-        {...rest}
-        role="dialog"
-        ref={dialogRef}
-        className={cx(className, "rounded-lg bg-black-200")}
-      >
-        {children}
-      </div>
-    </div>,
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          onClick={clickAwayListener}
+          className="bg-black-700/60 z-51 h-full w-full fixed top-0 left-0 flex items-center justify-center"
+        >
+          <motion.div
+            {...rest}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            role="dialog"
+            ref={dialogRef}
+            className={cx(
+              "rounded-lg bg-black-50 w-full",
+              dialogVariants(size),
+              className,
+            )}
+          >
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
     dialogRoot,
   );
 }
@@ -75,11 +102,18 @@ export function DialogTitle(props: DialogTitleProps) {
   return (
     <div
       {...rest}
-      className={cx(className, "flex items-center justify-between px-8 py-4")}
+      className={cx(className, "flex items-center justify-between px-4 py-2")}
     >
       {children}
       {onClose ? (
-        <IconButton icon={CrossIcon} onClick={onClose} className="ml-auto" />
+        <IconButton
+          icon={X}
+          size="sm"
+          shape="circle"
+          onClick={onClose}
+          iconProps={{ size: 16 }}
+          className="ml-auto p-2 bg-black-50"
+        />
       ) : null}
     </div>
   );
@@ -89,7 +123,7 @@ export function DialogContent(props: DialogContentProps) {
   const { children, className, ...rest } = props;
 
   return (
-    <div {...rest} className={cx(className, "px-8 py-4")}>
+    <div {...rest} className={cx(className, "px-4 py-2")}>
       {children}
     </div>
   );
@@ -99,7 +133,7 @@ export function DialogActions(props: DialogActionsProps) {
   const { className, children, ...rest } = props;
 
   return (
-    <div {...rest} className={cx(className, "px-8 py-4 flex items-center")}>
+    <div {...rest} className={cx(className, "px-4 py-2 flex items-center")}>
       {children}
     </div>
   );
