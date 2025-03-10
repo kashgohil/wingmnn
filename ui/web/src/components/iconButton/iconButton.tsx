@@ -9,7 +9,13 @@ export interface IconButtonProps extends ButtonProps {
 }
 
 export function IconButton(props: IconButtonProps) {
-  const { icon: Icon, shape = "rounded", className, ...rest } = props;
+  const {
+    icon: Icon,
+    shape = "rounded",
+    iconProps = {},
+    className,
+    ...rest
+  } = props;
 
   if (!Icon) return null;
 
@@ -22,7 +28,7 @@ export function IconButton(props: IconButtonProps) {
           className,
         )}
       >
-        <Icon {...props.iconProps} />
+        <Icon {...iconProps} />
       </Button>
     );
   }
@@ -33,7 +39,7 @@ export function IconButton(props: IconButtonProps) {
         {...rest}
         className={cx("flex items-center justify-center rounded-lg", className)}
       >
-        <Icon {...props.iconProps} />
+        <Icon {...iconProps} />
       </Button>
     );
   }
@@ -47,7 +53,7 @@ export function IconButton(props: IconButtonProps) {
           className,
         )}
       >
-        <Icon {...props.iconProps} />
+        <Icon {...iconProps} />
       </Button>
     );
   }
