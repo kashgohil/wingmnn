@@ -1,6 +1,6 @@
-import { Children } from "react";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
+import { Children } from "react";
 
 export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
   orientation?: "vertical" | "horizontal";
@@ -51,7 +51,14 @@ export function Separator(props: SeparatorProps) {
         return (
           <>
             {child}
-            {index < count ? <Separator {...props} /> : null}
+            {index < count - 1 ? (
+              <Separator
+                content={content}
+                className={className}
+                orientation={orientation}
+                {...rest}
+              />
+            ) : null}
           </>
         );
       })}
