@@ -8,7 +8,7 @@ import { RouterUtils } from "./utils";
 const routerFlag = "router_changes_applied";
 
 if (window?.history && get(window, routerFlag, "undefined") === "undefined") {
-  Object.defineProperty(window, routerFlag, true)
+  Object.defineProperty(window, routerFlag, {value: "true"})
 
   const ogPushState = window.history.pushState;
   const ogReplaceState = window.history.replaceState;
