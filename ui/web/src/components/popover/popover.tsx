@@ -4,11 +4,7 @@ import { AnimatePresence, HTMLMotionProps, motion } from "motion/react";
 import React from "react";
 import { createPortal } from "react-dom";
 
-export interface PopoverProps
-  extends Omit<
-    HTMLMotionProps<"div">,
-    "onAnimationStart" | "onDrag" | "onDragStart" | "onDragEnd"
-  > {
+export interface PopoverProps extends HTMLMotionProps<"div"> {
   open: boolean;
   onClose(): void;
   anchor: React.RefObject<HTMLElement | null>;
@@ -28,14 +24,14 @@ export interface PopoverProps
 const variantClasses = classVariance({
   compact: "p-1 text-sm",
   normal: "p-2",
-  "top-left": "origin-bottom-left",
-  "bottom-left": "origin-top-left",
-  "top-right": "origin-bottom-right",
-  "bottom-right": "origin-top-right",
-  right: "origin-left",
-  left: "origin-right",
-  bottom: "origin-top",
-  top: "origin-bottom",
+  "top-left": "mb-2 perspective-origin-bottom-top",
+  "bottom-left": "origin-top mt-2 perspective-origin-bottom-top",
+  "top-right": "origin-bottom mb-2",
+  "bottom-right": "origin-top mt-2",
+  right: "origin-left -translate-y-1/2 ml-2",
+  left: "origin-right -translate-y-1/2 mr-2",
+  bottom: "origin-top -translate-x-1/2 mt-2",
+  top: "origin-bottom -translate-x-1/2 mb-2",
 });
 
 export function Popover(props: PopoverProps) {
@@ -96,7 +92,7 @@ export function Popover(props: PopoverProps) {
           left = anchorRect.left - popoverRect.width;
           break;
         case "right":
-          top = anchorRect.top + (anchorRect.height - popoverRect.height) / 2;
+          top = anchorRect.top + anchorRect.height / 2;
           left = anchorRect.right;
           break;
       }
@@ -150,23 +146,23 @@ export function Popover(props: PopoverProps) {
     [onClose, onKeyDown],
   );
 
-  const popoverRoot = document.getElementById(root);
+  const rootEl = document.getElementById(root);
 
-  if (!popoverRoot) return null;
+  if (!rootEl) return null;
 
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          initial={{ opacity: 0 }}
-          exit={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, translateY: -10 }}
+          initial={{ opacity: 0, translateY: -10 }}
+          animate={{ opacity: 1, scale: 1, translateY: 0 }}
           {...rest}
           ref={popoverRef}
           onKeyDown={keydown}
           style={{ ...rest.style, top: position.top, left: position.left }}
           className={cx(
-            "fixed z-50 bg-white-500 rounded-lg shadow-lg",
+            "fixed z-50 bg-white-500 rounded-xl shadow-lg",
             variantClasses(placement, variant),
             className,
           )}
@@ -175,6 +171,6 @@ export function Popover(props: PopoverProps) {
         </motion.div>
       )}
     </AnimatePresence>,
-    popoverRoot,
+    rootEl,
   );
 }
