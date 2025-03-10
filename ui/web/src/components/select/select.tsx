@@ -65,7 +65,7 @@ export function Select(props: SelectProps) {
   const valueString = React.useMemo(() => {
     return map(
       castArray(value),
-      (value) => find(options, ({ id }) => id === value)?.label,
+      (value) => find(options, ({ id }) => id === value)?.name,
     )
       .filter(Boolean)
       .join(", ");
