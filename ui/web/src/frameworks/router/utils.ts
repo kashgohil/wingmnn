@@ -19,14 +19,15 @@ function getRouterUtils () {
         Component: parent ? getWrapperComponent(parent.Component, route.Component): route.Component,
       };
 
-      if (route.childRoutes?.length) {
-        for (let index = route.childRoutes.length - 1; index >= 0; index--) {
-          const childRoute = route.childRoutes[index];
+      if (updatedRoute.childRoutes?.length) {
+        for (let index = updatedRoute.childRoutes.length - 1; index >= 0; index--) {
+          const childRoute = updatedRoute.childRoutes[index];
           stack.push({ route: childRoute, parent: updatedRoute });
         }
+      } else {
+        routes.push(updatedRoute);
       }
 
-      routes.push(updatedRoute);
     }
 
     return routes;
@@ -70,8 +71,11 @@ function getRouterUtils () {
   }
 
   function getRoute(config: Array<RouteConfig>, location: string) {
-    const route = Object.values(config).find((route) => matchRoute(route, location));
-    return route;
+    for (const route of config) {
+      if (matchRoute(route, location)) {
+        return route;
+      }
+    }
   }
 
   function getQueryParams() {
