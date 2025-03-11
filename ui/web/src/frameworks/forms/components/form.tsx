@@ -89,6 +89,7 @@ function CompositeFieldRenderer(props: FieldComponentProps<CompositeField>) {
         return (
           <FormField
             field={childField}
+            key={childField.id}
             onChange={changeHandler}
             value={fieldValue[childField.id]}
             validations={childValidations[index]}
@@ -149,7 +150,7 @@ function InputFieldRenderer(props: FieldComponentProps<InputField>) {
       variant="outlined"
       type={getDataType()}
       onChange={changeHandler}
-      placeholder={field.label}
+      placeholder={field.name}
     />
   );
 }
@@ -191,7 +192,7 @@ function DateFieldRenderer(props: FieldComponentProps<DateField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.label} />
+    <Switch checked={value} onChange={changeHandler} message={field.name} />
   );
 }
 
@@ -206,7 +207,7 @@ function TimeFieldRenderer(props: FieldComponentProps<TimeField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.label} />
+    <Switch checked={value} onChange={changeHandler} message={field.name} />
   );
 }
 
@@ -221,7 +222,7 @@ function DateTimeFieldRenderer(props: FieldComponentProps<DateTimeField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.label} />
+    <Switch checked={value} onChange={changeHandler} message={field.name} />
   );
 }
 
@@ -236,7 +237,7 @@ function SwitchFieldRenderer(props: FieldComponentProps<SwitchField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.label} />
+    <Switch checked={value} onChange={changeHandler} message={field.name} />
   );
 }
 
@@ -251,7 +252,7 @@ function RichTextFieldRenderer(props: FieldComponentProps<RichTextField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.label} />
+    <Switch checked={value} onChange={changeHandler} message={field.name} />
   );
 }
 
@@ -408,6 +409,7 @@ export function Form(props: FormProps) {
       {map(fields, (field) => (
         <FormField
           field={field}
+          key={field.id}
           onChange={onChange}
           value={values[field.id]}
           validations={validations[field.id]}
