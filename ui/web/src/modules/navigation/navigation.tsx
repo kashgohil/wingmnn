@@ -31,11 +31,13 @@ export function Navigation() {
   return (
     <div className="h-full rounded-lg p-2 bg-black-100 flex flex-col">
       <div className="mx-auto flex items-center justify-center py-2">
-        <Wingmnn
-          height={24}
-          width={24}
-          className="animate-slow-spin text-white-500"
-        />
+        <Link to="/">
+          <Wingmnn
+            width={24}
+            height={24}
+            className="animate-slow-spin text-white-500"
+          />
+        </Link>
       </div>
       <Separator className="bg-white-950 h-[1px] my-2 mx-2 rounded-lg" />
       <div className="flex flex-col justify-between flex-1">
