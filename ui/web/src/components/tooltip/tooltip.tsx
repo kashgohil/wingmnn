@@ -33,7 +33,7 @@ export function Tooltip(props: TooltipProps) {
         root="tooltip-root"
         placement={placement}
         transition={{ delay: 0.3 }}
-        className="!bg-white-500 !text-black-200 !text-xs"
+        className="bg-white-500 text-black-200 text-xs rounded-lg"
       >
         {title}
       </Popover>

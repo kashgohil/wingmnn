@@ -34,6 +34,17 @@ const variantClasses = classVariance({
   top: "origin-bottom -translate-x-1/2 mb-2",
 });
 
+const animateVariance = {
+  top: { translateY: 10 },
+  bottom: { translateY: -10 },
+  left: { translateX: 10 },
+  right: { translateX: -10 },
+  "top-left": { translateY: -10, translateX: -10 },
+  "top-right": { translateY: -10, translateX: 10 },
+  "bottom-left": { translateY: 10, translateX: -10 },
+  "bottom-right": { translateY: 10, translateX: 10 },
+};
+
 export function Popover(props: PopoverProps) {
   const {
     anchor,
@@ -154,10 +165,10 @@ export function Popover(props: PopoverProps) {
     <AnimatePresence>
       {open && (
         <motion.div
-          exit={{ opacity: 0, translateY: -10 }}
-          initial={{ opacity: 0, translateY: -10 }}
-          animate={{ opacity: 1, scale: 1, translateY: 0 }}
           {...rest}
+          exit={{ opacity: 0, scale: 0.2, ...animateVariance[placement] }}
+          initial={{ opacity: 0, scale: 0.2, ...animateVariance[placement] }}
+          animate={{ opacity: 1, scale: 1, translateY: 0, translateX: 0 }}
           ref={popoverRef}
           onKeyDown={keydown}
           style={{ ...rest.style, top: position.top, left: position.left }}
