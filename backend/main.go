@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -48,6 +49,10 @@ func main() {
 	// middleware to check csrf token
 	server.Server.Use(func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
+			if strings.Contains(r.URL.Path, "/auth/") {
+				next.ServeHTTP(w, r)
+			}
+
 			CSRFToken := r.Header.Get("X-CSRF-Token")
 			CSRFCookie, err := r.Cookie("csrf_token")
 
