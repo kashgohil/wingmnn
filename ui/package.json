@@ -2,9 +2,6 @@
   "name": "wingmnn-ui",
   "private": true,
   "version": "1.0.0",
-  "workspaces": [
-    "web"
-  ],
   "description": "ui for wingmnn app",
   "main": "index.js",
   "scripts": {
