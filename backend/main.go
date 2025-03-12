@@ -51,6 +51,7 @@ func main() {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			if strings.Contains(r.URL.Path, "/auth/") {
 				next.ServeHTTP(w, r)
+				return
 			}
 
 			CSRFToken := r.Header.Get("X-CSRF-Token")
