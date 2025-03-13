@@ -22,6 +22,6 @@ export function forEachObj<T>(
   fn: (value: T[keyof T], key: keyof T) => void | boolean,
 ) {
   for (const key in object) {
-    if (!fn(object[key], key)) return;
+    if (fn(object[key], key) === false) return;
   }
 }
