@@ -28,8 +28,6 @@ export function Navigation() {
     return activeModule;
   }, [location]);
 
-  console.log({ activeModule });
-
   const { topModules, bottomModules } = React.useMemo(() => {
     return reduceObj(
       ModulesConfig,
@@ -90,7 +88,10 @@ export function Navigation() {
                   <IconButton
                     icon={icon}
                     iconProps={{ size: 20 }}
-                    className="p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200"
+                    className={cx(
+                      "p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200",
+                      { "text-black-200 bg-white-500": activeModule === id },
+                    )}
                   />
                 </Tooltip>
               </Link>
