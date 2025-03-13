@@ -1,15 +1,36 @@
 import { IconButton } from "@components/iconButton/iconButton";
 import { Separator } from "@components/separator/separator";
 import { Tooltip } from "@components/tooltip/tooltip";
+import { useLocationChangeDetection } from "@frameworks/router/hooks/useLocationChangeDetection";
 import { Link } from "@frameworks/router/Link";
 import { Wingmnn } from "@icons/wingmnn";
+import { cx } from "@utility/cx";
+import { forEachObj } from "@utility/forEach";
+import { includes } from "@utility/includes";
 import { map } from "@utility/map";
 import { reduceObj } from "@utility/reduce";
 import React from "react";
 import { ModuleConfig, ModulesConfig } from "./config";
+import { Modules } from "./constants";
+import { BaseRoutes } from "./routes";
 
 export function Navigation() {
-    const { topModules, bottomModules } = React.useMemo(() => {
+  const location = useLocationChangeDetection();
+
+  const activeModule = React.useMemo(() => {
+    let activeModule = Modules.HOME;
+    forEachObj(BaseRoutes, (route, key) => {
+      if (key !== Modules.HOME && includes(location, route)) {
+        activeModule = key;
+        return false;
+      }
+    });
+    return activeModule;
+  }, [location]);
+
+  console.log({ activeModule });
+
+  const { topModules, bottomModules } = React.useMemo(() => {
     return reduceObj(
       ModulesConfig,
       (accm, module) => {
@@ -31,7 +52,7 @@ export function Navigation() {
   return (
     <div className="h-full rounded-lg p-2 bg-black-100 flex flex-col">
       <div className="mx-auto flex items-center justify-center py-2">
-        <Link to="/">
+        <Link to={BaseRoutes[Modules.HOME]}>
           <Wingmnn
             width={24}
             height={24}
@@ -50,7 +71,10 @@ export function Navigation() {
                   <IconButton
                     icon={icon}
                     iconProps={{ size: 20 }}
-                    className="p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200"
+                    className={cx(
+                      "p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200",
+                      { "text-black-200 bg-white-500": activeModule === id },
+                    )}
                   />
                 </Tooltip>
               </Link>
