@@ -95,6 +95,9 @@ export function Menu(props: MenuProps) {
     onKeyDown,
     onClose,
     onSelect,
+    animate = {},
+    initial = {},
+    exit = {},
     ...rest
   } = props;
 
@@ -181,6 +184,9 @@ export function Menu(props: MenuProps) {
   return (
     <Popover
       {...rest}
+      exit={{ scale: 1, ...exit }}
+      initial={{ scale: 1, ...initial }}
+      animate={{ scale: 1, ...animate }}
       role="menu"
       ref={menuRef}
       onClose={onClose}

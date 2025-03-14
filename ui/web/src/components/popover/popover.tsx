@@ -1,6 +1,12 @@
+import { spacing } from "@constants";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import { AnimatePresence, HTMLMotionProps, motion } from "motion/react";
+import {
+  AnimatePresence,
+  HTMLMotionProps,
+  motion,
+  TargetAndTransition,
+} from "motion/react";
 import React from "react";
 import { createPortal } from "react-dom";
 
@@ -19,13 +25,16 @@ export interface PopoverProps extends HTMLMotionProps<"div"> {
     | "bottom";
   variant?: "compact" | "normal";
   root?: "popover-root" | "tooltip-root";
+  initial?: TargetAndTransition;
+  exit?: TargetAndTransition;
+  animate?: TargetAndTransition;
 }
 
 const variantClasses = classVariance({
   compact: "p-1 text-sm",
   normal: "p-2",
-  "top-left": "mb-2 perspective-origin-bottom-top",
-  "bottom-left": "origin-top mt-2 perspective-origin-bottom-top",
+  "top-left": "origin-bottom mb-2",
+  "bottom-left": "origin-top mt-2",
   "top-right": "origin-bottom mb-2",
   "bottom-right": "origin-top mt-2",
   right: "origin-left -translate-y-1/2 ml-2",
@@ -39,10 +48,10 @@ const animateVariance = {
   bottom: { translateY: -10 },
   left: { translateX: 10 },
   right: { translateX: -10 },
-  "top-left": { translateY: -10, translateX: -10 },
-  "top-right": { translateY: -10, translateX: 10 },
-  "bottom-left": { translateY: 10, translateX: -10 },
-  "bottom-right": { translateY: 10, translateX: 10 },
+  "top-left": { translateY: 10 },
+  "top-right": { translateY: 10 },
+  "bottom-left": { translateY: -10 },
+  "bottom-right": { translateY: -10 },
 };
 
 export function Popover(props: PopoverProps) {
@@ -53,6 +62,9 @@ export function Popover(props: PopoverProps) {
     onClose,
     open,
     onKeyDown,
+    exit = {},
+    initial = {},
+    animate = {},
     variant = "normal",
     className,
     root = "popover-root",
@@ -76,11 +88,11 @@ export function Popover(props: PopoverProps) {
       switch (placement) {
         case "top-left":
           top = anchorRect.top - popoverRect.height;
-          left = anchorRect.left;
+          left = anchorRect.left - spacing;
           break;
         case "bottom-left":
           top = anchorRect.bottom;
-          left = anchorRect.left;
+          left = anchorRect.left - spacing;
           break;
         case "top-right":
           top = anchorRect.top - popoverRect.height;
@@ -166,9 +178,25 @@ export function Popover(props: PopoverProps) {
       {open && (
         <motion.div
           {...rest}
-          exit={{ opacity: 0, scale: 0.2, ...animateVariance[placement] }}
-          initial={{ opacity: 0, scale: 0.2, ...animateVariance[placement] }}
-          animate={{ opacity: 1, scale: 1, translateY: 0, translateX: 0 }}
+          exit={{
+            opacity: 0,
+            scale: 0.2,
+            ...animateVariance[placement],
+            ...exit,
+          }}
+          initial={{
+            opacity: 0,
+            scale: 0.2,
+            ...animateVariance[placement],
+            ...initial,
+          }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            translateY: 0,
+            translateX: 0,
+            ...animate,
+          }}
           ref={popoverRef}
           onKeyDown={keydown}
           style={{ ...rest.style, top: position.top, left: position.left }}

@@ -54,7 +54,7 @@ function Breadcrumb(props: { breadcrumb: Breadcrumb }) {
   const { breadcrumb } = props;
   const {
     id,
-    to = '',
+    to = "",
     name,
     onSelect,
     value = "",
