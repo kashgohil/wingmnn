@@ -1,41 +1,40 @@
 {
-	"compilerOptions": {
-		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-		"target": "ES2020",
-		"useDefineForClassFields": true,
-		"lib": ["ES2020", "DOM", "DOM.Iterable"],
-		"module": "ESNext",
-		"skipLibCheck": true,
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
 
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
 
-		"moduleResolution": "bundler",
-		"allowImportingTsExtensions": true,
-		"isolatedModules": true,
-		"moduleDetection": "force",
-		"noEmit": true,
-		"jsx": "react-jsx",
-
-
-		"strict": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedSideEffectImports": true,
-		"baseUrl": "./",
-		"paths": {
-			"@routes/*": ["src/routes/*"],
-			"@icons/*": ["src/icons/*"],
-			"@frameworks/*": ["src/frameworks/*"],
-			"@hooks/*": ["src/hooks/*"],
-			"@services/*": ["src/services/*"],
-			"@components/*": ["src/components/*"],
-			"@utility/*": ["src/utility/*"],
-			"@navigation/*": ["src/modules/navigation/*"],
-			"@home/*": ["src/modules/home/*"],
-			"@landing/*": ["src/modules/landing/*"],
-			"@testing/*": ["src/modules/testing/*"],
-			"@projects/*": ["src/modules/projects/*"]
-		}
-	},
-	"include": ["src"]
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "baseUrl": "./",
+    "paths": {
+      "@routes/*": ["src/routes/*"],
+      "@icons/*": ["src/icons/*"],
+      "@frameworks/*": ["src/frameworks/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@services/*": ["src/services/*"],
+      "@components/*": ["src/components/*"],
+      "@utility/*": ["src/utility/*"],
+      "@navigation/*": ["src/modules/navigation/*"],
+      "@home/*": ["src/modules/home/*"],
+      "@landing/*": ["src/modules/landing/*"],
+      "@testing/*": ["src/modules/testing/*"],
+      "@projects/*": ["src/modules/projects/*"],
+      "@constants": ["src/constants.ts"]
+    }
+  },
+  "include": ["src"]
 }
