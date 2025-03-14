@@ -1,6 +1,11 @@
 import { cx } from "@utility/cx";
+import React from "react";
 
-export interface LinkProps extends React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> {
+export interface LinkProps
+  extends React.DetailedHTMLProps<
+    React.AnchorHTMLAttributes<HTMLAnchorElement>,
+    HTMLAnchorElement
+  > {
   to: string;
 }
 
@@ -9,13 +14,20 @@ export function Link(props: LinkProps) {
 
   const clickHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    if (onClick) onClick(event);
-    window.history.pushState({}, '', props.to);
+    document.startViewTransition(() => {
+      if (onClick) onClick(event);
+      window.history.pushState({}, "", props.to);
+    });
   };
 
   return (
-    <a className={cx(className, '')} href={props.to} onClick={clickHandler} {...rest}>
+    <a
+      href={props.to}
+      onClick={clickHandler}
+      className={cx(className, "")}
+      {...rest}
+    >
       {children}
     </a>
-  )
+  );
 }
