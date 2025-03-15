@@ -7,10 +7,22 @@ import { Github } from "@icons/github";
 import { Google } from "@icons/google";
 import { Wingmnn } from "@icons/wingmnn";
 import { noop } from "@utility/noop";
+import { reduce } from "@utility/reduce";
 import { LandingFields } from "./fields";
 
 export function Landing() {
   const fields = LandingFields.loginFields();
+  const fieldClassNames = reduce(
+    fields,
+    (accm, field) => {
+      accm[field.id] = {
+        wrapper: "focus-within:outline-black-200 border-black-200",
+        content: "placeholder:!text-black-200/70",
+      };
+      return accm;
+    },
+    {} as TSAny,
+  );
 
   const { formData } = useForm(fields);
 
@@ -27,11 +39,11 @@ export function Landing() {
             className="w-full"
             action="http://localhost:3000/auth/sso/google"
           >
-            <input name="connectionName" value="google" hidden />
+            <input name="connectionName" readOnly value="google" hidden />
             <Button
               size="sm"
               type="submit"
-              className="w-full flex items-center justify-center space-x-4"
+              className="w-full flex items-center justify-center space-x-4 focus-within:outline-black-200"
             >
               <Google size={16} />
               <span>Login with Google</span>
@@ -42,11 +54,11 @@ export function Landing() {
             className="w-full"
             action="localhost:3000/auth/sso/github"
           >
-            <input name="connectionName" value="github" hidden />
+            <input name="connectionName" readOnly value="github" hidden />
             <Button
               size="sm"
               type="submit"
-              className="w-full flex items-center justify-center space-x-4"
+              className="w-full flex items-center justify-center space-x-4 focus-within:outline-black-200"
             >
               <Github size={16} />
               <span>Login with GitHub</span>
@@ -60,8 +72,12 @@ export function Landing() {
           onChange={noop}
           onSubmit={noop}
           formData={formData}
+          classes={fieldClassNames}
         />
-        <Button size="sm" className="w-full mt-6">
+        <Button
+          size="sm"
+          className="w-full mt-6 focus-within:outline-black-200"
+        >
           Let's get you in there
         </Button>
       </Box>
