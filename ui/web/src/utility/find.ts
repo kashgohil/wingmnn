@@ -1,4 +1,4 @@
-import { forEachArray } from "./forEach";
+import { forEach } from "./forEach";
 
 /**
  * @param list list of items
@@ -11,7 +11,7 @@ export function find<T>(
 ): T | undefined {
   let ans = undefined;
 
-  forEachArray(list, (item, index) => {
+  forEach(list, (item, index) => {
     if (fn(item, index)) {
       ans = item;
       return false;
@@ -32,7 +32,7 @@ export function findIndex<T>(
 ): number {
   let ans = -1;
 
-  forEachArray(list, (item, index) => {
+  forEach(list, (item, index) => {
     if (fn(item, index)) {
       ans = index;
       return false;

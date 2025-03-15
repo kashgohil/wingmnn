@@ -1,4 +1,4 @@
-import { forEachArray, forEachObj } from "./forEach";
+import { forEach, forEachObj } from "./forEach";
 
 /**
  * @param list array of items
@@ -10,7 +10,7 @@ export function every<T>(
   fn: (item: T, index: number) => boolean,
 ): boolean {
   let ans = true;
-  forEachArray(list, (item, index) => {
+  forEach(list, (item, index) => {
     ans &&= fn(item, index);
   });
   return ans;

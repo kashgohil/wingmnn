@@ -3,7 +3,7 @@
  * @param fn function to loop through list - if fn returns false for any item, loop breaks
  * @returns void
  */
-export function forEachArray<T>(
+export function forEach<T>(
   list: Array<T>,
   fn: (item: T, index: number) => void | boolean,
 ) {
