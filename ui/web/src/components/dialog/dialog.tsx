@@ -56,7 +56,7 @@ export function Dialog(props: DialogProps) {
 
   const clickAwayListener = React.useCallback(
     (e: MouseEvent<HTMLDivElement>) => {
-      if (!dialogRef.current?.contains(e.currentTarget)) {
+      if (!dialogRef.current?.contains(e.target as HTMLElement)) {
         onClose();
       }
     },
@@ -72,7 +72,10 @@ export function Dialog(props: DialogProps) {
       {open && (
         <motion.div
           onClick={clickAwayListener}
-          className="bg-black-700/60 z-51 h-full w-full fixed top-0 left-0 flex items-center justify-center"
+          exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-black-700/70 z-51 h-full w-full fixed top-0 left-0 flex items-center justify-center"
         >
           <motion.div
             {...rest}
@@ -82,7 +85,7 @@ export function Dialog(props: DialogProps) {
             role="dialog"
             ref={dialogRef}
             className={cx(
-              "rounded-lg bg-black-50 w-full",
+              "rounded-lg bg-black-50 w-full z-1",
               dialogVariants(size),
               className,
             )}
@@ -102,7 +105,10 @@ export function DialogTitle(props: DialogTitleProps) {
   return (
     <div
       {...rest}
-      className={cx(className, "flex items-center justify-between px-4 py-2")}
+      className={cx(
+        className,
+        "flex items-center justify-between px-4 py-3 text-xl",
+      )}
     >
       {children}
       {onClose ? (
@@ -123,7 +129,7 @@ export function DialogContent(props: DialogContentProps) {
   const { children, className, ...rest } = props;
 
   return (
-    <div {...rest} className={cx(className, "px-4 py-2")}>
+    <div {...rest} className={cx(className, "px-4 py-3")}>
       {children}
     </div>
   );
@@ -133,7 +139,10 @@ export function DialogActions(props: DialogActionsProps) {
   const { className, children, ...rest } = props;
 
   return (
-    <div {...rest} className={cx(className, "px-4 py-2 flex items-center")}>
+    <div
+      {...rest}
+      className={cx("px-4 w-full py-3 flex items-center", className)}
+    >
       {children}
     </div>
   );
