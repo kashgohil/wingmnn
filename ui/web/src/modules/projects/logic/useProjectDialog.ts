@@ -1,9 +1,9 @@
 import { create } from "@frameworks/store/store";
 import { Project, Task } from "../type";
 
-export enum DIALOGS {
-  CREATE_PROJECT = "CREATE_PROJECT",
+export enum Dialogs {
   EDIT_PROJECT = "EDIT_PROJECT",
+  CREATE_PROJECT = "CREATE_PROJECT",
   DELETE_PROJECT = "DELETE_PROJECT",
 
   ADD_TASK = "ADD_TASK",
@@ -11,16 +11,16 @@ export enum DIALOGS {
 }
 
 type ProjectsDialogPayload = {
-  [DIALOGS.CREATE_PROJECT]: never;
-  [DIALOGS.EDIT_PROJECT]: { project: Project };
-  [DIALOGS.DELETE_PROJECT]: { projectId: string };
-  [DIALOGS.ADD_TASK]: { projectId: string };
-  [DIALOGS.EDIT_TASK]: { task: Task };
+  [Dialogs.CREATE_PROJECT]: never;
+  [Dialogs.EDIT_PROJECT]: { project: Project };
+  [Dialogs.DELETE_PROJECT]: { projectId: string };
+  [Dialogs.ADD_TASK]: { projectId: string };
+  [Dialogs.EDIT_TASK]: { task: Task };
 };
 
 interface ProjectsDialogState {
   dialogState: {
-    [key in DIALOGS]: {
+    [key in Dialogs]: {
       open: boolean;
       payload?: ProjectsDialogPayload[key];
     };
@@ -28,23 +28,23 @@ interface ProjectsDialogState {
 }
 
 interface ProjectsDialogActions {
-  openDialog: <T extends DIALOGS>(
+  openDialog: <T extends Dialogs>(
     dialog: T,
     payload?: ProjectsDialogPayload[T],
   ) => void;
-  closeDialog: (dialog: DIALOGS) => void;
+  closeDialog: (dialog: Dialogs) => void;
 }
 
-export const useProjectsDialogState = create<
+export const useProjectDialog = create<
   ProjectsDialogState,
   ProjectsDialogActions
 >((set, get) => ({
   dialogState: {
-    [DIALOGS.CREATE_PROJECT]: { open: false },
-    [DIALOGS.EDIT_PROJECT]: { open: false },
-    [DIALOGS.DELETE_PROJECT]: { open: false },
-    [DIALOGS.ADD_TASK]: { open: false },
-    [DIALOGS.EDIT_TASK]: { open: false },
+    [Dialogs.CREATE_PROJECT]: { open: false },
+    [Dialogs.EDIT_PROJECT]: { open: false },
+    [Dialogs.DELETE_PROJECT]: { open: false },
+    [Dialogs.ADD_TASK]: { open: false },
+    [Dialogs.EDIT_TASK]: { open: false },
   },
 
   openDialog: (dialog, payload) => {
@@ -56,7 +56,7 @@ export const useProjectsDialogState = create<
     });
   },
 
-  closeDialog: (dialog: DIALOGS) => {
+  closeDialog: (dialog: Dialogs) => {
     set({
       dialogState: {
         ...get("dialogState"),
