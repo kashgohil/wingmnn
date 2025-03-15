@@ -1,8 +1,8 @@
-import React from "react";
 import { cx } from "@utility/cx";
+import { forEach } from "@utility/forEach";
 import { map } from "@utility/map";
-import { forEachArray } from "@utility/forEach";
 import { without } from "@utility/without";
+import React from "react";
 
 export interface CheckboxProps
   extends Omit<
@@ -37,7 +37,7 @@ export function CheckboxGroup(props: CheckboxGroupProps) {
   const checked = React.useMemo(() => {
     const checked: MapOf<boolean> = {};
 
-    forEachArray(value, (value) => {
+    forEach(value, (value) => {
       checked[value] = true;
     });
 
