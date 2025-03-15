@@ -5,21 +5,21 @@ export const LandingFields = (function () {
   function password(): Field {
     return {
       id: "password",
-      label: "Password",
+      name: "password",
       type: FieldType.INPUT,
       dataType: DataType.PASSWORD,
       validations: { min: 8, mandatory: true },
-    } as Field;
+    } as unknown as Field;
   }
 
   function username(): Field {
     return {
       id: "username",
-      label: "Username",
+      name: "Username",
       type: FieldType.INPUT,
       dataType: DataType.STRING,
       validations: { min: 3, mandatory: true },
-    } as Field;
+    } as unknown as Field;
   }
 
   // public
