@@ -1,18 +1,18 @@
-import axios from "axios";
+import { http } from "@frameworks/http/httpInstance";
 import { Project } from "../type";
 
 export const ProjectsService = (function () {
-  async function getProjects(): Promise<Array<Project>> {
-    return await axios.get("/api/projects");
+  async function getProjects() {
+    return await http.get<Array<Project>>("/api/projects");
   }
   async function createProject(project: Project) {
-    return await axios.put("/api/projects", project);
+    return await http.put<Project>("/api/projects", project);
   }
   async function deleteProject(projectId: string) {
-    return await axios.delete(`/api/projects/${projectId}`);
+    return await http.del<Project>(`/api/projects/${projectId}`);
   }
   async function updateProject(projectId: string, project: Partial<Project>) {
-    return await axios.put(`/api/projects/${projectId}`, project);
+    return await http.put<Project>(`/api/projects/${projectId}`, project);
   }
 
   return {
