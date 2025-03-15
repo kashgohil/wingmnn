@@ -1,12 +1,14 @@
-import { forEachArray } from "@utility/forEach";
+import { forEach } from "@utility/forEach";
 import { RouteConfig, RouterConfig } from "./type";
 import { getWrapperComponent } from "./wrapperComponentFn";
 
-function getRouterUtils () {
+function getRouterUtils() {
   // private
   function _flattenRoute(config: RouteConfig) {
     const routes = [];
-    const stack: Array<{ route: RouteConfig, parent: RouteConfig | null }> = [{ route: config, parent: null }];
+    const stack: Array<{ route: RouteConfig; parent: RouteConfig | null }> = [
+      { route: config, parent: null },
+    ];
 
     while (stack.length > 0) {
       const { route, parent } = stack.pop() || {};
@@ -16,18 +18,23 @@ function getRouterUtils () {
       const updatedRoute = {
         ...route,
         path: parent ? `${parent.path}/${route.path}` : route.path,
-        Component: parent ? getWrapperComponent(parent.Component, route.Component): route.Component,
+        Component: parent
+          ? getWrapperComponent(parent.Component, route.Component)
+          : route.Component,
       };
 
       if (updatedRoute.childRoutes?.length) {
-        for (let index = updatedRoute.childRoutes.length - 1; index >= 0; index--) {
+        for (
+          let index = updatedRoute.childRoutes.length - 1;
+          index >= 0;
+          index--
+        ) {
           const childRoute = updatedRoute.childRoutes[index];
           stack.push({ route: childRoute, parent: updatedRoute });
         }
       } else {
         routes.push(updatedRoute);
       }
-
     }
 
     return routes;
@@ -45,8 +52,8 @@ function getRouterUtils () {
   function matchRoute(route: RouteConfig, location: string) {
     const { path } = route;
 
-    const locationChunks = location.split('/').filter(Boolean);
-    const pathChunks = path.trim().split('/').filter(Boolean);
+    const locationChunks = location.split("/").filter(Boolean);
+    const pathChunks = path.trim().split("/").filter(Boolean);
 
     if (locationChunks.length > pathChunks.length) return false;
 
@@ -55,12 +62,12 @@ function getRouterUtils () {
       const pathChunk = pathChunks[i];
 
       // if pathChunk is a parameter, then it matches any value, so we don't need to compare
-      if (pathChunk.startsWith(':')) {
+      if (pathChunk.startsWith(":")) {
         continue;
       }
 
       // only last parameter can be optional, and if it is optional, so we don't need to compare
-      if (pathChunk.endsWith('?')) {
+      if (pathChunk.endsWith("?")) {
         continue;
       }
 
@@ -89,10 +96,10 @@ function getRouterUtils () {
 
   function processRoutes(config: RouterConfig) {
     const routes: Array<RouteConfig> = [];
-    forEachArray(config, route => {
+    forEach(config, (route) => {
       const flattenedRoutes = _flattenRoute(route);
       routes.push(...flattenedRoutes);
-    })
+    });
 
     return routes;
   }
@@ -105,6 +112,6 @@ function getRouterUtils () {
 
     processRoutes,
   };
-};
+}
 
 export const RouterUtils = getRouterUtils();
