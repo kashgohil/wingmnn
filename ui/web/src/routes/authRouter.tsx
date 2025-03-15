@@ -21,10 +21,17 @@ export function AuthRouter() {
       return (
         <div className="w-full h-full flex flex-col items-center justify-center space-y-2">
           <div className="text-2xl">You look lost</div>
-          <div className="text-lg">Let's get you to where all the fun stuff is!!</div>
+          <div className="text-lg">
+            Let's get you to where all the fun stuff is!!
+          </div>
           <Link to={BaseRoutes[Modules.HOME]}>
-            <Button className="flex items-center space-x-3 bg-white-500 text-black-200 mt-4 hover:bg-white-950">
-              <Wingmnn height={24} width={24} className="animate-slow-spin" /> <span>Take me Home, Country Roads</span>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="flex items-center space-x-3 mt-4"
+            >
+              <Wingmnn height={24} width={24} className="animate-slow-spin" />{" "}
+              <span>Take me Home, Country Roads</span>
             </Button>
           </Link>
         </div>
@@ -37,9 +44,7 @@ export function AuthRouter() {
   return (
     <div className="w-full h-full flex p-2">
       <Navigation />
-      <div className="flex-1 overflow-hidden pl-2 h-full">
-        {content()}
-      </div>
+      <div className="flex-1 overflow-hidden pl-2 h-full">{content()}</div>
     </div>
   );
 }
