@@ -83,7 +83,7 @@ export function Navigation() {
           {map(bottomModules, (module) => {
             const { id, icon, name, route } = module;
             return (
-              <Link to={route} key={id}>
+              <Link to={route} key={id} tabIndex={-1}>
                 <Tooltip title={name}>
                   <IconButton
                     icon={icon}

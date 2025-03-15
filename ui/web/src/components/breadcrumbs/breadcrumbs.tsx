@@ -67,7 +67,7 @@ function Breadcrumb(props: { breadcrumb: Breadcrumb }) {
 
   if (options.length === 0) {
     return (
-      <Link to={to} key={id}>
+      <Link to={to} key={id} tabIndex={-1}>
         <Tooltip title={description} placement="bottom">
           <Button size="sm" className="bg-black-400 hover:bg-black-100 px-2">
             {name}
