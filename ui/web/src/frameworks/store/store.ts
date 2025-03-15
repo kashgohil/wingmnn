@@ -28,7 +28,7 @@ export function create<TState, TActions>(
       }
     }
 
-   _store = Object.assign({}, _store, finalUpdates);
+    _store = Object.assign({}, _store, finalUpdates);
 
     for (const key in finalUpdates) {
       if (_subscribers[key]) {
@@ -68,15 +68,38 @@ export function create<TState, TActions>(
   return function useState<TKey extends keyof TState | keyof TActions>(
     key: TKey,
   ) {
-    return useSyncExternalStore<
+    const useState = useSyncExternalStore<
       TKey extends keyof TState
-        ? TState[TKey]
+        ? TState[TKey] & {
+            get: (
+              key: TKey,
+            ) => TKey extends keyof TState
+              ? TState[TKey]
+              : TKey extends keyof TActions
+                ? TActions[TKey]
+                : never;
+            set: (value: Partial<TState>) => void;
+          }
         : TKey extends keyof TActions
-          ? TActions[TKey]
+          ? TActions[TKey] & {
+              get: (
+                key: TKey,
+              ) => TKey extends keyof TState
+                ? TState[TKey]
+                : TKey extends keyof TActions
+                  ? TActions[TKey]
+                  : never;
+              set: (value: Partial<TState>) => void;
+            }
           : never
     >(
       (subscribeFn) => subscribe(subscribeFn, key),
       () => get(key) as TSAny,
     );
+
+    useState.get = get;
+    useState.set = set;
+
+    return useState;
   };
 }
