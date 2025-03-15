@@ -1,17 +1,26 @@
+interface HttpServiceConfig {
+  baseUrl: string;
+  requestInterceptor?: (request: Request) => Request;
+  responseInterceptor?: <T>(response: Response) => Promise<T>;
+}
 
-export function http({ baseUrl = ''}: { baseUrl: string }) {
+export function httpService(config: HttpServiceConfig) {
   // private
-  const _baseUrl: string = baseUrl.startsWith('/') ? baseUrl : `/${baseUrl}`;
-  let _requestInterceptor = (request: Request) => request ;
-  let _responseInterceptor = (response: Response) => response;
+  const {
+    baseUrl,
+    requestInterceptor = (request: Request) => request,
+    responseInterceptor = <T>(response: Response) =>
+      response.json() as Promise<T>,
+  } = config;
+  const _baseUrl: string = baseUrl.startsWith("/") ? baseUrl : `/${baseUrl}`;
 
   // Helper function to parse response headers
   function _parseHeaders(headerStr: string): Headers {
     const headers = new Headers();
-    const headerPairs = headerStr.trim().split('\r\n');
+    const headerPairs = headerStr.trim().split("\r\n");
 
-    headerPairs.forEach(headerPair => {
-      const index = headerPair.indexOf(': ');
+    headerPairs.forEach((headerPair) => {
+      const index = headerPair.indexOf(": ");
       if (index > 0) {
         const key = headerPair.substring(0, index);
         const val = headerPair.substring(index + 2);
@@ -23,29 +32,37 @@ export function http({ baseUrl = ''}: { baseUrl: string }) {
   }
 
   function _url(url: string): string {
-    const updatedBaseUrl = url.endsWith('/') ? _baseUrl.slice(0, _baseUrl.length - 1) : _baseUrl;
-    const updatedUrl = url.startsWith('/') ? url.slice(1) : url;
+    const updatedBaseUrl = _baseUrl.endsWith("/")
+      ? _baseUrl.slice(0, _baseUrl.length - 1)
+      : _baseUrl;
+    const updatedUrl = url.startsWith("/") ? url.slice(1) : url;
     return `${updatedBaseUrl}/${updatedUrl}`;
   }
 
-  async function _fetch(url: string, options: RequestInit): Promise<Response> {
-    const request = _requestInterceptor(new Request(_url(url), options));
-    return fetch(request).then(_responseInterceptor);
+  async function _fetch<T>(url: string, options: RequestInit): Promise<T> {
+    const request = requestInterceptor(new Request(_url(url), options));
+    const response = await fetch(request);
+    return responseInterceptor<T>(response);
   }
 
-  async function _xmlHttpRequest(url: string, options: RequestInit & {timeout?: number}): Promise<Response> {
-    return new Promise((resolve, reject) => {
+  async function _xmlHttpRequest<T>(
+    url: string,
+    options: RequestInit & { timeout?: number },
+  ): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
+      const request = requestInterceptor(new Request(_url(url), options));
+
       // Set up the request
-      const method = options.method || 'GET';
+      const method = request.method || "GET";
       xhr.open(method, _url(url), true);
 
       // Add headers
-      if (options.headers) {
-        const headers = options.headers as Record<string, string>;
-        Object.keys(headers).forEach(key => {
-          xhr.setRequestHeader(key, headers[key]);
+      if (request.headers) {
+        const headers = request.headers;
+        Object.keys(headers).forEach((key) => {
+          xhr.setRequestHeader(key, headers.get(key)!);
         });
       }
 
@@ -54,23 +71,23 @@ export function http({ baseUrl = ''}: { baseUrl: string }) {
         const response = new Response(xhr.response, {
           status: xhr.status,
           statusText: xhr.statusText,
-          headers: _parseHeaders(xhr.getAllResponseHeaders())
+          headers: _parseHeaders(xhr.getAllResponseHeaders()),
         });
 
-        resolve(_responseInterceptor(response));
+        responseInterceptor<T>(response).then(resolve).catch(reject);
       };
 
       // Handle errors
       xhr.onerror = () => {
-        reject(new TypeError('Network request failed'));
+        reject(new TypeError("Network request failed"));
       };
 
       xhr.ontimeout = () => {
-        reject(new TypeError('Network request timed out'));
+        reject(new TypeError("Network request timed out"));
       };
 
       xhr.onabort = () => {
-        reject(new DOMException('Request aborted', 'AbortError'));
+        reject(new DOMException("Request aborted", "AbortError"));
       };
 
       if (options.timeout) {
@@ -86,60 +103,73 @@ export function http({ baseUrl = ''}: { baseUrl: string }) {
     });
   }
 
-  async function _request(url: string, options: RequestInit): Promise<Response> {
+  async function _request<T>(url: string, options: RequestInit): Promise<T> {
     // @ts-expect-error fetch can be undefined for older browsers
     if (window.fetch) {
-      return _fetch(url, options)
+      return _fetch<T>(url, options);
     } else {
-      return _xmlHttpRequest(url, options)
+      return _xmlHttpRequest<T>(url, options);
     }
   }
 
   // public
-  function requestInterceptor(interceptor: (request: Request) => Request): void {
-    _requestInterceptor = interceptor;
+  function get<T>(url: string, options: RequestInit = {}): Promise<T> {
+    return _request<T>(url, { ...options, method: "GET" });
   }
 
-  function responseInterceptor(interceptor: (response: Response) => Response): void {
-    _responseInterceptor = interceptor;
+  function post<T>(
+    url: string,
+    body: TSAny,
+    options: RequestInit = {},
+  ): Promise<T> {
+    return _request<T>(url, {
+      ...options,
+      method: "POST",
+      body: JSON.stringify(body),
+    });
   }
 
-  function get(url: string, options: RequestInit = {}): Promise<Response> {
-    return _request(url, { ...options, method: "GET" });
+  function put<T>(
+    url: string,
+    body: TSAny,
+    options: RequestInit = {},
+  ): Promise<T> {
+    return _request<T>(url, {
+      ...options,
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
   }
 
-  function post(url: string, body: TSAny, options: RequestInit = {}): Promise<Response> {
-    return _request(url, { ...options, method: "POST", body: JSON.stringify(body) });
+  function patch<T>(
+    url: string,
+    body: TSAny,
+    options: RequestInit = {},
+  ): Promise<T> {
+    return _request<T>(url, {
+      ...options,
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
   }
 
-  function put(url: string, body: TSAny, options: RequestInit = {}): Promise<Response> {
-    return _request(url, { ...options, method: "PUT", body: JSON.stringify(body) });
+  function del<T>(url: string, options: RequestInit = {}): Promise<T> {
+    return _request<T>(url, { ...options, method: "DELETE" });
   }
 
-  function patch(url: string, body: TSAny, options: RequestInit = {}): Promise<Response> {
-    return _request(url, { ...options, method: "PATCH", body: JSON.stringify(body) });
+  function head<T>(url: string, options: RequestInit = {}): Promise<T> {
+    return _request<T>(url, { ...options, method: "HEAD" });
   }
 
-  function del(url: string, options: RequestInit = {}): Promise<Response> {
-    return _request(url, { ...options, method: "DELETE" });
+  function options<T>(url: string, options: RequestInit = {}): Promise<T> {
+    return _request<T>(url, { ...options, method: "OPTIONS" });
   }
 
-  function head(url: string, options: RequestInit = {}): Promise<Response> {
-    return _request(url, { ...options, method: "HEAD" });
-  }
-
-  function options(url: string, options: RequestInit = {}): Promise<Response> {
-    return _request(url, { ...options, method: "OPTIONS" });
-  }
-
-  function trace(url: string, options: RequestInit = {}): Promise<Response> {
-    return _request(url, { ...options, method: "TRACE" });
+  function trace<T>(url: string, options: RequestInit = {}): Promise<T> {
+    return _request<T>(url, { ...options, method: "TRACE" });
   }
 
   return {
-    requestInterceptor,
-    responseInterceptor,
-
     get,
     post,
     put,
@@ -147,6 +177,6 @@ export function http({ baseUrl = ''}: { baseUrl: string }) {
     del,
     head,
     options,
-    trace
+    trace,
   };
 }
