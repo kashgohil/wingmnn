@@ -1,6 +1,6 @@
 import { useCallback, useRef, useMemo, useState } from "react";
 import { Field } from "./type";
-import { forEachArray } from "@utility/forEach";
+import { forEach } from "@utility/forEach";
 import { ValidationResult, Validations } from "./validations";
 import { everyObj } from "@utility/every";
 import { someObj } from "@utility/some";
@@ -31,7 +31,7 @@ export function useForm(
     const validations: FormData["validations"] = {};
     const isDirty = someObj(dirty, (value) => value);
 
-    forEachArray(fields, (field) => {
+    forEach(fields, (field) => {
       if (dirty[field.id]) {
         validations[field.id] = Validations.field(field, values[field.id]);
       } else {

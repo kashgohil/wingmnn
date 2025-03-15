@@ -18,7 +18,7 @@ import {
   SwitchField,
   TimeField,
 } from "./type";
-import { forEachArray } from "@utility/forEach";
+import { forEach } from "@utility/forEach";
 
 export type ValidationResult =
   | {
@@ -198,7 +198,7 @@ export const Validations = (function () {
     let error: string | undefined = "";
     const childValidations: Array<ValidationResult> = [];
 
-    forEachArray(childFields, (childField) => {
+    forEach(childFields, (childField) => {
       const validation = validate(childField, value[childField.id]);
       childValidations.push(validation);
       ans &&= validation.valid;

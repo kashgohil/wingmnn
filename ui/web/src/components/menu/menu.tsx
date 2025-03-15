@@ -4,7 +4,7 @@ import { castArray } from "@utility/castArray";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { filter } from "@utility/filter";
-import { forEachArray } from "@utility/forEach";
+import { forEach } from "@utility/forEach";
 import { map } from "@utility/map";
 import React, { KeyboardEvent } from "react";
 
@@ -112,7 +112,7 @@ export function Menu(props: MenuProps) {
 
   const selectedOptions = React.useMemo(() => {
     const set = new Set();
-    forEachArray(castArray(value), (value) => {
+    forEach(castArray(value), (value) => {
       set.add(value);
     });
     return set;
