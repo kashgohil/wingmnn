@@ -1,20 +1,20 @@
-import { DIALOGS, useProjectsDialogState } from "../../logic/useProjectsDialog";
+import { Dialogs, useProjectDialog } from "@projects/logic/useProjectDialog";
 import { AddProject } from "./addProject";
 import { AddTask } from "./addTask";
 
 export function ProjectDialogs() {
-  const dialogState = useProjectsDialogState("dialogState");
-  const closeDialog = useProjectsDialogState("closeDialog");
+  const dialogState = useProjectDialog("dialogState");
+  const closeDialog = useProjectDialog("closeDialog");
 
   return (
     <>
       <AddProject
-        open={dialogState[DIALOGS.CREATE_PROJECT].open}
-        onClose={() => closeDialog(DIALOGS.CREATE_PROJECT)}
+        open={dialogState[Dialogs.CREATE_PROJECT].open}
+        onClose={() => closeDialog(Dialogs.CREATE_PROJECT)}
       />
       <AddTask
-        open={dialogState[DIALOGS.ADD_TASK].open}
-        onClose={() => closeDialog(DIALOGS.ADD_TASK)}
+        open={dialogState[Dialogs.ADD_TASK].open}
+        onClose={() => closeDialog(Dialogs.ADD_TASK)}
       />
     </>
   );
