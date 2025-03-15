@@ -36,6 +36,7 @@ interface FormProps
   formData: FormData;
   className?: string;
   fields: Array<Field>;
+  classes?: Record<string, Record<string, string>>;
   onSubmit(values: FormData["values"]): void;
   onChange(fieldId: string, value: TSAny): void;
 }
@@ -45,6 +46,7 @@ interface FormFieldProps {
   field: Field;
   validations: ValidationResult;
   onChange: FormProps["onChange"];
+  classes?: Record<string, string>;
 }
 
 interface FieldComponentProps<T> extends Omit<FormFieldProps, "field"> {
@@ -72,7 +74,7 @@ export function FormMessage(props: FormMessageProps) {
 }
 
 function CompositeFieldRenderer(props: FieldComponentProps<CompositeField>) {
-  const { field, value: fieldValue, validations, onChange } = props;
+  const { field, value: fieldValue, validations, onChange, classes } = props;
   const { childFields } = field;
   const { childValidations = [] } = validations;
 
@@ -88,6 +90,7 @@ function CompositeFieldRenderer(props: FieldComponentProps<CompositeField>) {
       {map(childFields, (childField, index) => {
         return (
           <FormField
+            classes={classes}
             field={childField}
             key={childField.id}
             onChange={changeHandler}
@@ -101,7 +104,7 @@ function CompositeFieldRenderer(props: FieldComponentProps<CompositeField>) {
 }
 
 function SelectFieldRenderer(props: FieldComponentProps<SelectField>) {
-  const { field, value, onChange } = props;
+  const { field, value, onChange, classes = {} } = props;
 
   const multi = field.dataType === DataType.LIST_OF_STRING;
 
@@ -119,12 +122,13 @@ function SelectFieldRenderer(props: FieldComponentProps<SelectField>) {
       variant="outlined"
       options={field.options}
       onChange={changeHandler}
+      className={classes.content}
     />
   );
 }
 
 function InputFieldRenderer(props: FieldComponentProps<InputField>) {
-  const { field, value, onChange } = props;
+  const { field, value, onChange, classes = {} } = props;
 
   function getDataType() {
     switch (field.dataType) {
@@ -151,38 +155,14 @@ function InputFieldRenderer(props: FieldComponentProps<InputField>) {
       type={getDataType()}
       onChange={changeHandler}
       placeholder={field.name}
+      className={classes.content}
+      wrapperClassName={classes.wrapper}
     />
   );
 }
 
 function CheckboxFieldRenderer(props: FieldComponentProps<CheckboxField>) {
-  const { field, value, onChange } = props;
-
-  const changeHandler = React.useCallback(
-    (value: TSAny) => {
-      onChange(field.id, value);
-    },
-    [onChange, field.id],
-  );
-
-  return <Checkbox checked={value} onChange={changeHandler} value={field.id} />;
-}
-
-function RadioFieldRenderer(props: FieldComponentProps<RadioField>) {
-  const { field, value, onChange } = props;
-
-  const changeHandler = React.useCallback(
-    (value: TSAny) => {
-      onChange(field.id, value);
-    },
-    [onChange, field.id],
-  );
-
-  return <Radio checked={value} onChange={changeHandler} value={field.id} />;
-}
-
-function DateFieldRenderer(props: FieldComponentProps<DateField>) {
-  const { field, value, onChange } = props;
+  const { field, value, onChange, classes = {} } = props;
 
   const changeHandler = React.useCallback(
     (value: TSAny) => {
@@ -192,12 +172,57 @@ function DateFieldRenderer(props: FieldComponentProps<DateField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.name} />
+    <Checkbox
+      checked={value}
+      onChange={changeHandler}
+      value={field.id}
+      className={classes.content}
+    />
+  );
+}
+
+function RadioFieldRenderer(props: FieldComponentProps<RadioField>) {
+  const { field, value, onChange, classes = {} } = props;
+
+  const changeHandler = React.useCallback(
+    (value: TSAny) => {
+      onChange(field.id, value);
+    },
+    [onChange, field.id],
+  );
+
+  return (
+    <Radio
+      checked={value}
+      onChange={changeHandler}
+      value={field.id}
+      className={classes.content}
+    />
+  );
+}
+
+function DateFieldRenderer(props: FieldComponentProps<DateField>) {
+  const { field, value, onChange, classes = {} } = props;
+
+  const changeHandler = React.useCallback(
+    (value: TSAny) => {
+      onChange(field.id, value);
+    },
+    [onChange, field.id],
+  );
+
+  return (
+    <Switch
+      checked={value}
+      onChange={changeHandler}
+      message={field.name}
+      className={classes.content}
+    />
   );
 }
 
 function TimeFieldRenderer(props: FieldComponentProps<TimeField>) {
-  const { field, value, onChange } = props;
+  const { field, value, onChange, classes = {} } = props;
 
   const changeHandler = React.useCallback(
     (value: TSAny) => {
@@ -207,12 +232,17 @@ function TimeFieldRenderer(props: FieldComponentProps<TimeField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.name} />
+    <Switch
+      checked={value}
+      onChange={changeHandler}
+      message={field.name}
+      className={classes.content}
+    />
   );
 }
 
 function DateTimeFieldRenderer(props: FieldComponentProps<DateTimeField>) {
-  const { field, value, onChange } = props;
+  const { field, value, onChange, classes = {} } = props;
 
   const changeHandler = React.useCallback(
     (value: TSAny) => {
@@ -222,12 +252,17 @@ function DateTimeFieldRenderer(props: FieldComponentProps<DateTimeField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.name} />
+    <Switch
+      checked={value}
+      onChange={changeHandler}
+      message={field.name}
+      className={classes.content}
+    />
   );
 }
 
 function SwitchFieldRenderer(props: FieldComponentProps<SwitchField>) {
-  const { field, value, onChange } = props;
+  const { field, value, onChange, classes = {} } = props;
 
   const changeHandler = React.useCallback(
     (value: TSAny) => {
@@ -237,12 +272,17 @@ function SwitchFieldRenderer(props: FieldComponentProps<SwitchField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.name} />
+    <Switch
+      checked={value}
+      onChange={changeHandler}
+      message={field.name}
+      className={classes.content}
+    />
   );
 }
 
 function RichTextFieldRenderer(props: FieldComponentProps<RichTextField>) {
-  const { field, value, onChange } = props;
+  const { field, value, onChange, classes = {} } = props;
 
   const changeHandler = React.useCallback(
     (value: TSAny) => {
@@ -252,12 +292,17 @@ function RichTextFieldRenderer(props: FieldComponentProps<RichTextField>) {
   );
 
   return (
-    <Switch checked={value} onChange={changeHandler} message={field.name} />
+    <Switch
+      checked={value}
+      onChange={changeHandler}
+      message={field.name}
+      className={classes.content}
+    />
   );
 }
 
 export function FormField(props: FormFieldProps) {
-  const { field, value, validations, onChange } = props;
+  const { field, value, validations, onChange, classes = {} } = props;
 
   const { error = "", valid } = validations;
 
@@ -270,6 +315,7 @@ export function FormField(props: FormFieldProps) {
           <CompositeFieldRenderer
             field={field}
             value={value}
+            classes={classes}
             onChange={onChange}
             validations={validations}
           />
@@ -283,6 +329,7 @@ export function FormField(props: FormFieldProps) {
             field={field}
             value={value}
             onChange={onChange}
+            classes={classes}
             validations={validations}
           />
           <FormMessage message={message} type={valid ? "info" : "error"} />
@@ -295,6 +342,7 @@ export function FormField(props: FormFieldProps) {
             field={field}
             value={value}
             onChange={onChange}
+            classes={classes}
             validations={validations}
           />
           <FormMessage message={message} type={valid ? "info" : "error"} />
@@ -307,6 +355,7 @@ export function FormField(props: FormFieldProps) {
             field={field}
             value={value}
             onChange={onChange}
+            classes={classes}
             validations={validations}
           />
           <FormMessage message={message} type={valid ? "info" : "error"} />
@@ -319,6 +368,7 @@ export function FormField(props: FormFieldProps) {
             field={field}
             value={value}
             onChange={onChange}
+            classes={classes}
             validations={validations}
           />
           <FormMessage message={message} type={valid ? "info" : "error"} />
@@ -331,6 +381,7 @@ export function FormField(props: FormFieldProps) {
             field={field}
             value={value}
             onChange={onChange}
+            classes={classes}
             validations={validations}
           />
           <FormMessage message={message} type={valid ? "info" : "error"} />
@@ -343,6 +394,7 @@ export function FormField(props: FormFieldProps) {
             field={field}
             value={value}
             onChange={onChange}
+            classes={classes}
             validations={validations}
           />
           <FormMessage message={message} type={valid ? "info" : "error"} />
@@ -355,6 +407,7 @@ export function FormField(props: FormFieldProps) {
             field={field}
             value={value}
             onChange={onChange}
+            classes={classes}
             validations={validations}
           />
           <FormMessage message={message} type={valid ? "info" : "error"} />
@@ -367,6 +420,7 @@ export function FormField(props: FormFieldProps) {
             field={field}
             value={value}
             onChange={onChange}
+            classes={classes}
             validations={validations}
           />
           <FormMessage message={message} type={valid ? "info" : "error"} />
@@ -379,6 +433,7 @@ export function FormField(props: FormFieldProps) {
             field={field}
             value={value}
             onChange={onChange}
+            classes={classes}
             validations={validations}
           />
           <FormMessage message={message} type={valid ? "info" : "error"} />
@@ -388,7 +443,15 @@ export function FormField(props: FormFieldProps) {
 }
 
 export function Form(props: FormProps) {
-  const { formData, fields, className, onChange, onSubmit, ...rest } = props;
+  const {
+    formData,
+    fields,
+    className,
+    classes = {},
+    onChange,
+    onSubmit,
+    ...rest
+  } = props;
 
   const { validations, values } = formData;
 
@@ -413,6 +476,7 @@ export function Form(props: FormProps) {
           onChange={onChange}
           value={values[field.id]}
           validations={validations[field.id]}
+          classes={classes[field.id]}
         />
       ))}
     </form>
