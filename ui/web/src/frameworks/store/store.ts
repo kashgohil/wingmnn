@@ -31,8 +31,10 @@ export function create<TState, TActions>(
    _store = Object.assign({}, _store, finalUpdates);
 
     for (const key in finalUpdates) {
-      for (const subscriber of _subscribers[key]) {
-        subscriber();
+      if (_subscribers[key]) {
+        for (const subscriber of _subscribers[key]) {
+          subscriber();
+        }
       }
     }
   }
