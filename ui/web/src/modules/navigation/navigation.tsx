@@ -50,7 +50,10 @@ export function Navigation() {
   return (
     <div className="h-full rounded-lg p-2 bg-black-100 flex flex-col">
       <div className="mx-auto flex items-center justify-center py-2">
-        <Link to={BaseRoutes[Modules.HOME]}>
+        <Link
+          to={BaseRoutes[Modules.HOME]}
+          className="focus-within:outline-2 focus-within:outline-offset-6 focus-within:outline-white-500 transition-all duration-100 focus-within:rounded-lg"
+        >
           <Wingmnn
             width={24}
             height={24}
