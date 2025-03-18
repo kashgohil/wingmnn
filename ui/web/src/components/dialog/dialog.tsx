@@ -3,7 +3,12 @@ import { useFocusTrap } from "@hooks/useFocusTrap";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { X } from "lucide-react";
-import { AnimatePresence, HTMLMotionProps, motion } from "motion/react";
+import {
+  AnimatePresence,
+  HTMLMotionProps,
+  motion,
+  TargetAndTransition,
+} from "motion/react";
 import React, { MouseEvent } from "react";
 import { createPortal } from "react-dom";
 
@@ -11,6 +16,9 @@ export interface DialogProps extends HTMLMotionProps<"div"> {
   open: boolean;
   size?: "sm" | "md" | "lg" | "xl";
   onClose(): void;
+  initial?: TargetAndTransition;
+  exit?: TargetAndTransition;
+  animate?: TargetAndTransition;
 }
 
 export interface DialogTitleProps
@@ -46,6 +54,9 @@ export function Dialog(props: DialogProps) {
     onClose,
     className,
     ref,
+    initial = {},
+    animate = {},
+    exit = {},
     ...rest
   } = props;
 
@@ -79,9 +90,9 @@ export function Dialog(props: DialogProps) {
         >
           <motion.div
             {...rest}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.9, ...initial }}
+            animate={{ opacity: 1, scale: 1, ...animate }}
+            exit={{ opacity: 0, scale: 0.9, ...exit }}
             role="dialog"
             ref={dialogRef}
             className={cx(
