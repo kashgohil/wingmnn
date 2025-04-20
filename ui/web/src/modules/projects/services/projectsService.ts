@@ -9,7 +9,7 @@ export const ProjectsService = (function () {
     return await http.put<Project>("/api/projects", project);
   }
   async function deleteProject(projectId: string) {
-    return await http.del<Project>(`/api/projects/${projectId}`);
+    return await http.delete<Project>(`/api/projects/${projectId}`);
   }
   async function updateProject(projectId: string, project: Partial<Project>) {
     return await http.put<Project>(`/api/projects/${projectId}`, project);

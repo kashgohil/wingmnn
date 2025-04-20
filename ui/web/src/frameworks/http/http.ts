@@ -174,7 +174,7 @@ export function httpService(config: HttpServiceConfig) {
     post,
     put,
     patch,
-    del,
+    delete: del,
     head,
     options,
     trace,
