@@ -3,7 +3,9 @@ export const UploadService = (function () {
     image(file: File): Promise<Attachment> {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => {};
+        reader.onload = () => {
+          resolve({} as Attachment);
+        };
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
@@ -11,7 +13,9 @@ export const UploadService = (function () {
     pdf(file: File): Promise<Attachment> {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => {};
+        reader.onload = () => {
+          resolve({} as Attachment);
+        };
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
@@ -19,7 +23,9 @@ export const UploadService = (function () {
     blob(blob: Blob): Promise<Attachment> {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => {};
+        reader.onload = () => {
+          resolve({} as Attachment);
+        };
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
