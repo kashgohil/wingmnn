@@ -6,9 +6,9 @@ export interface EditorProps {
 }
 
 export function Editor(props: EditorProps) {
-  const { value, onChange } = props;
+  const { value } = props;
 
-  const { editorState } = useEditor(value);
+  useEditor(value);
 
   return (
     <div
