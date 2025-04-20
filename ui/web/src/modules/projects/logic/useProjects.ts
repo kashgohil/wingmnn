@@ -1,35 +1,57 @@
-import { create } from "@frameworks/store/store";
+import { createStore } from "@frameworks/store/create";
+import { ProjectDialog } from "@projects/constants";
 import { Project } from "@projects/type";
 import { upsert } from "@utility/upsert";
 
 interface ProjectsState {
   projects: Array<Project>;
+  dialogs: Record<ProjectDialog, boolean>;
 }
 
-interface ProjectsActions {
-  deleteProject: (id: string) => void;
-  addProject: (project: Project) => void;
-  updateProject: (project: Project) => void;
-}
-
-export const useProjects = create<ProjectsState, ProjectsActions>((set) => ({
+const { useState: useProjects, store } = createStore<ProjectsState>({
   projects: [],
 
-  deleteProject: (id: string) => {
-    set((state) => ({
-      projects: state.projects.filter((project) => project.id !== id),
-    }));
+  dialogs: {
+    [ProjectDialog.CREATE_PROJECT]: false,
+    [ProjectDialog.EDIT_PROJECT]: false,
+    [ProjectDialog.CREATE_TASK]: false,
+    [ProjectDialog.EDIT_TASK]: false,
   },
+});
 
-  addProject: (project: Project) => {
-    set((state) => ({
-      projects: [...state.projects, project],
-    }));
-  },
+const ProjectActions = (function () {
+  return {
+    addProject: (project: Project) => {
+      store.set("projects", upsert(store.get("projects"), project));
+    },
+    removeProject: (id: string) => {
+      store.set(
+        "projects",
+        store.get("projects").filter((project) => project.id !== id),
+      );
+    },
+    updateProject: (id: string, project: Project) => {
+      store.set(
+        "projects",
+        store.get("projects").map((p) => (p.id === id ? project : p)),
+      );
+    },
 
-  updateProject: (project: Project) => {
-    set((state) => ({
-      projects: upsert(state.projects, project),
-    }));
-  },
-}));
+    openDialog: (dialog: ProjectDialog) => {
+      store.set("dialogs", { ...store.get("dialogs"), [dialog]: true });
+    },
+
+    closeDialog: (dialog: ProjectDialog) => {
+      store.set("dialogs", { ...store.get("dialogs"), [dialog]: false });
+    },
+
+    toggleDialog: (dialog: ProjectDialog) => {
+      store.set("dialogs", {
+        ...store.get("dialogs"),
+        [dialog]: !store.get("dialogs")[dialog],
+      });
+    },
+  };
+})();
+
+export { useProjects, ProjectActions };
