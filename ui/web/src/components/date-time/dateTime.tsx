@@ -9,5 +9,7 @@ export interface DateTimeProps
 }
 
 export function DateTime(props: DateTimeProps) {
-  return <div></div>;
+  const { value } = props;
+
+  return <div>{value}</div>;
 }

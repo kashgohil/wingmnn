@@ -9,5 +9,7 @@ export interface TimeProps
 }
 
 export function Time(props: TimeProps) {
-  return <div></div>;
+  const { value } = props;
+
+  return <div>{value}</div>;
 }

@@ -13,5 +13,11 @@ export interface DateRangeProps
 }
 
 export function DateRange(props: DateRangeProps) {
-  return <div></div>;
+  const { value } = props;
+
+  return (
+    <div>
+      {value[0]} - {value[1]}
+    </div>
+  );
 }
