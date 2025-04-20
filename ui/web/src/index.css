@@ -146,4 +146,5 @@
     --spacing: 4px;
 
     --animate-slow-spin: spin 20s linear infinite;
+    --animate-loader-spin: spin 3s linear infinite;
 }
