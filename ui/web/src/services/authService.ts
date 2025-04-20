@@ -1,7 +1,7 @@
 import { Cookie } from "@utility/browser";
 
 export const AuthService = (function () {
-  // priate
+  // private
 
   // public
   function isAuthenticated() {
