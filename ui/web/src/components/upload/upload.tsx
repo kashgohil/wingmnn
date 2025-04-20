@@ -6,16 +6,12 @@ import { AnimatePresence, HTMLMotionProps, motion } from "motion/react";
 import React, { ChangeEvent } from "react";
 
 interface UploadProps extends HTMLMotionProps<"div"> {
+  accept?: string;
   message?: string;
   icon?: LucideIcon;
-  accept?: string;
   attachment?: Attachment;
-  onUpload: (files: Array<ExtendedFile>) => void;
+  onUpload: (files: Array<File>) => void;
   onRemove: (attachment: Attachment) => void;
-}
-
-interface ExtendedFile extends File {
-  url: string;
 }
 
 interface AttachmentProps {
@@ -96,13 +92,21 @@ function Attachment(props: AttachmentProps) {
 }
 
 interface FileProps {
-  file: ExtendedFile;
-  onRemove: (file: ExtendedFile) => void;
+  file: File;
+  onRemove: (file: File) => void;
 }
 
 function File(props: FileProps) {
   const { file, onRemove } = props;
-  const { type, url, name, size } = file;
+  const { type, name, size } = file;
+
+  React.useEffect(() => {
+    const fileContent = new FileReader();
+    fileContent.onload = () => {
+      console.log(fileContent.result);
+    };
+    fileContent.readAsText(file);
+  }, [file]);
 
   if (type.startsWith("image")) {
     return (
