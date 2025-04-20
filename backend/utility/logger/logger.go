@@ -52,7 +52,16 @@ func RequestLogger(next http.Handler) http.Handler {
 }
 
 func Setup() {
-	logHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 066)
+
+	if err != nil {
+		slog.Error("failed to open log file", "error", err)
+		return
+	}
+
+	defer logFile.Close()
+
+	logHandler := slog.NewJSONHandler(logFile, &slog.HandlerOptions{
 		Level:     slog.LevelInfo,
 		AddSource: true,
 	})
