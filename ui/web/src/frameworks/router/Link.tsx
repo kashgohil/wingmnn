@@ -14,10 +14,8 @@ export function Link(props: LinkProps) {
 
   const clickHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    document.startViewTransition(() => {
-      if (onClick) onClick(event);
-      window.history.pushState({}, "", props.to);
-    });
+    if (onClick) onClick(event);
+    window.history.pushState({}, "", props.to);
   };
 
   return (
