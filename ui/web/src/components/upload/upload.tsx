@@ -100,12 +100,14 @@ function File(props: FileProps) {
   const { file, onRemove } = props;
   const { type, name, size } = file;
 
+  const [url, setUrl] = React.useState<string>("");
+
   React.useEffect(() => {
     const fileContent = new FileReader();
     fileContent.onload = () => {
-      console.log(fileContent.result);
+      setUrl(fileContent.result as string);
     };
-    fileContent.readAsText(file);
+    fileContent.readAsDataURL(file);
   }, [file]);
 
   if (type.startsWith("image")) {
