@@ -17,6 +17,7 @@ import (
 	"github.com/kashgohil/wingmnn/backend/modules/auth"
 	"github.com/kashgohil/wingmnn/backend/server"
 	"github.com/kashgohil/wingmnn/backend/utility/cookie"
+	"github.com/kashgohil/wingmnn/backend/utility/logger"
 )
 
 func main() {
@@ -39,11 +40,16 @@ func main() {
 	// defer connection closure
 	defer server.DBPool.Close()
 
+	// logs
+	logger.Setup()
+
+	// router
 	server.Server = chi.NewRouter()
 
 	server.Server.Use(middleware.RequestID)
 	server.Server.Use(middleware.Recoverer)
 	server.Server.Use(middleware.URLFormat)
+	server.Server.Use(logger.RequestLogger)
 	server.Server.Use(middleware.Timeout(60 * time.Second))
 
 	// middleware to check csrf token
@@ -61,7 +67,6 @@ func main() {
 				log.Println("[CSRF] cannot extract csrf cookie from request", err)
 				cookie.RemoveCookie(w, "csrf_token")
 				cookie.RemoveCookie(w, "auth_token")
-				cookie.RemoveCookie(w, "refresh_token")
 				http.Error(w, "unauthorized access. redirecting you to login page", http.StatusUnauthorized)
 				return
 			}
@@ -70,7 +75,6 @@ func main() {
 				log.Println("[CSRF] no csrf token found in request header")
 				cookie.RemoveCookie(w, "csrf_token")
 				cookie.RemoveCookie(w, "auth_token")
-				cookie.RemoveCookie(w, "refresh_token")
 				http.Error(w, "unauthorized access. redirecting you to login page", http.StatusUnauthorized)
 				return
 			}
@@ -79,7 +83,6 @@ func main() {
 				log.Println("[CSRF] no csrf cookie found in request")
 				cookie.RemoveCookie(w, "csrf_token")
 				cookie.RemoveCookie(w, "auth_token")
-				cookie.RemoveCookie(w, "refresh_token")
 				http.Error(w, "unauthorized access. redirecting you to login page", http.StatusUnauthorized)
 				return
 			}
@@ -88,7 +91,6 @@ func main() {
 				log.Println("[CSRF] mismatching csrf token")
 				cookie.RemoveCookie(w, "csrf_token")
 				cookie.RemoveCookie(w, "auth_token")
-				cookie.RemoveCookie(w, "refresh_token")
 				http.Error(w, "unauthorized access. redirecting you to login page", http.StatusUnauthorized)
 				return
 			}
