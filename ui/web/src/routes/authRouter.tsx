@@ -30,7 +30,7 @@ export function AuthRouter() {
               variant="secondary"
               className="flex items-center space-x-3 mt-4"
             >
-              <Wingmnn height={24} width={24} className="animate-slow-spin" />{" "}
+              <Wingmnn height={24} width={24} className="animate-slow-spin" />
               <span>Take me Home, Country Roads</span>
             </Button>
           </Link>
@@ -43,7 +43,7 @@ export function AuthRouter() {
 
   return (
     <div className="w-full h-full flex p-2">
-      <Navigation />
+      <Navigation key="NAVIGATION" />
       <div className="flex-1 overflow-hidden pl-2 h-full">{content()}</div>
     </div>
   );
