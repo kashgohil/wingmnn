@@ -32,3 +32,7 @@ interface Attachment extends BaseDetails, Metadata {
   contentType: string;
   thumbnailUrl?: string;
 }
+
+interface ExtendedFile extends File {
+  url: string;
+}
