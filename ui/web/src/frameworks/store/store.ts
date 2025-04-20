@@ -1,105 +1,122 @@
-import { get as _get } from "@utility/get";
-import { isEqual } from "@utility/isEqual";
-import { useSyncExternalStore } from "react";
+type Effect<T> = (store: Store<T>) => void;
+type EffectsMap<T> = { [key in keyof T]: Set<Effect<T>> };
 
-export function create<TState, TActions>(
-  creator: (
-    set: (
-      value: Partial<TState> | ((state: TState) => Partial<TState>),
-    ) => void,
-    get: <TKey extends keyof TState | keyof TActions>(
-      key: TKey,
-    ) => TKey extends keyof TState
-      ? TState[TKey]
-      : TKey extends keyof TActions
-        ? TActions[TKey]
-        : never,
-  ) => TState & TActions,
-) {
-  function set(value: Partial<TState> | ((state: TState) => Partial<TState>)) {
-    let updates: TSAny = value;
-    if (typeof value === "function") updates = value(_store);
+type Subscriber<T> = Effect<T>;
+type SubscribersMap<T> = { [key in keyof T]: Set<Subscriber<T>> };
 
-    const finalUpdates: TSAny = {};
+export class Store<T> {
+  #state: T = {} as T;
+  #effects: EffectsMap<T> = {} as EffectsMap<T>;
+  #subscribers: SubscribersMap<T> = {} as SubscribersMap<T>;
 
+  constructor(state?: T) {
+    if (!state) {
+      this.#state = {} as T;
+      this.#effects = {} as EffectsMap<T>;
+      this.#subscribers = {} as SubscribersMap<T>;
+    } else {
+      this.initialize(state);
+    }
+  }
+
+  initialize(state: T) {
+    this.#state = state;
+    for (const key in this.#state) {
+      this.#subscribers[key] = new Set();
+      this.#effects[key] = new Set();
+    }
+  }
+
+  /**
+   * @param key key you want to access from store
+   * @param subscribe [optional] if you want to pass a subscriber to make this get value reactive, then you can pass it here
+   * @returns value for that key in store
+   *
+   * @description this will return the value for the given key in the store. If a subscriber is provided, it will be added to the list of subscribers for that key. if you want the value to be reactive, pass a subscriber function. otherwise, when value changes, you will not receive reactive updates.
+   */
+  get<TKey extends keyof T>(
+    key: TKey,
+    subscribe?: (store: Store<T>) => void,
+  ): T[TKey] {
+    if (subscribe) {
+      this.subscribe(key, subscribe);
+    }
+    return this.#state[key];
+  }
+
+  /**
+   * @param key key for what you want to store
+   * @param value what you want to store against that key
+   */
+  set<TKey extends keyof T>(key: TKey, value: T[TKey]) {
+    this.#state[key] = value;
+    if (this.#subscribers[key].size > 0) {
+      this.#subscribers[key].forEach((subscriber) => subscriber(this));
+      this.runEffects(key);
+    }
+  }
+
+  /**
+   * @param updates updates you want to store
+   */
+  updates(updates: Partial<T> | ((state: T) => Partial<T>)) {
+    if (typeof updates === "function") {
+      updates = updates(this.#state);
+    }
     for (const key in updates) {
-      if (!isEqual(_get(_store, key), updates[key])) {
-        finalUpdates[key] = updates[key];
-      }
-    }
-
-    _store = Object.assign({}, _store, finalUpdates);
-
-    for (const key in finalUpdates) {
-      if (_subscribers[key]) {
-        for (const subscriber of _subscribers[key]) {
-          subscriber();
-        }
-      }
+      this.set(key, updates[key] as T[keyof T]);
     }
   }
 
-  function get<TKey extends keyof TState | keyof TActions>(key: TKey) {
-    return _store[key] as TKey extends keyof TState
-      ? TState[TKey]
-      : TKey extends keyof TActions
-        ? TActions[TKey]
-        : never;
+  /**
+   * @param key key you want to remove from store
+   */
+  remove(key: keyof T) {
+    delete this.#state[key];
+    delete this.#subscribers[key];
   }
 
-  let _store = creator(set, get);
-  const _subscribers: MapOf<Set<() => void>> = {};
-
-  function subscribe(
-    subscribe: () => void,
-    key: keyof TState | keyof TActions,
-  ) {
-    if (typeof _store[key] === "function") return () => {};
-    if (!_subscribers[key as string]) {
-      _subscribers[key as string] = new Set([subscribe]);
+  /**
+   * @param key key for the subscriber set
+   * @param callback callback you want to run on key value change
+   */
+  subscribe(key: keyof T, callback: (store: Store<T>) => void) {
+    if (!this.#subscribers[key]) {
+      this.#subscribers[key] = new Set();
     }
-    _subscribers[key as string].add(subscribe);
+    this.#subscribers[key].add(callback);
 
     return () => {
-      _subscribers[key as string].delete(subscribe);
+      this.unsubscribe(key, callback);
     };
   }
 
-  return function useState<TKey extends keyof TState | keyof TActions>(
-    key: TKey,
-  ) {
-    const useState = useSyncExternalStore<
-      TKey extends keyof TState
-        ? TState[TKey] & {
-            get: (
-              key: TKey,
-            ) => TKey extends keyof TState
-              ? TState[TKey]
-              : TKey extends keyof TActions
-                ? TActions[TKey]
-                : never;
-            set: (value: Partial<TState>) => void;
-          }
-        : TKey extends keyof TActions
-          ? TActions[TKey] & {
-              get: (
-                key: TKey,
-              ) => TKey extends keyof TState
-                ? TState[TKey]
-                : TKey extends keyof TActions
-                  ? TActions[TKey]
-                  : never;
-              set: (value: Partial<TState>) => void;
-            }
-          : never
-    >(
-      (subscribeFn) => subscribe(subscribeFn, key),
-      () => get(key) as TSAny,
-    );
+  /**
+   * @param key key you want to unsubscribe from
+   * @param callback callback you want to unsubscribe
+   */
+  unsubscribe(key: keyof T, callback: (store: Store<T>) => void) {
+    if (this.#subscribers[key]) {
+      this.#subscribers[key].delete(callback);
+    }
+  }
 
-    useState.get = get;
-    useState.set = set;
+  addEffect(key: keyof T, effect: (store: Store<T>) => void) {
+    if (!this.#effects[key]) {
+      this.#effects[key] = new Set();
+    }
+    this.#effects[key].add(effect);
+  }
 
-    return useState;
-  };
+  removeEffect(key: keyof T, effect: (store: Store<T>) => void) {
+    if (this.#effects[key]) {
+      this.#effects[key].delete(effect);
+    }
+  }
+
+  runEffects(key: keyof T) {
+    if (this.#effects[key]) {
+      this.#effects[key].forEach((effect) => effect(this));
+    }
+  }
 }
