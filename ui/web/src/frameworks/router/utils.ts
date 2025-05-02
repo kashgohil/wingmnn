@@ -66,7 +66,7 @@ function getRouterUtils() {
         continue;
       }
 
-      // only last parameter can be optional, and if it is optional, so we don't need to compare
+      // only last parameter can be optional, and if it is optional, then we don't need to compare
       if (pathChunk.endsWith("?")) {
         continue;
       }

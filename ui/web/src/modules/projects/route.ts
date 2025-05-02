@@ -5,17 +5,17 @@ import { ProjectId } from "./views/projectId";
 
 export const ProjectsRoute = {
   id: Modules.PROJECTS,
-  path: '/projects',
+  path: "/projects",
   Component: Projects,
   childRoutes: [
     {
-      id: 'PROJECTS_HOME',
-      path: '/',
+      id: "PROJECTS_HOME",
+      path: "/",
       Component: Home,
     },
     {
-      id: Modules.PROJECTS,
-      path: '/:id',
+      id: "PROJECT_ID",
+      path: "/:id",
       Component: ProjectId,
     },
   ],
