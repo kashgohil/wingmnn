@@ -42,9 +42,11 @@ export function AuthRouter() {
   }
 
   return (
-    <div className="w-full h-full flex p-2">
+    <div className="w-full h-full flex py-2 pr-2">
       <Navigation key="NAVIGATION" />
-      <div className="flex-1 overflow-hidden pl-2 h-full">{content()}</div>
+      <div className="flex-1 overflow-hidden h-full bg-black-100 rounded-lg">
+        {content()}
+      </div>
     </div>
   );
 }
