@@ -1,4 +1,3 @@
-import { Button } from "@components/button/button";
 import { Menu } from "@components/menu/menu";
 import { Separator } from "@components/separator/separator";
 import { Tooltip } from "@components/tooltip/tooltip";
@@ -39,14 +38,22 @@ export function Breadcrumbs(props: BreadcrumbsProps) {
   const { breadcrumbs = [] } = props;
 
   return (
-    <Separator
-      orientation="vertical"
-      className="rotate-[20deg] bg-white-950 w-[1px] rounded-lg my-4 mx-4"
-    >
-      {breadcrumbs.map((breadcrumb) => {
-        return <Breadcrumb key={breadcrumb.id} breadcrumb={breadcrumb} />;
-      })}
-    </Separator>
+    <nav>
+      <ol className="flex items-center p-2">
+        <Separator
+          orientation="vertical"
+          className="rotate-[20deg] bg-white-950 w-[1px] rounded-lg my-4 mx-4"
+        >
+          {breadcrumbs.map((breadcrumb) => {
+            return (
+              <li className="inline-flex items-center gap-1">
+                <Breadcrumb key={breadcrumb.id} breadcrumb={breadcrumb} />
+              </li>
+            );
+          })}
+        </Separator>
+      </ol>
+    </nav>
   );
 }
 
@@ -69,9 +76,7 @@ function Breadcrumb(props: { breadcrumb: Breadcrumb }) {
     return (
       <Link to={to} key={id} tabIndex={-1}>
         <Tooltip title={description} placement="bottom">
-          <Button size="sm" className="bg-black-400 hover:bg-black-100 px-2">
-            {name}
-          </Button>
+          {name}
         </Tooltip>
       </Link>
     );
@@ -79,15 +84,10 @@ function Breadcrumb(props: { breadcrumb: Breadcrumb }) {
 
   return (
     <>
-      <Button
-        size="sm"
-        ref={popoverRef}
-        onClick={toggle}
-        className="flex items-center bg-black-400 hover:bg-black-100 px-2"
-      >
+      <Link to="" onClick={toggle} className="flex items-center px-2">
         {name}
         <ChevronsUpDown size={24} className="p-0 pl-2" />
-      </Button>
+      </Link>
       <Menu
         open={open}
         value={value}
