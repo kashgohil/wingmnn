@@ -180,9 +180,28 @@ func googleSSO(w http.ResponseWriter, r *http.Request) {
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile",
-			"https://www.googleapis.com/auth/calendar",   // Calendar access
-			"https://www.googleapis.com/auth/drive",      // Drive access
-			"https://www.googleapis.com/auth/gmail.send", // Gmail send
+			"https://www.googleapis.com/auth/calendar", // Calendar access
+
+			// Drive access
+			// ref: https://www.googleapis.com/discovery/v1/apis/drive/v3/rest
+			"https://www.googleapis.com/auth/drive",
+			"https://www.googleapis.com/auth/drive.file",
+			"https://www.googleapis.com/auth/drive.metadata",
+			"https://www.googleapis.com/auth/drive.photos.readonly",
+
+			// Gmail access
+			// ref: https://gmail.googleapis.com/$discovery/rest?version=v1
+			"https://mail.google.com/",
+			"https://www.googleapis.com/auth/gmail.compose",
+			"https://www.googleapis.com/auth/gmail.insert",
+			"https://www.googleapis.com/auth/gmail.labels",
+			"https://www.googleapis.com/auth/gmail.metadata",
+			"https://www.googleapis.com/auth/gmail.modify",
+			"https://www.googleapis.com/auth/gmail.readonly",
+			"https://www.googleapis.com/auth/gmail.send",
+			"https://www.googleapis.com/auth/gmail.settings.basic",
+			"https://www.googleapis.com/auth/gmail.settings.sharing",
+
 			"openid",  // OpenID Connect
 			"profile", // Basic profile
 			"email",
