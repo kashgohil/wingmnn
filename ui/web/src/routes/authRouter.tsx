@@ -1,4 +1,5 @@
 import { Button } from "@components/button/button";
+import { ErrorBoundary } from "@frameworks/monitoring/components/errorBoundary";
 import { Link } from "@frameworks/router/Link";
 import { useRouter } from "@frameworks/router/useRouter";
 import { Wingmnn } from "@icons/wingmnn";
@@ -42,11 +43,13 @@ export function AuthRouter() {
   }
 
   return (
-    <div className="w-full h-full flex py-2 pr-2">
+    <div className="w-full h-full flex pt-2">
       <Navigation key="NAVIGATION" />
-      <div className="flex-1 overflow-hidden h-full bg-black-100 rounded-lg">
-        {content()}
-      </div>
+      <ErrorBoundary tree="AUTH_ROUTER">
+        <div className="flex-1 overflow-hidden h-full bg-black-100 rounded-tl-lg">
+          {content()}
+        </div>
+      </ErrorBoundary>
     </div>
   );
 }
