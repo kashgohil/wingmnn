@@ -8,6 +8,7 @@ import { Google } from "@icons/google";
 import { Wingmnn } from "@icons/wingmnn";
 import { noop } from "@utility/noop";
 import { reduce } from "@utility/reduce";
+import { playMouseClickSound } from "@utility/sounds/click";
 import { LandingFields } from "./fields";
 
 export function Landing() {
@@ -43,6 +44,7 @@ export function Landing() {
             <Button
               size="sm"
               type="submit"
+              onMouseDown={playMouseClickSound}
               className="w-full flex items-center justify-center space-x-4 focus-within:outline-black-200"
             >
               <Google size={16} />
@@ -58,6 +60,7 @@ export function Landing() {
             <Button
               size="sm"
               type="submit"
+              onMouseDown={playMouseClickSound}
               className="w-full flex items-center justify-center space-x-4 focus-within:outline-black-200"
             >
               <Github size={16} />

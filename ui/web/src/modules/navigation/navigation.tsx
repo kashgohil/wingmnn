@@ -9,6 +9,7 @@ import { forEachObj } from "@utility/forEach";
 import { includes } from "@utility/includes";
 import { map } from "@utility/map";
 import { reduceObj } from "@utility/reduce";
+import { playMouseClickSound } from "@utility/sounds/click";
 import React from "react";
 import { ModuleConfig, ModulesConfig } from "./config";
 import { Modules } from "./constants";
@@ -48,10 +49,11 @@ export function Navigation() {
   }, []);
 
   return (
-    <div className="h-full rounded-lg p-2 flex flex-col">
+    <div className="h-full rounded-lg p-3 flex flex-col">
       <div className="mx-auto flex items-center justify-center py-2">
         <Link
           to={BaseRoutes[Modules.HOME]}
+          onClick={playMouseClickSound}
           className="focus-within:outline-2 focus-within:outline-offset-6 focus-within:outline-white-500 transition-all duration-100 focus-within:rounded-lg"
         >
           <Wingmnn
@@ -67,7 +69,12 @@ export function Navigation() {
           {map(topModules, (module) => {
             const { id, icon, name, route } = module;
             return (
-              <Link to={route} key={id} tabIndex={-1}>
+              <Link
+                key={id}
+                to={route}
+                tabIndex={-1}
+                onClick={playMouseClickSound}
+              >
                 <Tooltip title={name}>
                   <IconButton
                     icon={icon}
@@ -86,7 +93,12 @@ export function Navigation() {
           {map(bottomModules, (module) => {
             const { id, icon, name, route } = module;
             return (
-              <Link to={route} key={id} tabIndex={-1}>
+              <Link
+                to={route}
+                key={id}
+                tabIndex={-1}
+                onClick={playMouseClickSound}
+              >
                 <Tooltip title={name}>
                   <IconButton
                     icon={icon}
