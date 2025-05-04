@@ -34,7 +34,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	// Get user from database
 	users, err := user.Get(r.Context(), []query.Condition{
-		query.NewCondition("username", []interface{}{req.Username}, query.Eq),
+		query.NewCondition("username", []any{req.Username}, query.Eq),
 	})
 
 	if err != nil {

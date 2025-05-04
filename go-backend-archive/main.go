@@ -49,7 +49,7 @@ func main() {
 	server.Server.Use(middleware.RequestID)
 	server.Server.Use(middleware.Recoverer)
 	server.Server.Use(middleware.URLFormat)
-	server.Server.Use(logger.RequestLogger)
+	// server.Server.Use(logger.RequestLogger)
 	server.Server.Use(middleware.Timeout(60 * time.Second))
 
 	// middleware to check csrf token
