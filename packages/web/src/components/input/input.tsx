@@ -2,20 +2,20 @@ import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import React, { ChangeEvent } from "react";
 
-export interface InputProps
+export interface InputProps<T>
   extends Omit<
     React.DetailedHTMLProps<
       React.InputHTMLAttributes<HTMLInputElement>,
       HTMLInputElement
     >,
-    "onChange" | "size"
+    "onChange" | "size" | "value"
   > {
-  value?: string | number;
+  value?: T;
   size?: "sm" | "md" | "lg";
   wrapperClassName?: string;
   variant?: "outlined" | "underlined" | "normal";
   adornments?: { start?: () => React.ReactNode; end?: () => React.ReactNode };
-  onChange(value: string | number, event: ChangeEvent<HTMLInputElement>): void;
+  onChange(value: T, event: ChangeEvent<HTMLInputElement>): void;
 }
 
 const variantClasses = classVariance({
@@ -41,7 +41,9 @@ const wrapperVariantClasses = classVariance({
   disabled: "opacity-50 cursor-not-allowed",
 });
 
-export function Input(props: InputProps) {
+export function Input<
+  T extends string | number | readonly string[] | undefined,
+>(props: InputProps<T>) {
   const {
     className,
     disabled,
@@ -55,7 +57,7 @@ export function Input(props: InputProps) {
 
   const changeHandler = React.useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      onChange(e.target.value, e);
+      onChange(e.target.value as unknown as T, e);
     },
     [onChange],
   );
