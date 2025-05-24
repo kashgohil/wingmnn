@@ -29,20 +29,21 @@ export async function generateTokens(user: User) {
     type: "refresh",
   };
 
+  const accessTokenExpiry =
+    Math.floor(Date.now() / 1000) + CONSTANTS.ACCESS_TOKEN_EXPIRES_IN;
+  const refreshTokenExpiry =
+    Math.floor(Date.now() / 1000) + CONSTANTS.REFRESH_TOKEN_EXPIRES_IN;
+
   let accessTokenPromise = new SignJWT(accessTokenPayload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(
-      Math.floor(Date.now() / 1000) + CONSTANTS.ACCESS_TOKEN_EXPIRES_IN,
-    )
+    .setExpirationTime(accessTokenExpiry)
     .sign(secret);
 
   let refreshTokenPromise = new SignJWT(refreshTokenPayload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(
-      Math.floor(Date.now() / 1000) + CONSTANTS.REFRESH_TOKEN_EXPIRES_IN,
-    )
+    .setExpirationTime(refreshTokenExpiry)
     .sign(secret);
 
   const [accessToken, refreshToken] = await Promise.all([
@@ -51,25 +52,19 @@ export async function generateTokens(user: User) {
   ]);
 
   // Store refresh token in database
-  const refreshTokenExpiry = new Date(
-    Date.now() + CONSTANTS.REFRESH_TOKEN_EXPIRES_IN * 1000,
-  );
-  const accessTokenExpiry = new Date(
-    Date.now() + CONSTANTS.ACCESS_TOKEN_EXPIRES_IN * 1000,
-  );
 
   await db.insert(tokensTable).values({
     userId: user.id,
     type: "refresh",
     value: refreshToken,
-    expiresAt: refreshTokenExpiry,
+    expiresAt: new Date(refreshTokenExpiry * 1000),
   });
 
   return {
     accessToken,
     refreshToken,
-    accessTokenExpiry,
-    refreshTokenExpiry,
+    accessTokenExpiry: new Date(accessTokenExpiry * 1000),
+    refreshTokenExpiry: new Date(refreshTokenExpiry * 1000),
   };
 }
 
