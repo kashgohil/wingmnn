@@ -30,16 +30,12 @@ export class Batch {
 
       response
         .then((res) => {
-          const resolvers = this.#subscribers
-            .get(key)!
-            .map(({ resolve }) => resolve);
-          forEach(resolvers, (resolve) => resolve(res));
+          const resolvers = this.#subscribers.get(key)!;
+          forEach(resolvers, ({ resolve }) => resolve(res));
         })
         .catch((error) => {
-          const rejectors = this.#subscribers
-            .get(key)!
-            .map(({ reject }) => reject);
-          forEach(rejectors, (reject) => reject(error));
+          const rejectors = this.#subscribers.get(key)!;
+          forEach(rejectors, ({ reject }) => reject(error));
         })
         .finally(() => {
           this.#subscribers.delete(key);
