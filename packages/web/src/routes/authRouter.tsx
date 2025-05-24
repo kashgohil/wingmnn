@@ -1,7 +1,9 @@
 import { Button } from "@components/button/button";
+import { Typography } from "@components/Typography/typography";
 import { ErrorBoundary } from "@frameworks/monitoring/components/errorBoundary";
 import { Link } from "@frameworks/router/Link";
 import { useRouter } from "@frameworks/router/useRouter";
+import { useHeartbeat } from "@hooks/useHeartbeat";
 import { Wingmnn } from "@icons/wingmnn";
 import { Landing } from "@landing/landing";
 import { Modules } from "@navigation/constants";
@@ -11,20 +13,26 @@ import { AuthService } from "@services/authService";
 import { ROUTES_CONFIG } from "./config";
 
 export function AuthRouter() {
-  const Component = useRouter(ROUTES_CONFIG);
-
   if (!AuthService.isAuthenticated()) {
     return <Landing />;
   }
+
+  return <Content />;
+}
+
+function Content() {
+  const Component = useRouter(ROUTES_CONFIG);
+
+  useHeartbeat();
 
   function content() {
     if (!Component) {
       return (
         <div className="w-full h-full flex flex-col items-center justify-center space-y-2">
-          <div className="text-2xl">You look lost</div>
-          <div className="text-lg">
+          <Typography.H2>You look lost</Typography.H2>
+          <Typography.H4>
             Let's get you to where all the fun stuff is!!
-          </div>
+          </Typography.H4>
           <Link to={BaseRoutes[Modules.HOME]}>
             <Button
               size="sm"
