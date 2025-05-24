@@ -104,7 +104,22 @@ function getRouterUtils() {
     return routes;
   }
 
+  function goTo(url: string) {
+    if (url.includes("http")) {
+      window.location.href = url;
+    } else {
+      window.history.pushState({}, "", url);
+    }
+  }
+
+  function reload() {
+    window.location.reload();
+  }
+
   return {
+    goTo,
+    reload,
+
     getPath,
     getHash,
     getRoute,

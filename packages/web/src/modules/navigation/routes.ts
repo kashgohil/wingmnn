@@ -1,6 +1,6 @@
 import { Modules } from "./constants";
 
-export const BaseRoutes: Record<Modules, string> = {
+export const BaseRoutes: Record<Modules | "ONBOARDING", string> = {
   [Modules.HOME]: "/",
   [Modules.CALENDAR]: "/calendar",
   [Modules.FEEDS]: "/feeds",
@@ -17,4 +17,5 @@ export const BaseRoutes: Record<Modules, string> = {
   [Modules.WELLNESS]: "/wellness",
   [Modules.SETTINGS]: "/settings",
   [Modules.SHEETS]: "/sheets",
+  ONBOARDING: "/onboarding",
 };

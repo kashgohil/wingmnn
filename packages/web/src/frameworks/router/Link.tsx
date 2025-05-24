@@ -1,5 +1,6 @@
 import { cx } from "@utility/cx";
 import React from "react";
+import { RouterUtils } from "./utils";
 
 export interface LinkProps
   extends React.DetailedHTMLProps<
@@ -15,7 +16,7 @@ export function Link(props: LinkProps) {
   const clickHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     if (onClick) onClick(event);
-    window.history.pushState({}, "", props.to);
+    RouterUtils.goTo(props.to);
   };
 
   return (
