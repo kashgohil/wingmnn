@@ -1,10 +1,12 @@
 import { Link } from "@frameworks/router/Link";
+import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { HTMLMotionProps, motion, TargetAndTransition } from "motion/react";
 import React from "react";
 
 interface CardProps extends HTMLMotionProps<"div"> {
   to?: string;
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   whileHover?: TargetAndTransition;
 }
 
@@ -21,15 +23,22 @@ type CardFooterProps = React.DetailedHTMLProps<
   HTMLDivElement
 >;
 
+const variants = classVariance({
+  xs: "w-60",
+  sm: "w-90",
+  md: "w-120",
+  lg: "w-150",
+  xl: "w-180",
+});
+
 export function Card(props: CardProps) {
-  const { className, to, children, whileHover = {}, ...rest } = props;
+  const { className, to, children, size = "md", ...rest } = props;
 
   function content() {
     return (
       <motion.div
         {...rest}
-        className={cx(className)}
-        whileHover={{ translateY: -5, ...whileHover }}
+        className={cx("rounded-xl p-4", variants(size), className)}
       >
         {children}
       </motion.div>
