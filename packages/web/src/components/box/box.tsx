@@ -8,7 +8,8 @@ export function Box(props: BoxProps) {
   const { className = "", children, ...rest } = props;
 
   return (
-    <div className={cx("shadow-sm rounded-lg", className)} {...rest}>{children}
+    <div className={cx("shadow-sm rounded-lg", className)} {...rest}>
+      {children}
     </div>
   );
 }
