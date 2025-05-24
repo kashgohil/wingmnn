@@ -1,3 +1,4 @@
+import { http } from "@frameworks/http/httpInstance";
 import { Cookie } from "@utility/browser";
 
 export const AuthService = (function () {
@@ -5,7 +6,12 @@ export const AuthService = (function () {
 
   // public
   function isAuthenticated() {
-    return !!Cookie.get("auth_token");
+    return Cookie.get("authenticated") === "true";
   }
-  return { isAuthenticated };
+
+  function heartbeat() {
+    return http.get("/auth/heartbeat");
+  }
+
+  return { isAuthenticated, heartbeat };
 })();
