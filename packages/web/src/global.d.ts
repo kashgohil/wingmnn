@@ -1,6 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TSAny = any;
 
+type InferredType<T, AllowedTypes> = T extends AllowedTypes ? T : never;
+
 interface BaseDetails {
   id: string;
   name: string;

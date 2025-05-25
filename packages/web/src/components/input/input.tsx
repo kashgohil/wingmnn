@@ -10,12 +10,15 @@ export interface InputProps<T>
     >,
     "onChange" | "size" | "value"
   > {
-  value?: T;
+  value?: InferredType<T, string | number>;
   size?: "sm" | "md" | "lg";
   wrapperClassName?: string;
   variant?: "outlined" | "underlined" | "normal";
   adornments?: { start?: () => React.ReactNode; end?: () => React.ReactNode };
-  onChange(value: T, event: ChangeEvent<HTMLInputElement>): void;
+  onChange(
+    value: InferredType<T, string | number>,
+    event: ChangeEvent<HTMLInputElement>,
+  ): void;
 }
 
 const variantClasses = classVariance({
@@ -41,9 +44,9 @@ const wrapperVariantClasses = classVariance({
   disabled: "opacity-50 cursor-not-allowed",
 });
 
-export function Input<
-  T extends string | number | readonly string[] | undefined,
->(props: InputProps<T>) {
+export function Input<T extends string | number = string>(
+  props: InputProps<T>,
+) {
   const {
     className,
     disabled,
@@ -57,7 +60,7 @@ export function Input<
 
   const changeHandler = React.useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      onChange(e.target.value as unknown as T, e);
+      onChange(e.target.value as InferredType<T, string | number>, e);
     },
     [onChange],
   );
