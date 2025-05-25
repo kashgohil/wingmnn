@@ -1,22 +1,6 @@
-import { MINUTE } from "@constants";
 import { useForceRender } from "@hooks/useForceRender";
 import React from "react";
-import { Query } from "./query";
-
-interface QueryParams<T> {
-  primaryKey: string;
-  secondaryKey: string;
-  params: T;
-}
-
-interface Params<T, K, S> {
-  key: QueryParams<K>;
-  queryFn: (queryParams: QueryParams<K>) => Promise<T>;
-  staleTime?: number;
-  selector?(response: T): S;
-  onReject?(error: Error): void;
-  onResolve?(response: T): void;
-}
+import { Params, Query } from "./query";
 
 interface QueryResponse<S> {
   result: S | null;
@@ -30,27 +14,12 @@ interface QueryResponse<S> {
   isIdle: boolean;
 }
 
-export function useQuery<T, K, S = T>({
-  key,
-  queryFn,
-  staleTime = MINUTE, // 1 minute default stale time
-  selector,
-  onReject,
-  onResolve,
-}: Params<T, K, S>): QueryResponse<S> {
+export function useQuery<T, K, S = T>(
+  params: Params<T, K, S>,
+): QueryResponse<S> {
   const forceRender = useForceRender();
   const [query] = React.useState<Query<T, K, S>>(
-    new Query<T, K, S>(
-      {
-        key,
-        queryFn,
-        staleTime,
-        selector,
-        onReject,
-        onResolve,
-      },
-      forceRender,
-    ),
+    new Query<T, K, S>(params, forceRender),
   );
 
   return {
