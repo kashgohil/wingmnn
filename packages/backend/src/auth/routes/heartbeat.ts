@@ -6,7 +6,7 @@ import { usersTable } from "@schema/users";
 import { eq } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
-auth.post("/heartbeat", async (c) => {
+auth.get("/heartbeat", async (c) => {
   try {
     const refreshToken = getCookie(c, CONSTANTS.REFRESH_TOKEN_COOKIE);
 
