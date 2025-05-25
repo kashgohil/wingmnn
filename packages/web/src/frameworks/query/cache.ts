@@ -1,4 +1,5 @@
 import { MINUTE, SECOND } from "@constants";
+import { merge } from "@utility/merge";
 
 interface Params {
   /**
@@ -23,9 +24,9 @@ export class Cache {
   #params: Params;
   #cache: Map<string, CacheValue<TSAny>>;
 
-  constructor(params?: Params) {
+  constructor(params: Params = DEFAULT_PARAMS) {
     this.#cache = new Map();
-    this.#params = Object.assign({}, DEFAULT_PARAMS, params);
+    this.#params = merge(DEFAULT_PARAMS, params) as Params;
 
     setInterval(this.#validate, MULTIPLIER * SECOND);
   }
