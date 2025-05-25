@@ -1,4 +1,4 @@
-import { MINUTE, SECOND } from "@constants";
+import { MINUTE } from "@constants";
 import { merge } from "@utility/merge";
 
 interface Params {
@@ -11,10 +11,8 @@ interface Params {
 interface CacheValue<T> {
   value: T;
   params: Params;
-  lastAccessed: number;
+  timeoutId: NodeJS.Timeout;
 }
-
-const MULTIPLIER = 5;
 
 const DEFAULT_PARAMS: Params = {
   cacheTime: MINUTE,
@@ -27,8 +25,12 @@ export class Cache {
   constructor(params: Params = DEFAULT_PARAMS) {
     this.#cache = new Map();
     this.#params = merge(DEFAULT_PARAMS, params) as Params;
+  }
 
-    setInterval(this.#validate, MULTIPLIER * SECOND);
+  #timeout(key: string, params: Params) {
+    return setTimeout(() => {
+      this.#cache.delete(key);
+    }, params.cacheTime);
   }
 
   get(key: string): TSAny | undefined {
@@ -37,32 +39,29 @@ export class Cache {
       throw new Error(`no value found for ${key} in Cache`);
     }
 
-    cacheValue.lastAccessed = this.#currentTime();
+    if (cacheValue.timeoutId) clearTimeout(cacheValue.timeoutId);
+    cacheValue.timeoutId = this.#timeout(key, cacheValue.params);
 
     return cacheValue.value;
   }
 
   set<T>(key: string, value: T, params: Params = this.#params): T {
-    this.#cache.set(key, {
+    if (this.#cache.has(key)) {
+      const timeoutId = this.#cache.get(key)!.timeoutId;
+      clearTimeout(timeoutId);
+    }
+
+    const cacheValue = {
       value,
       params,
-      lastAccessed: this.#currentTime(),
-    });
+      timeoutId: this.#timeout(key, params),
+    };
+
+    this.#cache.set(key, cacheValue);
     return value;
   }
 
   has(key: string) {
     return this.#cache.has(key);
-  }
-
-  #validate() {
-    this.#cache.forEach((cacheValue, key) => {
-      if (cacheValue.lastAccessed - Date.now() > cacheValue.params.cacheTime)
-        this.#cache.delete(key);
-    });
-  }
-
-  #currentTime() {
-    return Date.now();
   }
 }
