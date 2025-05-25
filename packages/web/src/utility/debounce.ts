@@ -11,7 +11,6 @@ export function debounce(fn: (...args: TSAny[]) => void, waitTime: number) {
       fn.apply(this, updatedArgs);
 
       updatedArgs = [];
-      clearTimeout(timeoutId);
     }, waitTime);
   };
 }
