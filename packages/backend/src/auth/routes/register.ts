@@ -1,7 +1,7 @@
-import { auth } from "@auth";
 import { CONSTANTS, ROUTES } from "@auth/constants";
 import { generateTokens } from "@auth/jwt";
 import { hashPassword } from "@auth/password";
+import { auth } from "@auth/router";
 import { db } from "@db";
 import { zValidator } from "@hono/zod-validator";
 import { usersTable } from "@schema/users";

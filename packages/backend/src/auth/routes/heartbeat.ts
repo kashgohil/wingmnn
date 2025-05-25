@@ -1,6 +1,6 @@
-import { auth } from "@auth";
 import { CONSTANTS } from "@auth/constants";
 import { generateTokens, revokeToken, verifyToken } from "@auth/jwt";
+import { auth } from "@auth/router";
 import { db } from "@db";
 import { usersTable } from "@schema/users";
 import { eq } from "drizzle-orm";

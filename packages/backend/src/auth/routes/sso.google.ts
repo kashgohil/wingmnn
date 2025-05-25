@@ -1,7 +1,7 @@
-import { auth } from "@auth";
 import { CONSTANTS, ROUTES } from "@auth/constants";
 import { storeGoogleTokens } from "@auth/googleApi";
 import { generateTokens } from "@auth/jwt";
+import { auth } from "@auth/router";
 import {
   getGoogleAuthUrl,
   getGoogleTokens,

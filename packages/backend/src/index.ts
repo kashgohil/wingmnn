@@ -1,4 +1,5 @@
-import { auth, authenticate } from "@auth";
+import { auth } from "@auth";
+import { authenticate } from "@auth/middleware";
 import { mails } from "@mails";
 import "dotenv/config";
 import { Hono } from "hono";

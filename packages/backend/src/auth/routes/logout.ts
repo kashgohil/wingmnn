@@ -1,6 +1,6 @@
-import { auth } from "@auth";
 import { CONSTANTS, ROUTES } from "@auth/constants";
 import { revokeToken } from "@auth/jwt";
+import { auth } from "@auth/router";
 import { deleteCookie, getCookie } from "hono/cookie";
 
 auth.post("/logout", async (c) => {
