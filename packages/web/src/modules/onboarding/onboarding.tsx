@@ -19,16 +19,18 @@ export function Onboarding() {
           You are most welcome, Kash.
         </Typography.H2>
         <Typography.Paragraph className="text-center">
-          it's me, your wingmnn.
+          it's me, your wingmnn!!
         </Typography.Paragraph>
         <Typography.Paragraph className="text-center">
           I know it's weird to call someone who doesn't have any name, right?
           let's decide what you would like to call me:
         </Typography.Paragraph>
         <Input
+          autoFocus
           value={name}
+          variant="outlined"
           onChange={setName}
-          className="border border-white"
+          className="text-center text-2xl"
         />
       </Card>
     </div>
