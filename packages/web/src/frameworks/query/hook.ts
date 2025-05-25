@@ -1,4 +1,7 @@
+import { MINUTE } from "@constants";
+import { useForceRender } from "@hooks/useForceRender";
 import React from "react";
+import { Query } from "./query";
 
 interface QueryParams<T> {
   primaryKey: string;
@@ -26,10 +29,6 @@ interface QueryResponse<S> {
   isError: boolean;
   isIdle: boolean;
 }
-
-import { MINUTE } from "@constants";
-import { useForceRender } from "@hooks/useForceRender";
-import { Query } from "./query";
 
 export function useQuery<T, K, S = T>({
   key,
