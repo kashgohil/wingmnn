@@ -31,6 +31,9 @@ export function responseInterceptor(response: Response) {
 export function requestInterceptor(request: Request) {
   // Add custom headers or modify the request
   request.headers.set("X-CSRF-Token", Cookie.get("csrf_token"));
+  if (!request.headers.has("Content-Type")) {
+    request.headers.set("Content-Type", "application/json");
+  }
   return request;
 }
 
