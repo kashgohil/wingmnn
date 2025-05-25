@@ -24,7 +24,9 @@ export class Batch {
 
       response
         .then((res) => res)
-        .catch((error) => error)
+        .catch((error) => {
+          throw error;
+        })
         .finally(() => {
           this.#subscribers.delete(key);
         });
