@@ -62,8 +62,9 @@ interface Params<T, K, S> {
 const cache = new Cache();
 const batch = new Batch();
 
-const SANE_DEFAULT = {
+const SANE_DEFAULT: Partial<Params<TSAny, TSAny, TSAny>> = {
   enabled: true,
+  staleTime: 5 * MINUTE,
   polling: {
     interval: MINUTE,
     enabled: false,
@@ -101,13 +102,13 @@ export class Query<T, K, S = T> {
     }
   }
 
-  #init(params: Params<T, K, S>, subscriber: () => void = noop) {
+  #init(params: Partial<Params<T, K, S>>, subscriber: () => void = noop) {
     this.#params = merge(SANE_DEFAULT, params) as Params<T, K, S>;
     this.#subscriber = subscriber;
     this.#executor = batch.batch<T | null, QueryParams<K>>(this.#query);
 
     if (params.enabled) {
-      this.#executor.call(null, params.key);
+      this.#executor.call(null, this.#params.key);
     }
 
     this.#polling();
@@ -147,7 +148,9 @@ export class Query<T, K, S = T> {
     if (result) {
       this.#result = this.#params.selector?.(result) ?? (result as S);
       this.status = "success";
-      cache.set(this.#serialize(key), this.#result);
+      cache.set(this.#serialize(key), this.#result, {
+        cacheTime: this.#params.staleTime!,
+      });
       this.#params.onResolve?.(result);
     }
 
@@ -179,7 +182,9 @@ export class Query<T, K, S = T> {
     if (result) {
       this.#result = this.#params.selector?.(result) ?? (result as S);
       this.status = "success";
-      cache.set(this.#params.key.primaryKey, result);
+      cache.set(this.#params.key.primaryKey, result, {
+        cacheTime: this.#params.staleTime!,
+      });
       this.#params.onResolve?.(result);
     }
 
