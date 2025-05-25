@@ -51,10 +51,10 @@ function Content() {
   }
 
   return (
-    <div className="w-full h-full flex pt-2">
+    <div className="w-full h-full flex p-2">
       <Navigation key="NAVIGATION" />
       <ErrorBoundary tree="AUTH_ROUTER">
-        <div className="flex-1 overflow-hidden h-full bg-black-100 rounded-tl-lg">
+        <div className="flex-1 overflow-hidden h-full bg-black-100 rounded-lg">
           {content()}
         </div>
       </ErrorBoundary>
