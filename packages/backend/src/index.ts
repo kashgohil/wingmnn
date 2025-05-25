@@ -4,7 +4,7 @@ import "dotenv/config";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 
-const app = new Hono().basePath("/api");
+const app = new Hono();
 
 // Global middleware
 app.use(logger());
