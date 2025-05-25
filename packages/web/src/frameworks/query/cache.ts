@@ -1,3 +1,5 @@
+import { MINUTE, SECOND } from "@constants";
+
 interface Params {
   /**
    * seconds you want the cache to be valid
@@ -11,9 +13,7 @@ interface CacheValue<T> {
   lastAccessed: number;
 }
 
-const SECOND = 1000;
 const MULTIPLIER = 5;
-const MINUTE = 60 * SECOND;
 
 const DEFAULT_PARAMS: Params = {
   cacheTime: MINUTE,
@@ -48,6 +48,10 @@ export class Cache {
       lastAccessed: this.#currentTime(),
     });
     return value;
+  }
+
+  has(key: string) {
+    return this.#cache.has(key);
   }
 
   #validate() {
