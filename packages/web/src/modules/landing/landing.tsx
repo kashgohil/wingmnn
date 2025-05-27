@@ -38,7 +38,7 @@ export function Landing() {
           <form
             method="post"
             className="w-full"
-            action="http://localhost:3000/auth/sso/google"
+            action="http://localhost:8001/auth/sso/google"
           >
             <input name="connectionName" readOnly value="google" hidden />
             <Button
@@ -54,7 +54,7 @@ export function Landing() {
           <form
             method="post"
             className="w-full"
-            action="localhost:3000/auth/sso/github"
+            action="localhost:8001/auth/sso/github"
           >
             <input name="connectionName" readOnly value="github" hidden />
             <Button
