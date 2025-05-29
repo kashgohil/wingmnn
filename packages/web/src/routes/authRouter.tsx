@@ -4,6 +4,7 @@ import { ErrorBoundary } from "@frameworks/monitoring/components/errorBoundary";
 import { Link } from "@frameworks/router/Link";
 import { useRouter } from "@frameworks/router/useRouter";
 import { useHeartbeat } from "@hooks/useHeartbeat";
+import { useSetup } from "@hooks/useSetup";
 import { Wingmnn } from "@icons/wingmnn";
 import { Landing } from "@landing/landing";
 import { Modules } from "@navigation/constants";
@@ -24,6 +25,7 @@ function Content() {
   const Component = useRouter(ROUTES_CONFIG);
 
   useHeartbeat();
+  useSetup();
 
   function content() {
     if (!Component) {
