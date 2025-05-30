@@ -7,13 +7,24 @@
     "paths": {
       "@schema/*": ["src/db/schema/*"],
       "@db": ["src/db/index.ts"],
+
       "@mails": ["src/mails/index.ts"],
       "@mails/*": ["src/mails/*"],
+
+      "@projects": ["src/projects/index.ts"],
       "@projects/*": ["src/projects/*"],
+
+      "@notes": ["src/notes/index.ts"],
       "@notes/*": ["src/notes/*"],
+
+      "@messages": ["src/messages/index.ts"],
       "@messages/*": ["src/messages/*"],
+
       "@auth": ["src/auth/index.ts"],
-      "@auth/*": ["src/auth/*"]
+      "@auth/*": ["src/auth/*"],
+
+      "@setup": ["src/setup/index.ts"],
+      "@setup/*": ["src/setup/*"]
     }
   }
 }
