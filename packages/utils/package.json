@@ -1,0 +1,15 @@
+{
+  "name": "utils",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./types": "./types.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
