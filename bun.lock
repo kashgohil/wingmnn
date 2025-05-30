@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "wingmnn-ui"
+      "name": "wingmnn-ui",
     },
     "packages/backend": {
       "name": "backend",
@@ -16,23 +16,23 @@
         "nanoid": "^5.1.5",
         "pg": "^8.15.6",
         "utils": "workspace:*",
-        "zod": "^3.24.4"
+        "zod": "^3.24.4",
       },
       "devDependencies": {
         "@types/bcrypt": "^5.0.2",
         "@types/bun": "latest",
         "@types/pg": "^8.11.14",
-        "drizzle-kit": "^0.31.1"
-      }
+        "drizzle-kit": "^0.31.1",
+      },
     },
     "packages/utils": {
       "name": "utils",
       "devDependencies": {
-        "@types/bun": "latest"
+        "@types/bun": "latest",
       },
       "peerDependencies": {
-        "typescript": "^5"
-      }
+        "typescript": "^5",
+      },
     },
     "packages/web": {
       "name": "web",
@@ -60,7 +60,8 @@
         "sonner": "^2.0.3",
         "tailwind-merge": "^3.2.0",
         "tailwindcss": "^4.0.11",
-        "vite-tsconfig-paths": "^5.1.4"
+        "utils": "workspace:*",
+        "vite-tsconfig-paths": "^5.1.4",
       },
       "devDependencies": {
         "@eslint/js": "^9.21.0",
@@ -73,9 +74,9 @@
         "tw-animate-css": "^1.2.8",
         "typescript": "~5.6.3",
         "typescript-eslint": "^8.26.0",
-        "vite": "^6.2.0"
-      }
-    }
+        "vite": "^6.2.0",
+      },
+    },
   },
   "packages": {
     "@ampproject/remapping": ["@ampproject/remapping@2.3.0", "", { "dependencies": { "@jridgewell/gen-mapping": "^0.3.5", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw=="],
@@ -1208,6 +1209,6 @@
 
     "react-scan/esbuild/@esbuild/win32-ia32": ["@esbuild/win32-ia32@0.24.2", "", { "os": "win32", "cpu": "ia32" }, "sha512-q+iGUwfs8tncmFC9pcnD5IvRHAzmbwQ3GPS5/ceCyHdjXubwQWI12MKWSNSMYLJMq23/IUCvJMS76PDqXe1fxA=="],
 
-    "react-scan/esbuild/@esbuild/win32-x64": ["@esbuild/win32-x64@0.24.2", "", { "os": "win32", "cpu": "x64" }, "sha512-7VTgWzgMGvup6aSqDPLiW5zHaxYJGTO4OokMjIlrCtf+VpEL+cXKtCvg723iguPYI5oaUNdS+/V7OU2gvXVWEg=="]
+    "react-scan/esbuild/@esbuild/win32-x64": ["@esbuild/win32-x64@0.24.2", "", { "os": "win32", "cpu": "x64" }, "sha512-7VTgWzgMGvup6aSqDPLiW5zHaxYJGTO4OokMjIlrCtf+VpEL+cXKtCvg723iguPYI5oaUNdS+/V7OU2gvXVWEg=="],
   }
 }
