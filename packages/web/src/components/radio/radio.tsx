@@ -1,6 +1,6 @@
-import React from "react";
 import { cx } from "@utility/cx";
-import { map } from "@utility/map";
+import React from "react";
+import { map } from "utils";
 
 export interface RadioProps
   extends Omit<

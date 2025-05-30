@@ -1,4 +1,4 @@
-import { isNil } from "@utility/isNil";
+import { forEach, isNil } from "utils";
 import {
   BaseValidations,
   CheckboxField,
@@ -18,7 +18,6 @@ import {
   SwitchField,
   TimeField,
 } from "./type";
-import { forEach } from "@utility/forEach";
 
 export type ValidationResult =
   | {

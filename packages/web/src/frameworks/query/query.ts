@@ -1,6 +1,5 @@
 import { MINUTE } from "@constants";
-import { tryCatchAsync } from "@utility/accessibility/tryCatch";
-import { merge, noop, serialize } from "utils";
+import { merge, noop, serialize, tryCatchAsync } from "utils";
 import { Batch } from "./batching";
 import { Cache } from "./cache";
 import { Poll } from "./polling";

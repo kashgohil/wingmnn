@@ -1,10 +1,7 @@
-import { useCallback, useRef, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { everyObj, forEach, isEqual, someObj } from "utils";
 import { Field } from "./type";
-import { forEach } from "@utility/forEach";
 import { ValidationResult, Validations } from "./validations";
-import { everyObj } from "@utility/every";
-import { someObj } from "@utility/some";
-import { isEqual } from "@utility/isEqual";
 
 export interface FormData {
   isValid: boolean;

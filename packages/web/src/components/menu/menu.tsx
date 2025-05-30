@@ -1,12 +1,9 @@
 import { Popover, PopoverProps } from "@components/popover/popover";
 import { useFocusTrap } from "@hooks/useFocusTrap";
-import { castArray } from "@utility/castArray";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import { filter } from "@utility/filter";
-import { forEach } from "@utility/forEach";
-import { map } from "@utility/map";
 import React, { KeyboardEvent } from "react";
+import { castArray, filter, forEach, map } from "utils";
 
 export interface MenuProps extends Omit<PopoverProps, "onSelect"> {
   open: boolean;

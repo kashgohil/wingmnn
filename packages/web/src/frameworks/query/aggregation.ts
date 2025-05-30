@@ -1,5 +1,4 @@
-import { debounce } from "@utility/debounce";
-import { forEach } from "@utility/forEach";
+import { debounce, forEach } from "utils";
 
 type WithID<T> = T & { id: string };
 

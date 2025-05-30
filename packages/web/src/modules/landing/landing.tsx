@@ -6,9 +6,8 @@ import { useForm } from "@frameworks/forms/useForm";
 import { Github } from "@icons/github";
 import { Google } from "@icons/google";
 import { Wingmnn } from "@icons/wingmnn";
-import { noop } from "@utility/noop";
-import { reduce } from "@utility/reduce";
 import { playMouseClickSound } from "@utility/sounds/click";
+import { noop, reduce } from "utils";
 import { LandingFields } from "./fields";
 
 export function Landing() {

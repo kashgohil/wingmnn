@@ -1,4 +1,4 @@
-import { forEach } from "@utility/forEach";
+import { forEach } from "utils";
 import { RouteConfig, RouterConfig } from "./type";
 import { getWrapperComponent } from "./wrapperComponentFn";
 

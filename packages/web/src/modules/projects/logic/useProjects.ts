@@ -1,7 +1,7 @@
 import { createStore } from "@frameworks/store/create";
 import { ProjectDialog } from "@projects/constants";
 import { Project } from "@projects/type";
-import { upsert } from "@utility/upsert";
+import { upsert } from "utils";
 
 interface ProjectsState {
   projects: Array<Project>;
@@ -54,4 +54,4 @@ const ProjectActions = (function () {
   };
 })();
 
-export { useProjects, ProjectActions };
+export { ProjectActions, useProjects };

@@ -9,8 +9,8 @@ import { Input } from "@components/input/input";
 import { TextArea } from "@components/input/textarea";
 import { Upload } from "@components/upload/upload";
 import { Project } from "@projects/type";
-import { noop } from "@utility/noop";
 import React from "react";
+import { noop } from "utils";
 
 interface AddProjectProps {
   open: boolean;

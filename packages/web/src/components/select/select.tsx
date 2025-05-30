@@ -2,15 +2,11 @@ import { IconButton } from "@components/iconButton/iconButton";
 import { Input, InputProps } from "@components/input/input";
 import { Menu } from "@components/menu/menu";
 import { useBoolean } from "@hooks/useBoolean";
-import { castArray } from "@utility/castArray";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import { find } from "@utility/find";
-import { map } from "@utility/map";
-import { some } from "@utility/some";
-import { without } from "@utility/without";
 import { CrossIcon } from "lucide-react";
 import React from "react";
+import { castArray, find, map, some, without } from "utils";
 
 interface BaseSelectProps
   extends Omit<

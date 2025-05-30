@@ -1,8 +1,6 @@
 import { cx } from "@utility/cx";
-import { forEach } from "@utility/forEach";
-import { map } from "@utility/map";
-import { without } from "@utility/without";
 import React from "react";
+import { forEach, map, without } from "utils";
 
 export interface CheckboxProps
   extends Omit<

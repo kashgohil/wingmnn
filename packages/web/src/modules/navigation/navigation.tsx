@@ -5,12 +5,9 @@ import { useLocationChangeDetection } from "@frameworks/router/hooks/useLocation
 import { Link } from "@frameworks/router/Link";
 import { Wingmnn } from "@icons/wingmnn";
 import { cx } from "@utility/cx";
-import { forEachObj } from "@utility/forEach";
-import { includes } from "@utility/includes";
-import { map } from "@utility/map";
-import { reduceObj } from "@utility/reduce";
 import { playMouseClickSound } from "@utility/sounds/click";
 import React from "react";
+import { forEachObj, includes, map, reduceObj } from "utils";
 import { ModuleConfig, ModulesConfig } from "./config";
 import { Modules } from "./constants";
 import { BaseRoutes } from "./routes";

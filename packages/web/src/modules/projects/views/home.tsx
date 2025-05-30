@@ -2,8 +2,7 @@ import { Button } from "@components/button/button";
 import { Card } from "@components/card/card";
 import { ProjectDialog } from "@projects/constants";
 import { ProjectActions, useProjects } from "@projects/logic/useProjects";
-import { isEmpty } from "@utility/isEmpty";
-import { map } from "@utility/map";
+import { isEmpty, map } from "utils";
 
 export function Home() {
   const projects = useProjects("projects");
