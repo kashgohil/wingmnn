@@ -1,8 +1,6 @@
 import { MINUTE } from "@constants";
 import { tryCatchAsync } from "@utility/accessibility/tryCatch";
-import { merge } from "@utility/merge";
-import { noop } from "@utility/noop";
-import { serialize } from "@utility/serialize";
+import { merge, noop, serialize } from "utils";
 import { Batch } from "./batching";
 import { Cache } from "./cache";
 import { Poll } from "./polling";
@@ -59,9 +57,6 @@ export interface Params<T, K, S> {
   };
 }
 
-const cache = new Cache();
-const batch = new Batch();
-
 const SANE_DEFAULT: Partial<Params<TSAny, TSAny, TSAny>> = {
   enabled: true,
   staleTime: 5 * MINUTE,
@@ -72,6 +67,9 @@ const SANE_DEFAULT: Partial<Params<TSAny, TSAny, TSAny>> = {
 };
 
 export class Query<T, K, S = T> {
+  #cache: Cache;
+  #batch: Batch;
+
   #params: Params<T, K, S> = SANE_DEFAULT as Params<T, K, S>;
   #subscriber: () => void = noop;
   #executor: (key: QueryParams<K>) => Promise<T | null> = () =>
@@ -107,14 +105,14 @@ export class Query<T, K, S = T> {
   }
 
   #query = async (key: QueryParams<K>) => {
-    if (cache.has(this.#serialize(key))) {
-      this.#result = cache.get(this.#serialize(key)) as S;
+    if (this.#cache.has(this.#serialize(key))) {
+      this.#result = this.#cache.get(this.#serialize(key)) as S;
     }
 
     this.status = "fetching";
     if (this.status !== "fetching") this.#subscriber();
 
-    const { result, error } = await tryCatchAsync(this.#params.queryFn, key);
+    const { result, error } = await tryCatchAsync(this.#params.queryFn(key));
 
     if (error) {
       this.status = "error";
@@ -124,7 +122,7 @@ export class Query<T, K, S = T> {
     if (result) {
       this.#result = this.#params.selector?.(result) ?? (result as S);
       this.status = "success";
-      cache.set(this.#serialize(key), this.#result, {
+      this.#cache.set(this.#serialize(key), this.#result, {
         cacheTime: this.#params.staleTime!,
       });
       this.#params.onResolve?.(result);
@@ -141,7 +139,7 @@ export class Query<T, K, S = T> {
   #init = (params: Partial<Params<T, K, S>>, subscriber: () => void = noop) => {
     this.#params = merge(SANE_DEFAULT, params) as Params<T, K, S>;
     this.#subscriber = subscriber;
-    this.#executor = batch.batch<T | null, QueryParams<K>>(this.#query);
+    this.#executor = this.#batch.batch<T | null, QueryParams<K>>(this.#query);
 
     if (this.#params.enabled) {
       this.#executor.call(null, this.#params.key);
@@ -150,7 +148,14 @@ export class Query<T, K, S = T> {
     this.#polling();
   };
 
-  constructor(params: Params<T, K, S>, subscriber: () => void = noop) {
+  constructor(
+    cache: Cache,
+    batch: Batch,
+    params: Params<T, K, S>,
+    subscriber: () => void = noop,
+  ) {
+    this.#cache = cache;
+    this.#batch = batch;
     this.#init(params, subscriber);
   }
 
@@ -171,8 +176,7 @@ export class Query<T, K, S = T> {
 
     await this.#executor(this.#params.key);
     const { result, error } = await tryCatchAsync(
-      this.#executor,
-      this.#params.key,
+      this.#executor(this.#params.key),
     );
 
     if (error) {
@@ -184,7 +188,7 @@ export class Query<T, K, S = T> {
     if (result) {
       this.#result = this.#params.selector?.(result) ?? (result as S);
       this.status = "success";
-      cache.set(this.#params.key.primaryKey, result, {
+      this.#cache.set(this.#params.key.primaryKey, result, {
         cacheTime: this.#params.staleTime!,
       });
       this.#params.onResolve?.(result);
@@ -204,6 +208,7 @@ export class Query<T, K, S = T> {
   }
 
   destroy() {
+    this.#subscriber = () => {};
     this.#poll.forEach((clear) => clear());
   }
 }

@@ -1,5 +1,6 @@
 import { useForceRender } from "@hooks/useForceRender";
 import React from "react";
+import { QueryContext } from "./context";
 import { Params, Query } from "./query";
 
 interface QueryResponse<S> {
@@ -17,9 +18,12 @@ interface QueryResponse<S> {
 export function useQuery<T, K, S = T>(
   params: Params<T, K, S>,
 ): QueryResponse<S> {
+  const { cache, batch } = React.useContext(QueryContext);
+
   const forceRender = useForceRender();
+
   const [query] = React.useState<Query<T, K, S>>(
-    new Query<T, K, S>(params, forceRender),
+    new Query<T, K, S>(cache, batch, params, forceRender),
   );
 
   return {

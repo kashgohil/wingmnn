@@ -1,5 +1,5 @@
 import { MINUTE } from "@constants";
-import { merge } from "@utility/merge";
+import { merge } from "utils";
 
 interface Params {
   /**
