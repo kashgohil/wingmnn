@@ -1,4 +1,4 @@
-import { uuid } from "./uuid";
+import { uuid } from "utils";
 
 export const Cookie = (function () {
   function get(name: string) {
