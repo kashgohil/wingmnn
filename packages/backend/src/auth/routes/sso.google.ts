@@ -33,130 +33,127 @@ auth.post("/sso/google", async (c) => {
 
 // Google OAuth callback route
 auth.get("/sso/google/callback", async (c) => {
-  try {
-    const { code, state } = c.req.query();
+  const { code, state } = c.req.query();
 
-    // Verify state parameter
-    const storedState = getCookie(c, "google_oauth_state");
-    if (!state || !storedState || state !== storedState) {
-      console.log(
-        `[AUTH] Google OAuth state mismatch: ${state} vs ${storedState}`,
-      );
-      return c.redirect(
-        `${ROUTES.UI_URL}/${ROUTES.LOGIN_PAGE}?error=invalid_state`,
-      );
-    }
-
-    // Clear state cookie
-    deleteCookie(c, "google_oauth_state");
-
-    // Exchange code for tokens
-    const tokens = await getGoogleTokens(code);
-
-    // Get user info from Google
-    const googleUser = await getGoogleUserInfo(tokens.access_token);
-
-    // Find existing user by Google ID or email
-    let { result: user, error } = await tryCatchAsync(
-      userQuery.findFirst({
-        where: or(
-          eq(usersTable.googleId, googleUser.id),
-          eq(usersTable.email, googleUser.email),
-        ),
-      }),
+  // Verify state parameter
+  const storedState = getCookie(c, "google_oauth_state");
+  if (!state || !storedState || state !== storedState) {
+    console.log(
+      `[AUTH] Google OAuth state mismatch: ${state} vs ${storedState}`,
     );
+    return c.redirect(
+      `${ROUTES.UI_URL}/${ROUTES.LOGIN_PAGE}?error=invalid_state`,
+    );
+  }
 
-    if (error) {
-      console.error("[AUTH][SSO][GOOGLE] something went wrong: ", error);
-      return c.json({ message: "Cannot login" }, 401);
-    }
+  // Clear state cookie
+  deleteCookie(c, "google_oauth_state");
 
-    if (user && !user.googleId) {
-      // Update existing user with Google ID
-      const { result, error } = await tryCatchAsync(
-        userQuery.update
-          .set({
-            googleId: googleUser.id,
-            authProvider: "google",
-            profilePicture: googleUser.picture || user.profilePicture,
-          })
-          .where(eq(usersTable.id, user.id))
-          .returning(),
-      );
+  // Exchange code for tokens
+  const tokens = await getGoogleTokens(code);
 
-      if (error) {
-        console.error("[AUTH][SSO][GOOGLE] something went wrong: ", error);
-        return c.json({ message: "Cannot login" }, 401);
-      }
+  // Get user info from Google
+  const googleUser = await getGoogleUserInfo(tokens.access_token);
 
-      user = result[0];
-      console.log(`[AUTH] Added Google ID to existing user: ${user.id}`);
-    } else if (!user) {
-      // Create new user
-      const { result, error } = await tryCatchAsync(
-        userQuery.insert
-          .values({
-            name: googleUser.name,
-            email: googleUser.email,
-            googleId: googleUser.id,
-            authProvider: "google",
-            profilePicture: googleUser.picture,
-            isOnboarded: false,
-          })
-          .returning(),
-      );
+  // Find existing user by Google ID or email
+  let { result: user, error } = await tryCatchAsync(
+    userQuery.findFirst({
+      where: or(
+        eq(usersTable.googleId, googleUser.id),
+        eq(usersTable.email, googleUser.email),
+      ),
+    }),
+  );
 
-      if (error) {
-        console.error("[AUTH][SSO][GOOGLE] something went wrong: ", error);
-        return c.json({ message: "Cannot login" }, 401);
-      }
-
-      user = result[0];
-      console.log(`[AUTH] Created new user from Google login: ${user.id}`);
-    }
-
-    // Store Google tokens
-    await storeGoogleTokens(user.id, tokens);
-
-    // Generate our own tokens for API authentication
-    const { accessToken, refreshToken } = await generateTokens(user);
-
-    // Set cookies
-    setCookie(c, CONSTANTS.ACCESS_TOKEN_COOKIE, accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: CONSTANTS.ACCESS_TOKEN_EXPIRES_IN,
-      path: "/",
-    });
-
-    setCookie(c, CONSTANTS.REFRESH_TOKEN_COOKIE, refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: CONSTANTS.REFRESH_TOKEN_EXPIRES_IN,
-      path: "/",
-    });
-
-    setCookie(c, CONSTANTS.AUTHENTICATED, "true", {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: CONSTANTS.ACCESS_TOKEN_EXPIRES_IN,
-      path: "/",
-    });
-
-    // Redirect based on onboarding status
-    if (!user.isOnboarded) {
-      console.log(
-        `[AUTH] Google user needs to complete onboarding: ${user.id}`,
-      );
-      return c.redirect(`${ROUTES.UI_URL}${ROUTES.ONBOARDING_ROUTE}`);
-    }
-
-    console.log(`[AUTH] Google login successful for user: ${user.id}`);
-    return c.redirect(`${ROUTES.UI_URL}/${ROUTES.HOME_ROUTE}`);
-  } catch (error) {
+  if (error) {
     console.error(`[AUTH] Google OAuth error:`, error);
     return c.redirect(
       `${ROUTES.UI_URL}/${ROUTES.LOGIN_PAGE}?error=oauth_failure`,
     );
   }
+
+  if (user && !user.googleId) {
+    // Update existing user with Google ID
+    const { result, error } = await tryCatchAsync(
+      userQuery.update
+        .set({
+          googleId: googleUser.id,
+          authProvider: "google",
+          profilePicture: googleUser.picture || user.profilePicture,
+        })
+        .where(eq(usersTable.id, user.id))
+        .returning(),
+    );
+
+    if (error) {
+      console.error(`[AUTH] Google OAuth error:`, error);
+      return c.redirect(
+        `${ROUTES.UI_URL}/${ROUTES.LOGIN_PAGE}?error=oauth_failure`,
+      );
+    }
+
+    user = result[0];
+    console.log(`[AUTH] Added Google ID to existing user: ${user.id}`);
+  } else if (!user) {
+    // Create new user
+    const { result, error } = await tryCatchAsync(
+      userQuery.insert
+        .values({
+          name: googleUser.name,
+          email: googleUser.email,
+          googleId: googleUser.id,
+          authProvider: "google",
+          profilePicture: googleUser.picture,
+          isOnboarded: false,
+        })
+        .returning(),
+    );
+
+    if (error) {
+      console.error(`[AUTH] Google OAuth error:`, error);
+      return c.redirect(
+        `${ROUTES.UI_URL}/${ROUTES.LOGIN_PAGE}?error=oauth_failure`,
+      );
+    }
+
+    user = result[0];
+    console.log(`[AUTH] Created new user from Google login: ${user.id}`);
+  }
+
+  // Store Google tokens
+  await storeGoogleTokens(user.id, tokens);
+
+  // Generate our own tokens for API authentication
+  const { accessToken, refreshToken } = await generateTokens(user);
+
+  // Set cookies
+  setCookie(c, CONSTANTS.ACCESS_TOKEN_COOKIE, accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: CONSTANTS.ACCESS_TOKEN_EXPIRES_IN,
+    path: "/",
+  });
+
+  setCookie(c, CONSTANTS.REFRESH_TOKEN_COOKIE, refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: CONSTANTS.REFRESH_TOKEN_EXPIRES_IN,
+    path: "/",
+  });
+
+  setCookie(c, CONSTANTS.AUTHENTICATED, "true", {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    maxAge: CONSTANTS.ACCESS_TOKEN_EXPIRES_IN,
+    path: "/",
+  });
+
+  // Redirect based on onboarding status
+  if (!user.isOnboarded) {
+    console.log(`[AUTH] Google user needs to complete onboarding: ${user.id}`);
+    return c.redirect(`${ROUTES.UI_URL}${ROUTES.ONBOARDING_ROUTE}`);
+  }
+
+  console.log(`[AUTH] Google login successful for user: ${user.id}`);
+  return c.redirect(`${ROUTES.UI_URL}/${ROUTES.HOME_ROUTE}`);
 });
