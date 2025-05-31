@@ -5,8 +5,8 @@ import { Select } from "@components/select/select";
 import { Switch } from "@components/switch/switch";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import { map } from "@utility/map";
 import React, { FormEvent } from "react";
+import { map } from "utils";
 import {
   CheckboxField,
   CompositeField,
