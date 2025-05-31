@@ -5,8 +5,8 @@
     "jsxImportSource": "hono/jsx",
     "baseUrl": "./",
     "paths": {
-      "@schema/*": ["src/db/schema/*"],
       "@db": ["src/db/index.ts"],
+      "@db/*": ["src/db/*"],
 
       "@mails": ["src/mails/index.ts"],
       "@mails/*": ["src/mails/*"],
@@ -24,7 +24,10 @@
       "@auth/*": ["src/auth/*"],
 
       "@setup": ["src/setup/index.ts"],
-      "@setup/*": ["src/setup/*"]
+      "@setup/*": ["src/setup/*"],
+
+      "@users": ["src/users/index.ts"],
+      "@users/*": ["src/users/*"]
     }
   }
 }
