@@ -1,5 +1,11 @@
-import { usersTable } from "@schema/users";
-import { boolean, timestamp, varchar } from "drizzle-orm/pg-core";
+import { usersTable } from "@db/schema/users";
+import { SQL } from "drizzle-orm";
+import {
+  boolean,
+  PgTableWithColumns,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 export const commonFields = {
   id: varchar("id", { length: 255 })
@@ -18,3 +24,8 @@ export const commonFields = {
 
   deleted: boolean("deleted").default(false).notNull(),
 };
+
+export type Key<T extends PgTableWithColumns<TSAny>> = keyof T["_"]["columns"];
+export type Value<T extends PgTableWithColumns<TSAny>, K extends Key<T>> =
+  | T["_"]["columns"][K]["_"]["data"]
+  | SQL;
