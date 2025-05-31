@@ -41,3 +41,4 @@ export const tokensTable = pgTable("tokens", {
 
 export type Token = typeof tokensTable.$inferSelect;
 export type NewToken = typeof tokensTable.$inferInsert;
+export type TokensTableType = typeof tokensTable;

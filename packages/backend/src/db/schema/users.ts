@@ -1,4 +1,10 @@
-import { boolean, pgEnum, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  pgEnum,
+  pgTable,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 export const authProviderEnum = pgEnum("auth_provider", ["email", "google"]);
 
@@ -21,3 +27,4 @@ export const usersTable = pgTable("users", {
 
 export type User = typeof usersTable.$inferSelect;
 export type NewUser = typeof usersTable.$inferInsert;
+export type UsersTableType = typeof usersTable;
