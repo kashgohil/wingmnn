@@ -7,10 +7,11 @@ import {
   getGoogleTokens,
   getGoogleUserInfo,
 } from "@auth/utils/google";
-import { db } from "@db";
-import { usersTable } from "@schema/users";
+import { usersTable } from "@db/schema/users";
+import { userQuery } from "@users/utils";
 import { eq, or } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { tryCatchAsync } from "utils";
 
 // Google OAuth login route
 auth.post("/sso/google", async (c) => {
@@ -56,40 +57,61 @@ auth.get("/sso/google/callback", async (c) => {
     const googleUser = await getGoogleUserInfo(tokens.access_token);
 
     // Find existing user by Google ID or email
-    let user = await db.query.usersTable.findFirst({
-      where: or(
-        eq(usersTable.googleId, googleUser.id),
-        eq(usersTable.email, googleUser.email),
-      ),
-    });
+    let { result: user, error } = await tryCatchAsync(
+      userQuery.findFirst({
+        where: or(
+          eq(usersTable.googleId, googleUser.id),
+          eq(usersTable.email, googleUser.email),
+        ),
+      }),
+    );
+
+    if (error) {
+      console.error("[AUTH][SSO][GOOGLE] something went wrong: ", error);
+      return c.json({ message: "Cannot login" }, 401);
+    }
 
     if (user && !user.googleId) {
       // Update existing user with Google ID
-      [user] = await db
-        .update(usersTable)
-        .set({
-          googleId: googleUser.id,
-          authProvider: "google",
-          profilePicture: googleUser.picture || user.profilePicture,
-        })
-        .where(eq(usersTable.id, user.id))
-        .returning();
+      const { result, error } = await tryCatchAsync(
+        userQuery.update
+          .set({
+            googleId: googleUser.id,
+            authProvider: "google",
+            profilePicture: googleUser.picture || user.profilePicture,
+          })
+          .where(eq(usersTable.id, user.id))
+          .returning(),
+      );
 
+      if (error) {
+        console.error("[AUTH][SSO][GOOGLE] something went wrong: ", error);
+        return c.json({ message: "Cannot login" }, 401);
+      }
+
+      user = result[0];
       console.log(`[AUTH] Added Google ID to existing user: ${user.id}`);
     } else if (!user) {
       // Create new user
-      [user] = await db
-        .insert(usersTable)
-        .values({
-          name: googleUser.name,
-          email: googleUser.email,
-          googleId: googleUser.id,
-          authProvider: "google",
-          profilePicture: googleUser.picture,
-          isOnboarded: false,
-        })
-        .returning();
+      const { result, error } = await tryCatchAsync(
+        userQuery.insert
+          .values({
+            name: googleUser.name,
+            email: googleUser.email,
+            googleId: googleUser.id,
+            authProvider: "google",
+            profilePicture: googleUser.picture,
+            isOnboarded: false,
+          })
+          .returning(),
+      );
 
+      if (error) {
+        console.error("[AUTH][SSO][GOOGLE] something went wrong: ", error);
+        return c.json({ message: "Cannot login" }, 401);
+      }
+
+      user = result[0];
       console.log(`[AUTH] Created new user from Google login: ${user.id}`);
     }
 

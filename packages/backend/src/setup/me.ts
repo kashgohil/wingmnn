@@ -1,15 +1,12 @@
-import { db } from "@db";
-import { User, usersTable } from "@schema/users";
+import { User } from "@db/schema/users";
 import { setup } from "@setup/router";
-import { eq } from "drizzle-orm";
+import { userQuery } from "src/users/utils";
 import { tryCatchAsync } from "utils";
 
 setup.get("/me", async (c) => {
   const { id } = c.get("user");
 
-  const { result: user, error } = await tryCatchAsync(
-    db.query.usersTable.findFirst({ where: eq(usersTable.id, id) }),
-  );
+  const { result: user, error } = await tryCatchAsync(userQuery.get("id", id));
 
   if (error) {
     console.error("[SETUP][ME][ERROR] something went wrong: ", error);

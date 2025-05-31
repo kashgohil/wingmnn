@@ -1,8 +1,9 @@
 import { db } from "@db";
-import { tokensTable } from "@schema/tokens";
-import { User } from "@schema/users";
+import { tokensTable } from "@db/schema/tokens";
+import { User } from "@db/schema/users";
 import { eq } from "drizzle-orm";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
+import { tokensQuery } from "src/tokens/utils";
 import { CONSTANTS } from "./constants";
 
 interface TokenPayload extends JWTPayload {
@@ -85,9 +86,7 @@ export async function verifyToken(token: string, type: "access" | "refresh") {
 
     if (type === "refresh") {
       // Check if refresh token exists in database and is not revoked
-      const tokenRecord = await db.query.tokensTable.findFirst({
-        where: eq(tokensTable.value, token),
-      });
+      const tokenRecord = await tokensQuery.get("value", token);
 
       if (!tokenRecord || tokenRecord.isRevoked) {
         throw new Error("Invalid or revoked refresh token");

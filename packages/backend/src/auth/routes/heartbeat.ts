@@ -1,10 +1,9 @@
 import { CONSTANTS } from "@auth/constants";
 import { generateTokens, revokeToken, verifyToken } from "@auth/jwt";
 import { auth } from "@auth/router";
-import { db } from "@db";
-import { usersTable } from "@schema/users";
-import { eq } from "drizzle-orm";
+import { userQuery } from "@users/utils";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
+import { tryCatchAsync } from "utils";
 
 auth.get("/heartbeat", async (c) => {
   try {
@@ -20,9 +19,14 @@ auth.get("/heartbeat", async (c) => {
     const userId = payload.sub;
 
     // Get user from database
-    const user = await db.query.usersTable.findFirst({
-      where: eq(usersTable.id, userId),
-    });
+    const { result: user, error } = await tryCatchAsync(
+      userQuery.get("id", userId),
+    );
+
+    if (error) {
+      console.error("[AUTH][HEARTBEAT] Something went wrong: ", error);
+      return c.json({ success: false, message: "User not found" }, 401);
+    }
 
     if (!user) {
       console.log(`[AUTH] User not found for refresh token: ${userId}`);

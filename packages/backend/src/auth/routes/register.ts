@@ -2,11 +2,10 @@ import { CONSTANTS, ROUTES } from "@auth/constants";
 import { generateTokens } from "@auth/jwt";
 import { hashPassword } from "@auth/password";
 import { auth } from "@auth/router";
-import { db } from "@db";
 import { zValidator } from "@hono/zod-validator";
-import { usersTable } from "@schema/users";
-import { eq } from "drizzle-orm";
+import { userQuery } from "@users/utils";
 import { setCookie } from "hono/cookie";
+import { tryCatchAsync } from "utils";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -21,9 +20,14 @@ auth.post("/register", zValidator("form", registerSchema), async (c) => {
   console.log(`[AUTH] Registration attempt for email: ${email}`);
 
   // Check if user already exists
-  const existingUser = await db.query.usersTable.findFirst({
-    where: eq(usersTable.email, email),
-  });
+  const { result: existingUser, error } = await tryCatchAsync(
+    userQuery.get("email", email),
+  );
+
+  if (error) {
+    console.error("[AUTH][REGISTER] Something went wrong: ", error);
+    return c.json({ message: "Cannot login" }, 401);
+  }
 
   if (existingUser) {
     console.log(`[AUTH] User already exists for email: ${email}`);
@@ -41,16 +45,24 @@ auth.post("/register", zValidator("form", registerSchema), async (c) => {
   const hashedPassword = await hashPassword(password);
 
   // Create user
-  const [user] = await db
-    .insert(usersTable)
-    .values({
-      name,
-      email,
-      password: hashedPassword,
-      authProvider: "email",
-      isOnboarded: false,
-    })
-    .returning();
+  const { result, error: creationError } = await tryCatchAsync(
+    userQuery.insert
+      .values({
+        name,
+        email,
+        password: hashedPassword,
+        authProvider: "email",
+        isOnboarded: false,
+      })
+      .returning(),
+  );
+
+  if (creationError) {
+    console.error("[AUTH][REGISTER] Something went wrong: ", error);
+    return c.json({ message: "Cannot create user" }, 401);
+  }
+
+  const [user] = result;
 
   console.log(`[AUTH] User registered successfully: ${user.id}`);
 
