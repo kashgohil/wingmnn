@@ -28,8 +28,8 @@ export async function get<K extends Key<UsersTableType>>(
 }
 
 export const userQuery = {
-  findFirst: query.findFirst,
-  findMany: query.findMany,
+  findFirst: query.findFirst.bind(query),
+  findMany: query.findMany.bind(query),
   get,
   insert: db.insert(usersTable),
   update: db.update(usersTable),

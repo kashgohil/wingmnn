@@ -15,8 +15,8 @@ export async function get<K extends Key<TokensTableType>>(
 }
 
 export const tokensQuery = {
-  findFirst: query.findFirst,
-  findMany: query.findMany,
+  findFirst: query.findFirst.bind(query),
+  findMany: query.findMany.bind(query),
   get,
   insert: db.insert(tokensTable),
   update: db.update(tokensTable),
