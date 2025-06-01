@@ -1,13 +1,19 @@
 {
   "compilerOptions": {
+    // Best practices
     "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
+
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "baseUrl": "./",
     "paths": {
-      "@db": ["src/db/index.ts"],
-      "@db/*": ["src/db/*"],
-
       "@mails": ["src/mails/index.ts"],
       "@mails/*": ["src/mails/*"],
 
