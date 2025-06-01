@@ -1,11 +1,11 @@
-import { usersTable } from "@db/schema/users";
 import { SQL } from "drizzle-orm";
 import {
   boolean,
-  PgTableWithColumns,
   timestamp,
   varchar,
+  type PgTableWithColumns,
 } from "drizzle-orm/pg-core";
+import { usersTable } from "./schema/users";
 
 export const commonFields = {
   id: varchar("id", { length: 255 })

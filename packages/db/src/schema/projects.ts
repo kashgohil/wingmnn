@@ -6,3 +6,7 @@ export const projectsTable = pgTable("projects", {
   description: varchar("description", { length: 255 }).notNull(),
   ...commonFields,
 });
+
+export type Project = typeof projectsTable.$inferSelect;
+export type NewProject = typeof projectsTable.$inferInsert;
+export type ProjectsTableType = typeof projectsTable;

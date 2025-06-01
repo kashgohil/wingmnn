@@ -6,3 +6,7 @@ export const tasksTable = pgTable("tasks", {
   content: text("content").notNull(),
   ...commonFields,
 });
+
+export type Task = typeof tasksTable.$inferSelect;
+export type NewTask = typeof tasksTable.$inferInsert;
+export type TasksTableType = typeof tasksTable;

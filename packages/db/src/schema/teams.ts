@@ -6,3 +6,7 @@ export const teamsTable = pgTable("teams", {
   bio: varchar("bio", { length: 255 }).notNull(),
   ...commonFields,
 });
+
+export type Team = typeof teamsTable.$inferSelect;
+export type NewTeam = typeof teamsTable.$inferInsert;
+export type TeamsTableType = typeof teamsTable;
