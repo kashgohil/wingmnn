@@ -1,7 +1,8 @@
 import { useForceRender } from "@hooks/useForceRender";
 import React from "react";
+import { serialize, tryCatch } from "utils";
 import { QueryContext } from "./context";
-import { Params, Query } from "./query";
+import { Params, Query, QueryParams } from "./query";
 
 interface QueryResponse<S> {
   result: S | null;
@@ -39,4 +40,22 @@ export function useQuery<T, K, S = T>(
     isError: query.status === "error",
     isIdle: query.status === "idle",
   };
+}
+
+export function useQueryState<T, K = unknown>(key: QueryParams<K>) {
+  const { cache } = React.useContext(QueryContext);
+  const forceRender = useForceRender();
+
+  const serializedKey = React.useMemo(() => {
+    return serialize(key);
+  }, [key]);
+
+  React.useEffect(() => {
+    return () => cache.invalidate(serializedKey);
+  }, [serializedKey, cache]);
+
+  const { result, error } = tryCatch(cache.get(serializedKey, forceRender));
+
+  if (error) return null;
+  return result as T;
 }
