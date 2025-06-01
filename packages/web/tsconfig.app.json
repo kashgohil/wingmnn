@@ -33,7 +33,8 @@
       "@landing/*": ["src/modules/landing/*"],
       "@testing/*": ["src/modules/testing/*"],
       "@projects/*": ["src/modules/projects/*"],
-      "@constants": ["src/constants.ts"]
+      "@constants": ["src/constants.ts"],
+      "@queryKeys": ["src/queryKeys.ts"]
     }
   },
   "include": ["src"]
