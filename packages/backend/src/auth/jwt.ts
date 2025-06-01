@@ -1,6 +1,4 @@
-import { db } from "@db";
-import { tokensTable } from "@db/schema/tokens";
-import { User } from "@db/schema/users";
+import { User, db, tokensTable } from "db";
 import { eq } from "drizzle-orm";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 import { tokensQuery } from "src/tokens/utils";

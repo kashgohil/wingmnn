@@ -1,6 +1,4 @@
-import { db } from "@db";
-import { Key, Value } from "@db/constants";
-import { tokensTable, TokensTableType } from "@db/schema/tokens";
+import { db, Key, tokensTable, TokensTableType, Value } from "db";
 import { eq } from "drizzle-orm";
 import { tryCatchAsync } from "utils";
 

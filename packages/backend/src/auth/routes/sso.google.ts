@@ -7,8 +7,8 @@ import {
   getGoogleTokens,
   getGoogleUserInfo,
 } from "@auth/utils/google";
-import { usersTable } from "@db/schema/users";
 import { userQuery } from "@users/utils";
+import { usersTable } from "db";
 import { eq, or } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { tryCatchAsync } from "utils";

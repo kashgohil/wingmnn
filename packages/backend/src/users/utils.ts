@@ -1,6 +1,4 @@
-import { db } from "@db";
-import { Key, Value } from "@db/constants";
-import { User, usersTable, UsersTableType } from "@db/schema/users";
+import { db, Key, User, usersTable, UsersTableType, Value } from "db";
 import { eq } from "drizzle-orm";
 import { stripEmptyValues, tryCatchAsync } from "utils";
 

@@ -1,4 +1,4 @@
-import { DrizzleDB } from "@db";
+import { DrizzleDB } from "db";
 import { PgTableWithColumns, TableConfig } from "drizzle-orm/pg-core";
 import { Condition } from "./constants";
 import { createFilter } from "./filter";

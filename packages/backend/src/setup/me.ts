@@ -1,5 +1,5 @@
-import { User } from "@db/schema/users";
 import { setup } from "@setup/router";
+import { User } from "db";
 import { userQuery } from "src/users/utils";
 import { tryCatchAsync } from "utils";
 
