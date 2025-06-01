@@ -1,5 +1,5 @@
 import { MINUTE } from "@constants";
-import { merge } from "utils";
+import { isEqual, merge } from "utils";
 
 interface Params {
   /**
@@ -12,6 +12,7 @@ interface CacheValue<T> {
   value: T;
   params: Params;
   timeoutId: NodeJS.Timeout;
+  subscribers: Set<() => void>;
 }
 
 const DEFAULT_PARAMS: Params = {
@@ -27,34 +28,53 @@ export class Cache {
     this.#params = merge(DEFAULT_PARAMS, params) as Params;
   }
 
-  #timeout(key: string, params: Params) {
+  #timeout(key: string, cacheTime: number, subscriber?: () => void) {
+    const subscribers = this.#cache.get(key)!.subscribers;
     return setTimeout(() => {
+      if (subscriber) subscribers.delete(subscriber);
       this.#cache.delete(key);
-    }, params.cacheTime);
+    }, cacheTime);
   }
 
-  get(key: string): TSAny | undefined {
+  get(key: string, subscriber?: () => void): TSAny | undefined {
     const cacheValue = this.#cache.get(key);
     if (!cacheValue) {
       throw new Error(`no value found for ${key} in Cache`);
     }
 
     if (cacheValue.timeoutId) clearTimeout(cacheValue.timeoutId);
-    cacheValue.timeoutId = this.#timeout(key, cacheValue.params);
+    cacheValue.timeoutId = this.#timeout(
+      key,
+      cacheValue.params.cacheTime,
+      subscriber,
+    );
+
+    if (subscriber && !cacheValue.subscribers.has(subscriber)) {
+      cacheValue.subscribers.add(subscriber);
+    }
 
     return cacheValue.value;
   }
 
   set<T>(key: string, value: T, params: Params = this.#params): T {
+    let subscribers = new Set<() => void>();
+
     if (this.#cache.has(key)) {
-      const timeoutId = this.#cache.get(key)!.timeoutId;
-      clearTimeout(timeoutId);
+      const cacheValue = this.#cache.get(key)!;
+      subscribers = cacheValue.subscribers;
+
+      clearTimeout(cacheValue.timeoutId);
+
+      if (!isEqual(value, cacheValue.value)) {
+        subscribers.forEach((fn) => fn());
+      }
     }
 
     const cacheValue = {
       value,
       params,
-      timeoutId: this.#timeout(key, params),
+      subscribers,
+      timeoutId: this.#timeout(key, params.cacheTime),
     };
 
     this.#cache.set(key, cacheValue);
@@ -63,5 +83,13 @@ export class Cache {
 
   has(key: string) {
     return this.#cache.has(key);
+  }
+
+  invalidate(key: string) {
+    if (this.#cache.has(key)) {
+      this.#cache.get(key)!.subscribers.clear();
+      clearTimeout(this.#cache.get(key)!.timeoutId);
+      this.#cache.delete(key);
+    }
   }
 }
