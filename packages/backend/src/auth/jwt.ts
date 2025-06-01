@@ -54,7 +54,7 @@ export async function generateTokens(user: User) {
 
   // Store refresh token in database
 
-  await db.insert(tokensTable).values({
+  await tokensQuery.insert.values({
     userId: user.id,
     type: "refresh",
     value: refreshToken,
