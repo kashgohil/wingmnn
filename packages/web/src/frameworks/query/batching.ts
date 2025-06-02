@@ -1,4 +1,4 @@
-import { serialize } from "utils";
+import { serialize } from "@wingmnn/utils";
 
 export class Batch {
   #subscribers: Map<string, Promise<TSAny>>;

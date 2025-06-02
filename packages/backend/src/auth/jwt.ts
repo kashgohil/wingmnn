@@ -1,4 +1,4 @@
-import { User, db, tokensTable } from "db";
+import { User, db, tokensTable } from "@wingmnn/db";
 import { eq } from "drizzle-orm";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 import { tokensQuery } from "src/tokens/utils";

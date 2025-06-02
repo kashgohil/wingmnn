@@ -1,6 +1,6 @@
 import { useForceRender } from "@hooks/useForceRender";
+import { serialize, tryCatch } from "@wingmnn/utils";
 import React from "react";
-import { serialize, tryCatch } from "utils";
 import { QueryContext } from "./context";
 import { Params, Query, QueryParams } from "./query";
 

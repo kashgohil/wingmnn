@@ -2,7 +2,7 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@components/ui/resizable";
+} from "@wingmnn/components";
 
 interface Props {
   children: React.ReactNode;

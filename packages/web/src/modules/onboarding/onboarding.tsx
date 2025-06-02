@@ -1,7 +1,4 @@
-import { Card } from "@components/card/card";
-import ConfettiAnimation from "@components/confetti/confetti";
-import { Input } from "@components/input/input";
-import { Typography } from "@components/Typography/typography";
+import { Card, Confetti, Input, Typography } from "@wingmnn/components";
 import React from "react";
 
 export function Onboarding() {
@@ -9,7 +6,7 @@ export function Onboarding() {
 
   return (
     <div className="h-full w-full flex items-center justify-center relative">
-      <ConfettiAnimation className="bg-black-300 z-0" />
+      <Confetti className="bg-black-300 z-0" />
       <Card
         size="lg"
         className="flex flex-col items-center justify-center p-20 gap-8 relative overflow-hidden bg-black-100"

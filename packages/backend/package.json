@@ -10,8 +10,8 @@
     "jose": "^6.0.11",
     "nanoid": "^5.1.5",
     "zod": "^3.24.4",
-    "utils": "workspace:*",
-    "db": "workspace:*"
+    "@wingmnn/utils": "workspace:*",
+    "@wingmnn/db": "workspace:*"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

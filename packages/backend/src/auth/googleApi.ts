@@ -1,4 +1,4 @@
-import { db, tokensTable } from "db";
+import { db, tokensTable } from "@wingmnn/db";
 import { eq } from "drizzle-orm";
 import { tokensQuery } from "src/tokens/utils";
 import { CONSTANTS } from "./constants";

@@ -1,8 +1,7 @@
-import { Button } from "@components/button/button";
-import { Card } from "@components/card/card";
 import { ProjectDialog } from "@projects/constants";
 import { ProjectActions, useProjects } from "@projects/logic/useProjects";
-import { isEmpty, map } from "utils";
+import { Button, Card } from "@wingmnn/components";
+import { isEmpty, map } from "@wingmnn/utils";
 
 export function Home() {
   const projects = useProjects("projects");

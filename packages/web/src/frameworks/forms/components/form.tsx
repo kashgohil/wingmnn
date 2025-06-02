@@ -1,29 +1,31 @@
-import { Checkbox } from "@components/checkbox/checkbox";
-import { Input } from "@components/input/input";
-import { Radio } from "@components/radio/radio";
-import { Select } from "@components/select/select";
-import { Switch } from "@components/switch/switch";
-import { classVariance } from "@utility/classVariance";
-import { cx } from "@utility/cx";
-import React, { FormEvent } from "react";
-import { map } from "utils";
 import {
-  CheckboxField,
-  CompositeField,
+  Checkbox,
+  classVariance,
+  cx,
+  Input,
+  Radio,
+  Select,
+  Switch,
+} from "@wingmnn/components";
+import { map } from "@wingmnn/utils";
+import React, { type FormEvent } from "react";
+import {
   DataType,
-  DateField,
-  DateTimeField,
-  Field,
   FieldType,
-  InputField,
-  RadioField,
-  RichTextField,
-  SelectField,
-  SwitchField,
-  TimeField,
+  type CheckboxField,
+  type CompositeField,
+  type DateField,
+  type DateTimeField,
+  type Field,
+  type InputField,
+  type RadioField,
+  type RichTextField,
+  type SelectField,
+  type SwitchField,
+  type TimeField,
 } from "../type";
-import { FormData } from "../useForm";
-import { ValidationResult } from "../validations";
+import type { FormData } from "../useForm";
+import type { ValidationResult } from "../validations";
 
 interface FormProps
   extends Omit<

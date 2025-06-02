@@ -1,6 +1,6 @@
-import { Breadcrumb, Breadcrumbs } from "@components/breadcrumbs/breadcrumbs";
 import { Modules } from "@navigation/constants";
 import { BaseRoutes } from "@navigation/routes";
+import { type Breadcrumb, Breadcrumbs } from "@wingmnn/components";
 import { ProjectDialogs } from "./components/dialogs/projectDialogs";
 
 export function Projects({ children }: { children: React.ReactNode }) {

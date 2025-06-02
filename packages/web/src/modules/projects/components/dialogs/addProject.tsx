@@ -1,16 +1,16 @@
-import { Button } from "@components/button/button";
+import { type Project } from "@projects/type";
 import {
+  Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-} from "@components/dialog/dialog";
-import { Input } from "@components/input/input";
-import { TextArea } from "@components/input/textarea";
-import { Upload } from "@components/upload/upload";
-import { Project } from "@projects/type";
+  Input,
+  TextArea,
+  Upload,
+} from "@wingmnn/components";
+import { noop } from "@wingmnn/utils";
 import React from "react";
-import { noop } from "utils";
 
 interface AddProjectProps {
   open: boolean;

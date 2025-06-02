@@ -1,5 +1,5 @@
 {
-  "name": "db",
+  "name": "@wingmnn/db",
   "module": "index.ts",
   "type": "module",
   "exports": {

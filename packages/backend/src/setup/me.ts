@@ -1,7 +1,7 @@
 import { setup } from "@setup/router";
-import { User } from "db";
+import { User } from "@wingmnn/db";
+import { tryCatchAsync } from "@wingmnn/utils";
 import { userQuery } from "src/users/utils";
-import { tryCatchAsync } from "utils";
 
 setup.get("/me", async (c) => {
   const { id } = c.get("user");

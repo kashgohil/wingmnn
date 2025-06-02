@@ -1,3 +1,4 @@
+import { map } from "@wingmnn/utils";
 import {
   and,
   eq,
@@ -18,7 +19,6 @@ import {
   SQL,
 } from "drizzle-orm";
 import { PgTableWithColumns, TableConfig } from "drizzle-orm/pg-core";
-import { map } from "utils";
 import { FilterOperation, FilterType } from "./constants";
 
 export function createFilter<

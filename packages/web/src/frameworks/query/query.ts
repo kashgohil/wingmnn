@@ -1,5 +1,5 @@
 import { MINUTE } from "@constants";
-import { merge, noop, serialize, tryCatchAsync } from "utils";
+import { merge, noop, serialize, tryCatchAsync } from "@wingmnn/utils";
 import { Batch } from "./batching";
 import { Cache } from "./cache";
 import { Poll } from "./polling";

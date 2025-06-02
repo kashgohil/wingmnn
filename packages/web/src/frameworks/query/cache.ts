@@ -1,5 +1,5 @@
 import { MINUTE } from "@constants";
-import { isEqual, merge } from "utils";
+import { isEqual, merge } from "@wingmnn/utils";
 
 interface Params {
   /**

@@ -1,4 +1,4 @@
-import { debounce, forEach } from "utils";
+import { debounce, forEach } from "@wingmnn/utils";
 
 type WithID<T> = T & { id: string };
 

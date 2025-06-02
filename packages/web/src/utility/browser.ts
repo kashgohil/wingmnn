@@ -1,4 +1,4 @@
-import { uuid } from "utils";
+import { uuid } from "@wingmnn/utils";
 
 export const Cookie = (function () {
   function get(name: string) {

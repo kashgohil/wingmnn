@@ -3,7 +3,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-} from "@components/dialog/dialog";
+} from "@wingmnn/components";
 
 interface AddTaskProps {
   open: boolean;

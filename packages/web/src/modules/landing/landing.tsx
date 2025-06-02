@@ -1,13 +1,11 @@
-import { Box } from "@components/box/box";
-import { Button } from "@components/button/button";
-import { Separator } from "@components/separator/separator";
 import { Form } from "@frameworks/forms/components/form";
 import { useForm } from "@frameworks/forms/useForm";
 import { Github } from "@icons/github";
 import { Google } from "@icons/google";
 import { Wingmnn } from "@icons/wingmnn";
 import { playMouseClickSound } from "@utility/sounds/click";
-import { noop, reduce } from "utils";
+import { Box, Button, Separator } from "@wingmnn/components";
+import { noop, reduce } from "@wingmnn/utils";
 import { LandingFields } from "./fields";
 
 export function Landing() {

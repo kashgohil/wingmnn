@@ -1,8 +1,5 @@
-import { Button } from "@components/button/button";
-import { Typography } from "@components/Typography/typography";
 import { ErrorBoundary } from "@frameworks/monitoring/components/errorBoundary";
-import { Link } from "@frameworks/router/Link";
-import { useRouter } from "@frameworks/router/useRouter";
+
 import { useHeartbeat } from "@hooks/useHeartbeat";
 import { useSetup } from "@hooks/useSetup";
 import { Wingmnn } from "@icons/wingmnn";
@@ -11,6 +8,8 @@ import { Modules } from "@navigation/constants";
 import { Navigation } from "@navigation/navigation";
 import { BaseRoutes } from "@navigation/routes";
 import { AuthService } from "@services/authService";
+import { Button, Typography } from "@wingmnn/components";
+import { Link, useRouter } from "@wingmnn/router";
 import { ROUTES_CONFIG } from "./config";
 
 export function AuthRouter() {

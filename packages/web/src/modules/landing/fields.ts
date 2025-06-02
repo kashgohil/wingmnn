@@ -1,4 +1,4 @@
-import { DataType, Field, FieldType } from "@frameworks/forms/type";
+import { DataType, type Field, FieldType } from "@frameworks/forms/type";
 
 export const LandingFields = (function () {
   // private

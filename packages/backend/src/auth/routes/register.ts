@@ -4,8 +4,8 @@ import { hashPassword } from "@auth/password";
 import { auth } from "@auth/router";
 import { zValidator } from "@hono/zod-validator";
 import { userQuery } from "@users/utils";
+import { tryCatchAsync } from "@wingmnn/utils";
 import { setCookie } from "hono/cookie";
-import { tryCatchAsync } from "utils";
 import { z } from "zod";
 
 const registerSchema = z.object({

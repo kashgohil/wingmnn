@@ -1,14 +1,10 @@
-import { IconButton } from "@components/iconButton/iconButton";
-import { Separator } from "@components/separator/separator";
-import { Tooltip } from "@components/tooltip/tooltip";
-import { useLocationChangeDetection } from "@frameworks/router/hooks/useLocationChangeDetection";
-import { Link } from "@frameworks/router/Link";
 import { Wingmnn } from "@icons/wingmnn";
-import { cx } from "@utility/cx";
 import { playMouseClickSound } from "@utility/sounds/click";
+import { cx, IconButton, Separator, Tooltip } from "@wingmnn/components";
+import { Link, useLocationChangeDetection } from "@wingmnn/router";
+import { forEachObj, includes, map, reduceObj } from "@wingmnn/utils";
 import React from "react";
-import { forEachObj, includes, map, reduceObj } from "utils";
-import { ModuleConfig, ModulesConfig } from "./config";
+import { type ModuleConfig, ModulesConfig } from "./config";
 import { Modules } from "./constants";
 import { BaseRoutes } from "./routes";
 
@@ -16,7 +12,7 @@ export function Navigation() {
   const location = useLocationChangeDetection();
 
   const activeModule = React.useMemo(() => {
-    let activeModule = Modules.HOME;
+    let activeModule: string = Modules.HOME;
     forEachObj(BaseRoutes, (route, key) => {
       if (key !== Modules.HOME && includes(location, route)) {
         activeModule = key;

@@ -1,4 +1,4 @@
-import { IconProps } from "./types";
+import { type IconProps } from "./types";
 
 export function Google(props: IconProps) {
   const { size, height, width, fill = "currentColor", ...rest } = props;

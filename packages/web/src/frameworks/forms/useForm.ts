@@ -1,5 +1,5 @@
+import { everyObj, forEach, isEqual, someObj } from "@wingmnn/utils";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { everyObj, forEach, isEqual, someObj } from "utils";
 import { Field } from "./type";
 import { ValidationResult, Validations } from "./validations";
 

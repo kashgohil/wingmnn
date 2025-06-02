@@ -2,8 +2,8 @@ import { CONSTANTS } from "@auth/constants";
 import { generateTokens, revokeToken, verifyToken } from "@auth/jwt";
 import { auth } from "@auth/router";
 import { userQuery } from "@users/utils";
+import { tryCatchAsync } from "@wingmnn/utils";
 import { getCookie, setCookie } from "hono/cookie";
-import { tryCatchAsync } from "utils";
 
 auth.get("/heartbeat", async (c) => {
   const refreshToken = getCookie(c, CONSTANTS.REFRESH_TOKEN_COOKIE);
