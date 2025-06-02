@@ -1,20 +1,20 @@
 import {
-    Calendar,
-    CircleUserRound,
-    Files,
-    FileUser,
-    Gamepad2,
-    Heart,
-    LucideProps,
-    Mailbox,
-    MessageCircle,
-    Music,
-    Newspaper,
-    Notebook,
-    Settings,
-    Sheet,
-    SquareKanban,
-    Wallet,
+  Calendar,
+  CircleUserRound,
+  Files,
+  FileUser,
+  Gamepad2,
+  Heart,
+  type LucideProps,
+  Mailbox,
+  MessageCircle,
+  Music,
+  Newspaper,
+  Notebook,
+  Settings,
+  Sheet,
+  SquareKanban,
+  Wallet,
 } from "lucide-react";
 import { Modules } from "./constants";
 import { BaseRoutes } from "./routes";
@@ -25,7 +25,10 @@ export type ModuleConfig = BaseDetails & {
   route: string;
 };
 
-export const ModulesConfig: Record<Exclude<Modules, Modules.HOME>, ModuleConfig> = {
+export const ModulesConfig: Record<
+  Exclude<Modules, Modules.HOME>,
+  ModuleConfig
+> = {
   [Modules.MAILS]: {
     id: Modules.MAILS,
     name: "Mails",
@@ -133,5 +136,4 @@ export const ModulesConfig: Record<Exclude<Modules, Modules.HOME>, ModuleConfig>
     icon: Sheet,
     route: BaseRoutes[Modules.SHEETS],
   },
-
 };

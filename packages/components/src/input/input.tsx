@@ -1,6 +1,7 @@
+import type { InferredType } from "@components/types";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import React, { ChangeEvent } from "react";
+import React, { type ChangeEvent } from "react";
 
 export interface InputProps<T>
   extends Omit<

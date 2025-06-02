@@ -3,9 +3,9 @@ import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import {
   AnimatePresence,
-  HTMLMotionProps,
+  type HTMLMotionProps,
   motion,
-  TargetAndTransition,
+  type TargetAndTransition,
 } from "motion/react";
 import React from "react";
 import { createPortal } from "react-dom";

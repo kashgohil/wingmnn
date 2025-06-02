@@ -1,4 +1,3 @@
-import { cx } from "@utility/cx";
 import React from "react";
 import { RouterUtils } from "./utils";
 
@@ -11,7 +10,7 @@ export interface LinkProps
 }
 
 export function Link(props: LinkProps) {
-  const { children, className, onClick, ...rest } = props;
+  const { children, onClick, ...rest } = props;
 
   const clickHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -20,12 +19,7 @@ export function Link(props: LinkProps) {
   };
 
   return (
-    <a
-      href={props.to}
-      onClick={clickHandler}
-      className={cx(className, "")}
-      {...rest}
-    >
+    <a href={props.to} onClick={clickHandler} {...rest}>
       {children}
     </a>
   );

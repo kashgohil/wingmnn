@@ -1,5 +1,5 @@
 import { cx } from "@utility/cx";
-import { LucideProps } from "lucide-react";
+import { type LucideProps } from "lucide-react";
 import React from "react";
 
 export interface Tab extends BaseDetails {

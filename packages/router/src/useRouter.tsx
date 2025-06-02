@@ -1,7 +1,7 @@
 import { get } from "@wingmnn/utils";
 import React from "react";
 import { useLocationChangeDetection } from "./hooks/useLocationChangeDetection";
-import { RouterConfig } from "./type";
+import { type RouterConfig } from "./type";
 import { RouterUtils } from "./utils";
 
 // add custom event for pushState and replaceState

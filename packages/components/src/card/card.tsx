@@ -1,7 +1,11 @@
-import { Link } from "@frameworks/router/Link";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import { HTMLMotionProps, motion, TargetAndTransition } from "motion/react";
+import { Link } from "@wingmnn/router";
+import {
+  type HTMLMotionProps,
+  motion,
+  type TargetAndTransition,
+} from "motion/react";
 import React from "react";
 
 interface CardProps extends HTMLMotionProps<"div"> {

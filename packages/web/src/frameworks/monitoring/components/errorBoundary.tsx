@@ -1,5 +1,5 @@
-import { playMouseClickSound } from "@utility/sounds/click";
 import { Button } from "@wingmnn/components";
+import { playMouseClickSound } from "@wingmnn/utils/interactivity";
 import React from "react";
 
 interface Props {

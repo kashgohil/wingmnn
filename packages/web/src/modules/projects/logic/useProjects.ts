@@ -1,6 +1,6 @@
 import { createStore } from "@frameworks/store/create";
 import { ProjectDialog } from "@projects/constants";
-import { Project } from "@projects/type";
+import { type Project } from "@projects/type";
 import { upsert } from "@wingmnn/utils";
 
 interface ProjectsState {

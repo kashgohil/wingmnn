@@ -1,8 +1,8 @@
 import { Wingmnn } from "@icons/wingmnn";
-import { playMouseClickSound } from "@utility/sounds/click";
 import { cx, IconButton, Separator, Tooltip } from "@wingmnn/components";
 import { Link, useLocationChangeDetection } from "@wingmnn/router";
 import { forEachObj, includes, map, reduceObj } from "@wingmnn/utils";
+import { playMouseClickSound } from "@wingmnn/utils/interactivity";
 import React from "react";
 import { type ModuleConfig, ModulesConfig } from "./config";
 import { Modules } from "./constants";

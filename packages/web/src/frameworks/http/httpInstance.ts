@@ -1,5 +1,5 @@
-import { RouterUtils } from "@frameworks/router/utils";
 import { Cookie } from "@utility/browser";
+import { RouterUtils } from "@wingmnn/router";
 import { httpService } from "./http";
 
 export function responseInterceptor(response: Response) {

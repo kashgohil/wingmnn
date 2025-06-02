@@ -1,8 +1,8 @@
-import { useForceRender } from "@hooks/useForceRender";
 import { serialize, tryCatch } from "@wingmnn/utils";
+import { useForceRender } from "@wingmnn/utils/hooks";
 import React from "react";
 import { QueryContext } from "./context";
-import { Params, Query, QueryParams } from "./query";
+import { type Params, Query, type QueryParams } from "./query";
 
 interface QueryResponse<S> {
   result: S | null;

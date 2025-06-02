@@ -1,5 +1,5 @@
 import { http } from "@frameworks/http/httpInstance";
-import { Project } from "../type";
+import { type Project } from "../type";
 
 export const ProjectsService = (function () {
   async function getProjects() {

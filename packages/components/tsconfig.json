@@ -27,7 +27,8 @@
     "paths": {
       "@utility/*": ["src/utils/*"],
       "@components/*": ["src/*"],
-      "@hooks/*": ["src/hooks/*"]
+      "@hooks/*": ["src/hooks/*"],
+      "@constants": ["src/constants.ts"]
     }
   }
 }

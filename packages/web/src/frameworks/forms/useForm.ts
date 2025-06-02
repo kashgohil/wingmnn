@@ -1,7 +1,7 @@
 import { everyObj, forEach, isEqual, someObj } from "@wingmnn/utils";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Field } from "./type";
-import { ValidationResult, Validations } from "./validations";
+import { type Field } from "./type";
+import { type ValidationResult, Validations } from "./validations";
 
 export interface FormData {
   isValid: boolean;

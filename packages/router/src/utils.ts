@@ -1,5 +1,5 @@
 import { forEach } from "@wingmnn/utils";
-import { RouteConfig, RouterConfig } from "./type";
+import { type RouteConfig, type RouterConfig } from "./type";
 import { getWrapperComponent } from "./wrapperComponentFn";
 
 function getRouterUtils() {

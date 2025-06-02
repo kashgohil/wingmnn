@@ -10,14 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@wingmnn/db": "workspace:*",
-    "@wingmnn/utils": "workspace:*",
-    "@wingmnn/router": "workspace:*",
-    "@wingmnn/components": "workspace:*",
     "@tailwindcss/vite": "^4.1.8",
+    "@wingmnn/components": "workspace:*",
+    "@wingmnn/db": "workspace:*",
+    "@wingmnn/router": "workspace:*",
+    "@wingmnn/utils": "workspace:*",
     "motion": "^12.15.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-scan": "^0.3.4",
     "tailwindcss": "^4.1.8"
   },
   "devDependencies": {

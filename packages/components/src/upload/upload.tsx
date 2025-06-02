@@ -1,9 +1,9 @@
 import { IconButton } from "@components/iconButton/iconButton";
-import { click } from "@utility/accessibility/click";
 import { cx } from "@utility/cx";
-import { LucideIcon, UploadIcon, X } from "lucide-react";
-import { AnimatePresence, HTMLMotionProps, motion } from "motion/react";
-import React, { ChangeEvent } from "react";
+import { click } from "@wingmnn/utils/interactivity";
+import { type LucideIcon, UploadIcon, X } from "lucide-react";
+import { AnimatePresence, type HTMLMotionProps, motion } from "motion/react";
+import React, { type ChangeEvent } from "react";
 
 interface UploadProps extends HTMLMotionProps<"div"> {
   accept?: string;

@@ -1,23 +1,17 @@
 import { IconButton } from "@components/iconButton/iconButton";
-import { Input, InputProps } from "@components/input/input";
+import { Input, type InputProps } from "@components/input/input";
 import { Menu } from "@components/menu/menu";
-import { useBoolean } from "@hooks/useBoolean";
+import type { Option } from "@components/types";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { castArray, find, map, some, without } from "@wingmnn/utils";
+import { useBoolean } from "@wingmnn/utils/hooks";
 import { CrossIcon } from "lucide-react";
 import React from "react";
 
 interface BaseSelectProps
-  extends Omit<
-    React.DetailedHTMLProps<
-      React.HTMLAttributes<HTMLInputElement>,
-      HTMLInputElement
-    >,
-    "value" | "onChange"
-  > {
+  extends Omit<InputProps<string>, "value" | "onChange"> {
   options: Array<Option>;
-  adornments?: InputProps["adornments"];
   variant?: "outlined" | "underlined" | "normal";
 }
 

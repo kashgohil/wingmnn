@@ -1,15 +1,18 @@
-import { Popover, PopoverProps } from "@components/popover/popover";
-import { useFocusTrap } from "@hooks/useFocusTrap";
+import { Popover, type PopoverProps } from "@components/popover/popover";
+import type { InferredType, Option } from "@components/types";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { castArray, filter, forEach, map } from "@wingmnn/utils";
-import React, { KeyboardEvent } from "react";
+import { useFocusTrap } from "@wingmnn/utils/hooks";
+import React, { type KeyboardEvent } from "react";
 
-export interface MenuProps extends Omit<PopoverProps, "onSelect"> {
+export interface MenuProps<T> extends Omit<PopoverProps, "onSelect"> {
   open: boolean;
   onClose(): void;
   options: Array<Option>;
-  value: string | Array<string>;
+  value:
+    | InferredType<T, string | number>
+    | Array<InferredType<T, string | number>>;
   onSelect?(option: Option): void;
   variant?: PopoverProps["variant"];
   placement: PopoverProps["placement"];
@@ -82,7 +85,7 @@ function MenuOption(props: MenuOptionProps) {
   }
 }
 
-export function Menu(props: MenuProps) {
+export function Menu<T>(props: MenuProps<T>) {
   const {
     ref,
     value,

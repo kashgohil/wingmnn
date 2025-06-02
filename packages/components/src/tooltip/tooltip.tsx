@@ -1,5 +1,5 @@
-import { Popover, PopoverProps } from "@components/popover/popover";
-import { useBoolean } from "@hooks/useBoolean";
+import { Popover, type PopoverProps } from "@components/popover/popover";
+import { useBoolean } from "@wingmnn/utils/hooks";
 import React from "react";
 
 export interface TooltipProps
