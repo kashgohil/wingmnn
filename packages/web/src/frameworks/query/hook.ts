@@ -49,7 +49,9 @@ export function useQueryState<T, K = unknown>(key: QueryParams<K>) {
     return keyFn(key);
   }, [key, keyFn]);
 
-  const { result, error } = tryCatch(cache.get(serializedKey, forceRender));
+  const { result, error } = tryCatch(() =>
+    cache.get(serializedKey, forceRender),
+  );
 
   if (error) return null;
   return result as T;
