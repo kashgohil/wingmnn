@@ -29,17 +29,26 @@ export class Cache {
   }
 
   #timeout(key: string, cacheTime: number, subscriber?: () => void) {
-    const subscribers = this.#cache.get(key)!.subscribers;
+    const subscribers = this.#cache.get(key)?.subscribers;
     return setTimeout(() => {
-      if (subscriber) subscribers.delete(subscriber);
+      if (subscriber) subscribers?.delete(subscriber);
       this.#cache.delete(key);
     }, cacheTime);
   }
 
   get(key: string, subscriber?: () => void): TSAny | undefined {
-    const cacheValue = this.#cache.get(key);
+    let cacheValue = this.#cache.get(key);
+
     if (!cacheValue) {
-      throw new Error(`no value found for ${key} in Cache`);
+      cacheValue = {
+        value: undefined,
+        subscribers: new Set(),
+        params: { cacheTime: 2 * MINUTE },
+        timeoutId: null as TSAny,
+      };
+      if (subscriber) cacheValue.subscribers.add(subscriber);
+      this.#cache.set(key, cacheValue);
+      return cacheValue.value;
     }
 
     if (cacheValue.timeoutId) clearTimeout(cacheValue.timeoutId);
@@ -48,7 +57,6 @@ export class Cache {
       cacheValue.params.cacheTime,
       subscriber,
     );
-
     if (subscriber && !cacheValue.subscribers.has(subscriber)) {
       cacheValue.subscribers.add(subscriber);
     }
@@ -59,25 +67,29 @@ export class Cache {
   set<T>(key: string, value: T, params: Params = this.#params): T {
     let subscribers = new Set<() => void>();
 
-    if (this.#cache.has(key)) {
-      const cacheValue = this.#cache.get(key)!;
-      subscribers = cacheValue.subscribers;
+    const currentCacheValue = this.#cache.get(key);
 
-      clearTimeout(cacheValue.timeoutId);
+    if (currentCacheValue) {
+      subscribers = currentCacheValue.subscribers;
 
-      if (!isEqual(value, cacheValue.value)) {
-        subscribers.forEach((fn) => fn());
-      }
+      clearTimeout(currentCacheValue.timeoutId);
     }
 
-    const cacheValue = {
+    const newCacheValue = {
       value,
       params,
       subscribers,
       timeoutId: this.#timeout(key, params.cacheTime),
     };
 
-    this.#cache.set(key, cacheValue);
+    this.#cache.set(key, newCacheValue);
+
+    if (!currentCacheValue) return value;
+
+    if (!isEqual(currentCacheValue.value, newCacheValue.value)) {
+      subscribers.forEach((fn) => fn());
+    }
+
     return value;
   }
 
