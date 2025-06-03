@@ -10,26 +10,62 @@ import { BaseRoutes } from "@navigation/routes";
 import { AuthService } from "@services/authService";
 import { Button, Typography } from "@wingmnn/components";
 import { Link, useRouter } from "@wingmnn/router";
+import { AnimatePresence, motion } from "motion/react";
 import { ROUTES_CONFIG } from "./config";
 
 export function AuthRouter() {
-  if (!AuthService.isAuthenticated()) {
-    return <Landing />;
-  }
+  const { isLoading } = useHeartbeat();
 
-  return <Content />;
+  const isAuthenticated = AuthService.isAuthenticated();
+
+  return (
+    <AnimatePresence>
+      {isLoading ? (
+        <Loading key="LOADING_PAGE" />
+      ) : isAuthenticated ? (
+        <Content />
+      ) : (
+        <Landing />
+      )}
+    </AnimatePresence>
+  );
+}
+
+function Loading() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full h-full flex items-center justify-center flex-col"
+    >
+      <div className="animate-pulse h-[25%] mb-15">
+        <Wingmnn className="animate-slow-spin" height={"100%"} />
+      </div>
+      <Typography.H1>You can be whatever you wanna be.</Typography.H1>
+      <Typography.H2 className="text-gray-400">
+        you just have to believe in yourself.
+      </Typography.H2>
+    </motion.div>
+  );
 }
 
 function Content() {
   const Component = useRouter(ROUTES_CONFIG);
 
-  useHeartbeat();
   useSetup();
 
   function content() {
     if (!Component) {
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center space-y-2">
+        <motion.div
+          className="w-full h-full flex flex-col items-center justify-center space-y-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
           <Typography.H2>You look lost</Typography.H2>
           <Typography.H4>
             Let's get you to where all the fun stuff is!!
@@ -44,7 +80,7 @@ function Content() {
               <span>Take me Home, Country Roads</span>
             </Button>
           </Link>
-        </div>
+        </motion.div>
       );
     }
 
@@ -52,13 +88,19 @@ function Content() {
   }
 
   return (
-    <div className="w-full h-full flex p-2">
+    <motion.div
+      className="w-full h-full flex p-2"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5, delay: 0.5 }}
+    >
       <Navigation key="NAVIGATION" />
       <ErrorBoundary tree="AUTH_ROUTER">
         <div className="flex-1 overflow-hidden h-full bg-black-100 rounded-lg">
           {content()}
         </div>
       </ErrorBoundary>
-    </div>
+    </motion.div>
   );
 }
