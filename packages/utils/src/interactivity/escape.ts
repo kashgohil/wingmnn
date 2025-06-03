@@ -1,10 +1,10 @@
 import { type KeyboardEvent } from "react";
 
-export function click(fn: (e: KeyboardEvent<HTMLElement>) => void) {
+export function escape(fn: (e: KeyboardEvent<HTMLElement>) => void) {
   return (e: KeyboardEvent<HTMLElement>) => {
+    console.log(e);
     switch (e.code) {
-      case "Enter":
-      case "Space":
+      case "Escape":
         fn(e);
         break;
       default:
