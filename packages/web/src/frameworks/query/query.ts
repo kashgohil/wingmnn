@@ -103,7 +103,7 @@ export class Query<T, K, S = T> {
   #query = async (key: QueryParams<K>) => {
     if (this.#cache.has(serializeKey(key))) {
       this.#result = this.#cache.get(serializeKey(key)) as S;
-      return;
+      return null;
     }
 
     this.status = "fetching";
@@ -130,13 +130,13 @@ export class Query<T, K, S = T> {
     this.initial = false;
     this.refetching = false;
 
-    return result;
+    return this.#result;
   };
 
   #init = (params: Partial<Params<T, K, S>>, subscriber: () => void = noop) => {
     this.#params = merge(SANE_DEFAULT, params) as Params<T, K, S>;
     this.#subscriber = subscriber;
-    this.#executor = this.#batch.batch<T | null, QueryParams<K>>(this.#query);
+    this.#executor = this.#batch.batch<S | null, QueryParams<K>>(this.#query);
 
     if (this.#params.enabled) {
       this.#executor.call(null, this.#params.key);
@@ -171,7 +171,6 @@ export class Query<T, K, S = T> {
     this.status = "fetching";
     this.#subscriber();
 
-    await this.#executor(this.#params.key);
     const { result, error } = await tryCatchAsync(
       this.#executor(this.#params.key),
     );
