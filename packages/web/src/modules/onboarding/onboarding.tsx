@@ -1,7 +1,11 @@
+import { useQueryState } from "@frameworks/query/hook";
+import { ME_QUERY_KEY } from "@queryKeys";
 import { Card, Confetti, Input, Typography } from "@wingmnn/components";
+import type { User } from "@wingmnn/db";
 import React from "react";
 
 export function Onboarding() {
+  const user = useQueryState<User>(ME_QUERY_KEY);
   const [name, setName] = React.useState<string>("");
 
   return (
@@ -15,7 +19,7 @@ export function Onboarding() {
       >
         <Typography.H1 className="text-center w-fit">Hurray!</Typography.H1>
         <Typography.H2 className="text-center w-fit">
-          You are most welcome, Kash.
+          You are most welcome, {user?.name}.
         </Typography.H2>
         <Typography.Paragraph className="text-center w-fit">
           it's me, your wingmnn!!
