@@ -24,17 +24,12 @@ export function useHeartbeat() {
   });
 
   React.useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
     if (isLoading && !isRefetching) {
       setLoading();
-      timeoutId = setTimeout(() => {
+      setTimeout(() => {
         unsetLoading();
       }, 4 * SECOND);
-
-      return () => timeoutId && clearTimeout(timeoutId);
     }
-
-    // return () => timeoutId && clearTimeout(timeoutId);
   }, [unsetLoading, setLoading, isLoading, isRefetching]);
 
   return { isLoading: loading || (isLoading && !isRefetching) };
