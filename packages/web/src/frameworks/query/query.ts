@@ -1,8 +1,9 @@
 import { MINUTE } from "@constants";
-import { merge, noop, serialize, tryCatchAsync } from "@wingmnn/utils";
+import { merge, noop, tryCatchAsync } from "@wingmnn/utils";
 import { Batch } from "./batching";
 import { Cache } from "./cache";
 import { Poll } from "./polling";
+import { serializeKey } from "./utils";
 
 export interface QueryParams<T> {
   primaryKey: string;
@@ -84,7 +85,7 @@ export class Query<T, K, S = T> {
   status: "idle" | "fetching" | "error" | "success" = "idle";
 
   #polling = () => {
-    const key = this.#serialize(this.#params.key);
+    const key = serializeKey(this.#params.key);
     if (
       this.#params.enabled &&
       this.#params.polling?.enabled &&
@@ -99,13 +100,10 @@ export class Query<T, K, S = T> {
     }
   };
 
-  #serialize(key: QueryParams<K>) {
-    return serialize(key);
-  }
-
   #query = async (key: QueryParams<K>) => {
-    if (this.#cache.has(this.#serialize(key))) {
-      this.#result = this.#cache.get(this.#serialize(key)) as S;
+    if (this.#cache.has(serializeKey(key))) {
+      this.#result = this.#cache.get(serializeKey(key)) as S;
+      return;
     }
 
     this.status = "fetching";
@@ -121,7 +119,7 @@ export class Query<T, K, S = T> {
     if (result) {
       this.#result = this.#params.selector?.(result) ?? (result as S);
       this.status = "success";
-      this.#cache.set(this.#serialize(key), this.#result, {
+      this.#cache.set(serializeKey(key), this.#result, {
         cacheTime: this.#params.staleTime!,
       });
       this.#params.onResolve?.(result);
@@ -159,7 +157,7 @@ export class Query<T, K, S = T> {
   }
 
   updateParams = (params: Params<T, K, S>) => {
-    if (this.#serialize(this.#params.key) !== this.#serialize(params.key)) {
+    if (serializeKey(this.#params.key) !== serializeKey(params.key)) {
       this.#init(params, this.#subscriber);
     } else if (!!this.#params.enabled !== !!params.enabled) {
       this.#init(params, this.#subscriber);

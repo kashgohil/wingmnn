@@ -1,4 +1,4 @@
-import { serialize, tryCatch } from "@wingmnn/utils";
+import { tryCatch } from "@wingmnn/utils";
 import { useForceRender } from "@wingmnn/utils/hooks";
 import React from "react";
 import { QueryContext } from "./context";
@@ -20,7 +20,6 @@ export function useQuery<T, K, S = T>(
   params: Params<T, K, S>,
 ): QueryResponse<S> {
   const { cache, batch } = React.useContext(QueryContext);
-
   const forceRender = useForceRender();
 
   const [query] = React.useState<Query<T, K, S>>(
@@ -43,16 +42,12 @@ export function useQuery<T, K, S = T>(
 }
 
 export function useQueryState<T, K = unknown>(key: QueryParams<K>) {
-  const { cache } = React.useContext(QueryContext);
+  const { cache, keyFn } = React.useContext(QueryContext);
   const forceRender = useForceRender();
 
   const serializedKey = React.useMemo(() => {
-    return serialize(key);
-  }, [key]);
-
-  React.useEffect(() => {
-    return () => cache.invalidate(serializedKey);
-  }, [serializedKey, cache]);
+    return keyFn(key);
+  }, [key, keyFn]);
 
   const { result, error } = tryCatch(cache.get(serializedKey, forceRender));
 
