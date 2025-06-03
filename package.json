@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "dev:web": "bun run --filter=web dev",
-    "dev:server": "bun run --filter=backend dev",
+    "dev:server": "bun run --filter=backend dev --elide-lines=0",
     "start:all": "sh start.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
