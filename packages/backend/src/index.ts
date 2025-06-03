@@ -5,10 +5,14 @@ import { setup } from "@setup";
 import "dotenv/config";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
+import { requestId } from "hono/request-id";
+import { timeout } from "hono/timeout";
 
 const app = new Hono();
 
 // Global middleware
+app.use(requestId());
+app.use(timeout(60 * 1000));
 app.use(logger());
 
 // Public routes
