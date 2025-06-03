@@ -2,6 +2,7 @@ import { IconButton } from "@components/iconButton/iconButton";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { useFocusTrap } from "@wingmnn/utils/hooks";
+import { escape } from "@wingmnn/utils/interactivity";
 import { X } from "lucide-react";
 import {
   AnimatePresence,
@@ -95,6 +96,7 @@ export function Dialog(props: DialogProps) {
             exit={{ opacity: 0, scale: 0.9, ...exit }}
             role="dialog"
             ref={dialogRef}
+            onKeyDown={escape(onClose)}
             className={cx(
               "rounded-lg bg-black-50 w-full z-1",
               dialogVariants(size),
