@@ -14,20 +14,20 @@
     "jsxImportSource": "hono/jsx",
     "baseUrl": "./",
     "paths": {
-      "@mails": ["src/mails/index.ts"],
-      "@mails/*": ["src/mails/*"],
+      "@mails": ["src/modules/mails/index.ts"],
+      "@mails/*": ["src/modules/mails/*"],
 
-      "@projects": ["src/projects/index.ts"],
-      "@projects/*": ["src/projects/*"],
+      "@projects": ["src/modules/projects/index.ts"],
+      "@projects/*": ["src/modules/projects/*"],
 
-      "@notes": ["src/notes/index.ts"],
-      "@notes/*": ["src/notes/*"],
+      "@notes": ["src/modules/notes/index.ts"],
+      "@notes/*": ["src/modules/notes/*"],
 
-      "@messages": ["src/messages/index.ts"],
-      "@messages/*": ["src/messages/*"],
+      "@messages": ["src/modules/messages/index.ts"],
+      "@messages/*": ["src/modules/messages/*"],
 
-      "@auth": ["src/auth/index.ts"],
-      "@auth/*": ["src/auth/*"],
+      "@auth": ["src/modules/auth/index.ts"],
+      "@auth/*": ["src/modules/auth/*"],
 
       "@setup": ["src/setup/index.ts"],
       "@setup/*": ["src/setup/*"],
