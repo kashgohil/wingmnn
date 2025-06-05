@@ -1,3 +1,4 @@
+import { mailsTable } from "./mails";
 import { projectsTable } from "./projects";
 import { tasksTable } from "./tasks";
 import { teamsTable } from "./teams";
@@ -10,4 +11,5 @@ export const schema = {
   teamsTable,
   tasksTable,
   projectsTable,
+  mailsTable,
 };
