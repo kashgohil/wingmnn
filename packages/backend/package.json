@@ -11,7 +11,8 @@
     "nanoid": "^5.1.5",
     "zod": "^3.24.4",
     "@wingmnn/utils": "workspace:*",
-    "@wingmnn/db": "workspace:*"
+    "@wingmnn/db": "workspace:*",
+    "@wingmnn/http": "workspace:*"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

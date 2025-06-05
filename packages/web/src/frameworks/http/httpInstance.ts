@@ -1,6 +1,6 @@
 import { Cookie } from "@utility/browser";
+import { httpService } from "@wingmnn/http";
 import { RouterUtils } from "@wingmnn/router";
-import { httpService } from "./http";
 
 export function responseInterceptor(response: Response) {
   // Handle response data or errors

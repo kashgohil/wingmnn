@@ -1,5 +1,5 @@
-interface HttpServiceConfig {
-  baseUrl: string;
+export interface HttpServiceConfig {
+  baseUrl?: string;
   requestInterceptor?: (request: Request) => Request;
   responseInterceptor?: <T>(response: Response) => Promise<T>;
 }
@@ -12,7 +12,11 @@ export function httpService(config: HttpServiceConfig) {
     responseInterceptor = <T>(response: Response) =>
       response.json() as Promise<T>,
   } = config;
-  const _baseUrl: string = baseUrl.startsWith("/") ? baseUrl : `/${baseUrl}`;
+  const _baseUrl: string = baseUrl
+    ? baseUrl.startsWith("/")
+      ? baseUrl
+      : `/${baseUrl}`
+    : "";
 
   // Helper function to parse response headers
   function _parseHeaders(headerStr: string): Headers {
@@ -32,6 +36,8 @@ export function httpService(config: HttpServiceConfig) {
   }
 
   function _url(url: string): string {
+    if (url.startsWith("http")) return url;
+
     const updatedBaseUrl = _baseUrl.endsWith("/")
       ? _baseUrl.slice(0, _baseUrl.length - 1)
       : _baseUrl;
@@ -87,7 +93,7 @@ export function httpService(config: HttpServiceConfig) {
       };
 
       xhr.onabort = () => {
-        reject(new DOMException("Request aborted", "AbortError"));
+        reject(new Error("Request aborted"));
       };
 
       if (options.timeout) {
@@ -96,7 +102,7 @@ export function httpService(config: HttpServiceConfig) {
 
       // Send the request with body if provided
       if (options.body) {
-        xhr.send(options.body as TSAny);
+        xhr.send(options.body as any);
       } else {
         xhr.send();
       }
@@ -105,7 +111,7 @@ export function httpService(config: HttpServiceConfig) {
 
   async function _request<T>(url: string, options: RequestInit): Promise<T> {
     // @ts-expect-error fetch can be undefined for older browsers
-    if (window.fetch) {
+    if (!window || window.fetch) {
       return _fetch<T>(url, options);
     } else {
       return _xmlHttpRequest<T>(url, options);
@@ -119,7 +125,7 @@ export function httpService(config: HttpServiceConfig) {
 
   function post<T>(
     url: string,
-    body: TSAny,
+    body: any,
     options: RequestInit = {},
   ): Promise<T> {
     return _request<T>(url, {
@@ -131,7 +137,7 @@ export function httpService(config: HttpServiceConfig) {
 
   function put<T>(
     url: string,
-    body: TSAny,
+    body: any,
     options: RequestInit = {},
   ): Promise<T> {
     return _request<T>(url, {
@@ -143,7 +149,7 @@ export function httpService(config: HttpServiceConfig) {
 
   function patch<T>(
     url: string,
-    body: TSAny,
+    body: any,
     options: RequestInit = {},
   ): Promise<T> {
     return _request<T>(url, {
