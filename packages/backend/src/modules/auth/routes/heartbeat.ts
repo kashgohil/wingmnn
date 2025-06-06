@@ -1,6 +1,6 @@
 import { CONSTANTS } from "@auth/constants";
-import { generateTokens, revokeToken, verifyToken } from "@auth/jwt";
 import { auth } from "@auth/router";
+import { generateTokens, revokeToken, verifyToken } from "@auth/utils/jwt";
 import { userQuery } from "@users/utils";
 import { tryCatchAsync } from "@wingmnn/utils";
 import { getCookie, setCookie } from "hono/cookie";
