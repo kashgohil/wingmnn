@@ -33,7 +33,7 @@ export function AuthRouter() {
 }
 
 function Loading() {
-  const { quote, author } = useQuote();
+  const { quote, author, secondary = "" } = useQuote();
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -46,7 +46,10 @@ function Loading() {
         <Wingmnn className="animate-slow-spin" height={"100%"} />
       </div>
       <Typography.H1>{quote}</Typography.H1>
-      <Typography.H2 className="text-gray-400">{author}</Typography.H2>
+      {secondary && (
+        <Typography.H2 className="text-gray-400">{secondary}</Typography.H2>
+      )}
+      <Typography.H3 className="text-gray-400">{author}</Typography.H3>
     </motion.div>
   );
 }
