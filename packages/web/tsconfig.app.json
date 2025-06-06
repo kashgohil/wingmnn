@@ -33,6 +33,7 @@
       "@landing/*": ["src/modules/landing/*"],
       "@testing/*": ["src/modules/testing/*"],
       "@projects/*": ["src/modules/projects/*"],
+      "@quotes/*": ["src/quotes/*"],
       "@constants": ["src/constants.ts"],
       "@queryKeys": ["src/queryKeys.ts"],
       "@/*": ["src/*"]

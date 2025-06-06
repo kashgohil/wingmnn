@@ -7,6 +7,7 @@ import { Landing } from "@landing/landing";
 import { Modules } from "@navigation/constants";
 import { Navigation } from "@navigation/navigation";
 import { BaseRoutes } from "@navigation/routes";
+import { useQuote } from "@quotes/useQuote";
 import { AuthService } from "@services/authService";
 import { Button, Typography } from "@wingmnn/components";
 import { Link, useRouter } from "@wingmnn/router";
@@ -32,6 +33,7 @@ export function AuthRouter() {
 }
 
 function Loading() {
+  const { quote, author } = useQuote();
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -43,10 +45,8 @@ function Loading() {
       <div className="animate-pulse h-[25%] mb-15">
         <Wingmnn className="animate-slow-spin" height={"100%"} />
       </div>
-      <Typography.H1>You can be whatever you wanna be.</Typography.H1>
-      <Typography.H2 className="text-gray-400">
-        you just have to believe in yourself.
-      </Typography.H2>
+      <Typography.H1>{quote}</Typography.H1>
+      <Typography.H2 className="text-gray-400">{author}</Typography.H2>
     </motion.div>
   );
 }
