@@ -1,7 +1,7 @@
 import { CONSTANTS, ROUTES } from "@auth/constants";
-import { hashPassword } from "@auth/password";
 import { auth } from "@auth/router";
 import { generateTokens } from "@auth/utils/jwt";
+import { hashPassword } from "@auth/utils/password";
 import { zValidator } from "@hono/zod-validator";
 import { userQuery } from "@users/utils";
 import { tryCatchAsync } from "@wingmnn/utils";
