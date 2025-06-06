@@ -1,17 +1,8 @@
+import { AuthenticateEnv } from "@types";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { CONSTANTS, ROUTES } from "./constants";
 import { verifyToken } from "./utils/jwt";
-
-export type AuthenticateEnv = {
-  Variables: {
-    user: {
-      id: string;
-      name: string;
-      email: string;
-    };
-  };
-};
 
 /**
  * Authentication middleware for protected routes

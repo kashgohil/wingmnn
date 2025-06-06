@@ -33,7 +33,9 @@
       "@setup/*": ["src/setup/*"],
 
       "@users": ["src/users/index.ts"],
-      "@users/*": ["src/users/*"]
+      "@users/*": ["src/users/*"],
+
+      "@types": ["src/types.ts"]
     }
   }
 }
