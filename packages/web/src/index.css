@@ -1,8 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "../assets/SpicyRice-Regular.ttf";
 
 @source "../../components/src/**/*.{ts,tsx}";
+
+@font-face {
+  font-family: "Spicy Rice";
+  src: url("../assets/SpicyRice-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 @custom-variant dark (&:is(.dark *));
 
