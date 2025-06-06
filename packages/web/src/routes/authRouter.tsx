@@ -20,11 +20,11 @@ export function AuthRouter() {
   const isAuthenticated = AuthService.isAuthenticated();
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isLoading ? (
-        <Loading key="LOADING_PAGE" />
+        <Loading key="LOADING_PAGE_KEY" />
       ) : isAuthenticated ? (
-        <Content />
+        <Content key="CONTENT_KEY" />
       ) : (
         <Landing />
       )}
@@ -34,12 +34,13 @@ export function AuthRouter() {
 
 function Loading() {
   const { quote, author, secondary = "" } = useQuote();
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.5, delay: 0.5 }}
       className="w-full h-full flex items-center justify-center flex-col"
     >
       <div className="animate-pulse h-[25%] mb-15">
@@ -67,7 +68,7 @@ function Content() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          transition={{ duration: 0.5 }}
         >
           <Typography.H2>You look lost</Typography.H2>
           <Typography.H4>
@@ -96,7 +97,7 @@ function Content() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5, delay: 0.5 }}
+      transition={{ duration: 0.5 }}
     >
       <Navigation key="NAVIGATION" />
       <ErrorBoundary tree="AUTH_ROUTER">
