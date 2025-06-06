@@ -1,4 +1,4 @@
-import { getValidGoogleAccessToken } from "@auth/googleApi";
+import { getValidGoogleAccessToken } from "@auth/utils/google";
 
 export class GmailService {
   async fetchEmailsPaginated(
