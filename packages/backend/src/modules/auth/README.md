@@ -1,156 +1,182 @@
-# Authentication System Documentation
+# Authentication Module
 
 ## Overview
 
-This authentication system provides a secure and flexible way to handle user authentication in the Wingmnn application. It supports both email/password-based authentication and Google SSO (Single Sign-On) with access to Google APIs (Gmail, Calendar, and Drive).
+The authentication module provides secure user authentication for the Wingmnn application, supporting both email/password authentication and Google OAuth with comprehensive Google API access (Gmail, Calendar, Drive).
 
 ## Features
 
-- Email/password authentication
-- Google OAuth authentication with Gmail, Calendar, and Drive scope access
-- JWT-based authentication with access and refresh tokens
-- Google API integration with automatic token refresh handling
-- Secure password hashing with bcrypt
-- Protected routes middleware
-- Seamless redirection based on user state (new user, onboarding required, etc.)
+- **Email/Password Authentication**: Traditional login with secure password hashing
+- **Google OAuth**: Single Sign-On with extensive Google API scopes
+- **JWT Token Management**: Secure access/refresh token system with automatic renewal
+- **Google API Integration**: Seamless access to Gmail, Calendar, and Drive APIs
+- **Protected Routes**: Middleware for securing endpoints
+- **Smart Redirects**: Context-aware user flow based on onboarding status
 
 ## Architecture
 
-The authentication system is organized into the following components:
+```
+auth/
+├── constants.ts          # Configuration constants
+├── middleware.ts         # Authentication middleware
+├── password.ts          # Password hashing utilities
+├── router.ts            # Base router setup
+├── routes/              # Route handlers
+│   ├── heartbeat.ts     # Token refresh endpoint
+│   ├── login.ts         # Email/password login
+│   ├── logout.ts        # User logout
+│   ├── register.ts      # User registration
+│   └── sso.google.ts    # Google OAuth flow
+└── utils/
+    ├── google.ts        # Google OAuth utilities
+    └── jwt.ts           # JWT token management
+```
 
-### Constants (`constants.ts`)
-Contains configuration values for JWT, cookies, routes, and Google OAuth settings.
+## API Endpoints
 
-### JWT Utilities (`jwt.ts`)
-Handles generation, verification, and revocation of JWT tokens. Manages both access and refresh tokens.
+### Authentication Routes
+- `POST /auth/login` - Email/password authentication
+- `POST /auth/register` - User registration
+- `POST /auth/logout` - User logout
+- `GET /auth/heartbeat` - Token refresh and user status
 
-### Password Utilities (`password.ts`)
-Provides functions for hashing and verifying passwords using bcrypt.
-
-### Google OAuth Utilities (`google.ts`)
-Handles Google OAuth flow including authorization URL generation, token exchange, and user info retrieval. Includes expanded scopes for Gmail, Calendar, and Drive API access.
-
-### Google API Utilities (`googleApi.ts`)
-Provides utilities for making authenticated requests to Google APIs with automatic token refresh handling. Includes wrapper functions for Gmail, Calendar, and Drive APIs.
-
-### Google API Routes (`googleApiRoutes.ts`)
-Implements endpoints for testing and using Google APIs through our backend service.
-
-### Middleware (`middleware.ts`)
-Provides middleware for authenticating requests:
-- `authenticate`: Required authentication middleware for protected routes
-- `optionalAuthenticate`: Optional authentication that doesn't block unauthenticated users
-
-### Routes (`routes.ts`)
-Implements authentication endpoints:
-- `/login`: Email/password login
-- `/register`: User registration
-- `/google`: Google OAuth initiation
-- `/google/callback`: Google OAuth callback handling
-- `/refresh`: Refresh token endpoint
-- `/logout`: User logout
-- `/me`: Get current user info
+### Google OAuth Routes
+- `POST /auth/sso/google` - Initiate Google OAuth flow
+- `GET /auth/sso/google/callback` - Handle OAuth callback
 
 ## Authentication Flow
 
-### Email/Password Authentication
+### Email/Password Flow
 
-1. User submits email and password to `/api/auth/login`
-2. System verifies credentials and issues access and refresh tokens
-3. Based on user state:
-   - If new user: Redirected to signup page
-   - If onboarding incomplete: Redirected to onboarding page
-   - If fully registered: Redirected to home page
+1. **Registration**: `POST /auth/register`
+   - Validates email uniqueness
+   - Hashes password with bcrypt
+   - Creates user record with `isOnboarded: false`
+   - Issues JWT tokens and sets secure cookies
+   - Redirects to onboarding
 
-### Google SSO Authentication
+2. **Login**: `POST /auth/login`
+   - Validates credentials
+   - Issues JWT tokens
+   - Redirects based on onboarding status
 
-1. User clicks "Login with Google" which redirects to `/api/auth/google`
-2. User is redirected to Google for authentication and authorization of scopes (Profile, Email, Gmail, Calendar, Drive)
-3. Google redirects back to our callback URL with an authorization code
-4. System exchanges code for Google access and refresh tokens
-5. System stores Google tokens securely in our database for future API access
-6. System creates or updates user record based on Google profile
-7. System issues our own JWT tokens for API authentication
-8. Based on user state:
-   - If new user: Redirected to onboarding page
-   - If fully registered: Redirected to home page
+### Google OAuth Flow
 
-### Protected Routes
+1. **Initiation**: `POST /auth/sso/google`
+   - Generates secure state parameter
+   - Redirects to Google with comprehensive scopes:
+     - Profile & Email access
+     - Gmail API (full access)
+     - Calendar API
+     - Drive API (including file metadata and photos)
 
-Protected routes are secured by the `authenticate` middleware which:
-1. Checks for a valid access token in Authorization header or cookies
-2. Verifies the token signature and expiration
-3. Adds the user information to the request context
-4. If authentication fails, returns 401 Unauthorized or redirects to login page
+2. **Callback**: `GET /auth/sso/google/callback`
+   - Validates state parameter (CSRF protection)
+   - Exchanges authorization code for tokens
+   - Creates/updates user record
+   - Stores Google tokens securely
+   - Issues application JWT tokens
+   - Redirects based on user status
 
 ## Token Management
 
-- **Access Token**: Short-lived token (15 minutes) used for API authorization
-- **Refresh Token**: Long-lived token (7 days) used to obtain new access tokens
-- Tokens are stored in HTTP-only cookies for web clients
-- API clients can use Authorization header with Bearer scheme
-- **Google Tokens**: Access and refresh tokens issued by Google are stored securely in the database
-- Google tokens are automatically refreshed when making API requests if they've expired
+### JWT Tokens
+- **Access Token**: 15-minute lifespan for API authorization
+- **Refresh Token**: 7-day lifespan, stored in database
+- **Storage**: HTTP-only secure cookies + Authorization header support
+- **Revocation**: Automatic cleanup on logout and refresh
 
-## Security Considerations
+### Google API Tokens
+- **Access Token**: Short-lived Google API access
+- **Refresh Token**: Long-lived token for automatic renewal
+- **Auto-Refresh**: Seamless token renewal via `getValidGoogleAccessToken()`
+- **Secure Storage**: Database storage with expiration tracking
 
-- Passwords are hashed using bcrypt with appropriate salt rounds
-- Tokens are stored as HTTP-only cookies to prevent XSS attacks
-- CSRF protection for Google OAuth flow using state parameter
-- Refresh tokens are revoked on logout and when issuing new tokens
-- All token operations are logged for audit purposes
+## Security Features
 
-## Integration
+- **Password Security**: bcrypt hashing with appropriate salt rounds
+- **XSS Protection**: HTTP-only cookies prevent client-side access
+- **CSRF Protection**: State parameter validation in OAuth flow
+- **Token Revocation**: Refresh tokens revoked on logout
+- **Audit Logging**: Comprehensive authentication event logging
 
-To protect a route with authentication:
+## Usage Examples
+
+### Protected Routes
 
 ```typescript
-import { authenticate } from './auth/middleware';
+import { authenticate } from '@auth/middleware';
 
-// For a single route
-app.get('/protected-route', authenticate, (c) => {
+// Single protected route
+app.get('/api/profile', authenticate, (c) => {
   const user = c.get('user');
-  return c.json({ message: `Hello, ${user.name}!` });
+  return c.json({ user });
 });
 
-// For a group of routes
+// Protected route group
 const protectedRoutes = new Hono();
 protectedRoutes.use('*', authenticate);
-protectedRoutes.get('/resource1', handler1);
-protectedRoutes.get('/resource2', handler2);
-
+protectedRoutes.get('/data', handler);
 app.route('/api', protectedRoutes);
 ```
 
-## Google API Integration
-
-To use Google APIs on behalf of a user:
+### Google API Access
 
 ```typescript
-import { GmailApi, CalendarApi, DriveApi } from './auth';
+import { getValidGoogleAccessToken } from '@auth/utils/google';
 
-// Gmail example
+// Get user's Gmail messages
 app.get('/api/emails', authenticate, async (c) => {
   const user = c.get('user');
-  const messages = await GmailApi.listMessages(user.id);
-  return c.json(messages);
-});
-
-// Calendar example
-app.get('/api/events', authenticate, async (c) => {
-  const user = c.get('user');
-  const today = new Date().toISOString();
-  const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-  const events = await CalendarApi.listEvents(user.id, today, nextWeek);
-  return c.json(events);
-});
-
-// Drive example
-app.get('/api/files', authenticate, async (c) => {
-  const user = c.get('user');
-  const files = await DriveApi.listFiles(user.id);
-  return c.json(files);
+  const accessToken = await getValidGoogleAccessToken(user.id);
+  
+  if (!accessToken) {
+    return c.json({ error: 'Google access not available' }, 401);
+  }
+  
+  // Use token with Google APIs...
 });
 ```
 
-The system will automatically handle token refresh when necessary, ensuring continuous access to Google APIs without manual intervention.
+## Configuration
+
+### Environment Variables
+
+```bash
+# JWT Configuration
+JWT_SECRET=your_jwt_secret_key
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:8001/auth/sso/google/callback
+
+# Application URLs
+UI_URL=http://localhost:5173
+```
+
+### Google OAuth Scopes
+
+The module requests comprehensive Google API access:
+- **Profile**: Basic user information
+- **Gmail**: Full email access (read, send, modify)
+- **Calendar**: Calendar events management
+- **Drive**: File access including metadata and photos
+
+## Database Integration
+
+The module integrates with the application's token management system:
+- Refresh tokens stored with expiration tracking
+- Google tokens stored with automatic refresh capability
+- Token revocation and cleanup handled automatically
+
+## Error Handling
+
+- **Invalid Credentials**: Clear error messages with appropriate redirects
+- **Token Expiration**: Automatic refresh with fallback to login
+- **OAuth Failures**: Graceful error handling with user-friendly messages
+- **API Errors**: Comprehensive logging for debugging
+
+## Testing
+
+The module includes comprehensive error handling and logging for easy debugging and monitoring of authentication flows.
