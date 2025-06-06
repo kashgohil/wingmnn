@@ -19,7 +19,7 @@ export function Onboarding() {
       >
         <Typography.H1 className="text-center w-fit">Hurray!</Typography.H1>
         <Typography.H2 className="text-center w-fit">
-          You are most welcome, {user?.name}.
+          Welcome, {user?.name}.
         </Typography.H2>
         <Typography.Paragraph className="text-center w-fit">
           it's me, your wingmnn!!
