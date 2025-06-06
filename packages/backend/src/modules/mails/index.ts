@@ -1,5 +1,6 @@
-import { Hono } from "hono";
+import { mails } from "@mails/router";
+import "@mails/routes/actions";
+import "@mails/routes/drafts";
+import "@mails/routes/mails";
 
-export const mails = new Hono().basePath("/mails");
-
-mails.get("/get?", async (c) => {});
+export { mails };
