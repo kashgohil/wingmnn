@@ -19,7 +19,6 @@ The authentication module provides secure user authentication for the Wingmnn ap
 auth/
 ├── constants.ts          # Configuration constants
 ├── middleware.ts         # Authentication middleware
-├── password.ts          # Password hashing utilities
 ├── router.ts            # Base router setup
 ├── routes/              # Route handlers
 │   ├── heartbeat.ts     # Token refresh endpoint
@@ -29,7 +28,8 @@ auth/
 │   └── sso.google.ts    # Google OAuth flow
 └── utils/
     ├── google.ts        # Google OAuth utilities
-    └── jwt.ts           # JWT token management
+    ├── jwt.ts           # JWT token management
+    └── password.ts      # Password hashing utilities
 ```
 
 ## API Endpoints
@@ -106,6 +106,7 @@ auth/
 
 ```typescript
 import { authenticate } from '@auth/middleware';
+import { AuthenticateEnv } from '@types';
 
 // Single protected route
 app.get('/api/profile', authenticate, (c) => {
@@ -114,7 +115,7 @@ app.get('/api/profile', authenticate, (c) => {
 });
 
 // Protected route group
-const protectedRoutes = new Hono();
+const protectedRoutes = new Hono<AuthenticateEnv>();
 protectedRoutes.use('*', authenticate);
 protectedRoutes.get('/data', handler);
 app.route('/api', protectedRoutes);
