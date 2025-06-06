@@ -1,9 +1,9 @@
-import { httpService } from "@frameworks/http/http";
 import {
   requestInterceptor,
   responseInterceptor,
 } from "@frameworks/http/httpInstance";
 import { Cookie } from "@utility/browser";
+import { httpService } from "@wingmnn/http";
 
 const http = httpService({
   baseUrl: "/auth",
