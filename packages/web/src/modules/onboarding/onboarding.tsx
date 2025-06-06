@@ -1,6 +1,12 @@
 import { useQueryState } from "@frameworks/query/hook";
 import { ME_QUERY_KEY } from "@queryKeys";
-import { Card, Confetti, Input, Typography } from "@wingmnn/components";
+import {
+  Card,
+  Confetti,
+  CurvedText,
+  Input,
+  Typography,
+} from "@wingmnn/components";
 import type { User } from "@wingmnn/db";
 import React from "react";
 
@@ -17,17 +23,26 @@ export function Onboarding() {
         animate={{ opacity: 1, translateY: 0 }}
         initial={{ opacity: 0.2, translateY: 20 }}
       >
-        <Typography.H1 className="text-center w-fit">Hurray!</Typography.H1>
+        <CurvedText
+          text="Hurray!"
+          fontSize={32}
+          fontFamily="var(--font-spicy-rice)"
+        />
         <Typography.H2 className="text-center w-fit">
           Welcome, {user?.name}.
         </Typography.H2>
-        <Typography.Paragraph className="text-center w-fit">
+        <Typography.H3 className="text-center w-fit">
           it's me, your wingmnn!!
-        </Typography.Paragraph>
-        <Typography.Paragraph className="text-center w-fit">
-          I know it's weird to call someone who doesn't have any name, right?
-          let's decide what you would like to call me:
-        </Typography.Paragraph>
+        </Typography.H3>
+        <div className="flex flex-col items-center">
+          <Typography.Paragraph className="text-center w-fit">
+            I know, it's weird talking to someone with no name, right?
+          </Typography.Paragraph>
+          <Typography.Paragraph className="text-center w-fit">
+            what would you like to call me?
+          </Typography.Paragraph>
+        </div>
+
         <Input
           autoFocus
           value={name}
