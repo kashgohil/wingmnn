@@ -7,3 +7,8 @@ export type AuthenticateEnv = {
     };
   };
 };
+
+export type ResponseWrapper<T> = {
+  data: T;
+  count?: number;
+};

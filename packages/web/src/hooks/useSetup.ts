@@ -9,6 +9,6 @@ export function useSetup() {
     queryFn: SetupService.me,
     key: ME_QUERY_KEY,
     staleTime: LONG_STALE,
-    selector: (response) => response.user,
+    selector: (response) => response.data,
   });
 }

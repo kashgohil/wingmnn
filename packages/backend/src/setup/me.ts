@@ -1,4 +1,5 @@
 import { setup } from "@setup/router";
+import { ResponseWrapper } from "@types";
 import { User } from "@wingmnn/db";
 import { tryCatchAsync } from "@wingmnn/utils";
 import { userQuery } from "src/users/utils";
@@ -21,5 +22,5 @@ setup.get("/me", async (c) => {
     return c.json<{ message: string }>({ message: "User not found" }, 401);
   }
 
-  return c.json<{ user: User }>({ user });
+  return c.json<ResponseWrapper<User>>({ data: user });
 });
