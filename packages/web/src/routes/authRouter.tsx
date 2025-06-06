@@ -46,11 +46,17 @@ function Loading() {
       <div className="animate-pulse h-[25%] mb-15">
         <Wingmnn className="animate-slow-spin" height={"100%"} />
       </div>
-      <Typography.H1>{quote}</Typography.H1>
+      <Typography.H1 className="text-center mb-4 max-w-1/2">
+        {quote}
+      </Typography.H1>
       {secondary && (
-        <Typography.H2 className="text-gray-400">{secondary}</Typography.H2>
+        <Typography.H2 className="text-gray-400 text-center mb-4 max-w-1/2">
+          {secondary}
+        </Typography.H2>
       )}
-      <Typography.H3 className="text-gray-400">{author}</Typography.H3>
+      <Typography.H3 className="text-gray-400 text-center max-w-1/2">
+        {author}
+      </Typography.H3>
     </motion.div>
   );
 }
