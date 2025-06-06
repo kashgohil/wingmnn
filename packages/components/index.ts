@@ -4,6 +4,7 @@ export * from "./src/button/button";
 export * from "./src/card/card";
 export * from "./src/checkbox/checkbox";
 export * from "./src/confetti/confetti";
+export * from "./src/curvedText/curvedText";
 export * from "./src/date-time/date";
 export * from "./src/date-time/dateRange";
 export * from "./src/date-time/dateTime";
