@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "../assets/SpicyRice-Regular.ttf";
 
 @source "../../components/src/**/*.{ts,tsx}";
 
@@ -178,6 +179,8 @@
   --color-coral-800: oklch(59% 0.18 25);
   --color-coral-900: oklch(54% 0.2 25);
   --color-coral-950: oklch(49% 0.22 25);
+
+  --font-spicy-rice: "Spicy Rice", serif;
 
   --spacing-*: initial;
   --spacing: 4px;
