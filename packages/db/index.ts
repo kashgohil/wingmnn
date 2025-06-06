@@ -17,3 +17,5 @@ export type * from "./src/schema/tasks";
 export type * from "./src/schema/teams";
 export type * from "./src/schema/tokens";
 export type * from "./src/schema/users";
+
+export * from "drizzle-orm";
