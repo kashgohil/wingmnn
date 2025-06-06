@@ -1,12 +1,12 @@
 import { CONSTANTS, ROUTES } from "@auth/constants";
-import { storeGoogleTokens } from "@auth/googleApi";
-import { generateTokens } from "@auth/jwt";
 import { auth } from "@auth/router";
 import {
   getGoogleAuthUrl,
   getGoogleTokens,
   getGoogleUserInfo,
+  storeGoogleTokens,
 } from "@auth/utils/google";
+import { generateTokens } from "@auth/utils/jwt";
 import { userQuery } from "@users/utils";
 import { usersTable } from "@wingmnn/db";
 import { tryCatchAsync } from "@wingmnn/utils";

@@ -1,4 +1,6 @@
 import { CONSTANTS } from "@auth/constants";
+import { eq, tokensTable } from "@wingmnn/db";
+import { tokensQuery } from "src/tokens/utils";
 
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -152,4 +154,135 @@ export async function getGoogleUserInfo(accessToken: string): Promise<{
   }
 
   return await response.json();
+}
+
+/**
+ * Store Google OAuth tokens in the database
+ *
+ * @param userId The ID of the user
+ * @param tokens The Google OAuth tokens
+ * @returns The stored token record
+ */
+export async function storeGoogleTokens(
+  userId: string,
+  tokens: {
+    access_token: string;
+    refresh_token?: string;
+    id_token: string;
+    expires_in: number;
+    scope?: string;
+  },
+) {
+  try {
+    console.log(`[AUTH] Storing Google tokens for user: ${userId}`);
+
+    // Calculate expiry date
+    const expiryDate = new Date(Date.now() + tokens.expires_in * 1000);
+
+    // Store the tokens
+    const [tokenRecord] = await tokensQuery.insert
+      .values({
+        userId,
+        type: "google",
+        value: tokens.id_token, // Using ID token as the unique identifier
+        expiresAt: expiryDate,
+        googleAccessToken: tokens.access_token,
+        googleRefreshToken: tokens.refresh_token,
+        googleTokenExpiry: expiryDate,
+        googleTokenScopes: tokens.scope,
+        lastUsed: new Date(),
+      })
+      .returning();
+
+    console.log(`[AUTH] Successfully stored Google tokens for user: ${userId}`);
+
+    return tokenRecord;
+  } catch (error) {
+    console.error(`[AUTH] Error storing Google tokens:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Gets a valid Google access token for a user
+ * If the current token is expired, it will automatically refresh it
+ *
+ * @param userId The ID of the user
+ * @returns A valid Google access token or null if not available
+ */
+export async function getValidGoogleAccessToken(
+  userId: string,
+): Promise<string | null> {
+  try {
+    console.log(`[AUTH] Getting valid access token for user: ${userId}`);
+
+    // Find the most recent Google token for this user
+    const googleToken = await tokensQuery.findFirst({
+      where: (tokens) =>
+        eq(tokens.userId, userId) &&
+        eq(tokens.type, "google") &&
+        eq(tokens.isRevoked, false),
+      orderBy: (tokens, { desc }) => [desc(tokens.createdAt)],
+    });
+
+    if (!googleToken || !googleToken.googleAccessToken) {
+      console.log(`[AUTH] No Google token found for user: ${userId}`);
+      return null;
+    }
+
+    // Check if the token is expired
+    const now = new Date();
+    if (googleToken.googleTokenExpiry && googleToken.googleTokenExpiry > now) {
+      console.log(
+        `[AUTH] Using existing Google access token (expires: ${googleToken.googleTokenExpiry})`,
+      );
+      return googleToken.googleAccessToken;
+    }
+
+    // Token is expired, refresh it if we have a refresh token
+    if (!googleToken.googleRefreshToken) {
+      console.log(
+        `[AUTH] Access token expired and no refresh token available for user: ${userId}`,
+      );
+      return null;
+    }
+
+    console.log(
+      `[AUTH] Refreshing expired Google access token for user: ${userId}`,
+    );
+
+    // Refresh the token
+    const refreshedTokens = await refreshGoogleToken(
+      googleToken.googleRefreshToken,
+    );
+
+    if (!refreshedTokens) {
+      console.log(
+        `[AUTH] Failed to refresh Google access token for user: ${userId}`,
+      );
+      return null;
+    }
+
+    // Update the token in the database
+    const newExpiryDate = new Date(
+      Date.now() + refreshedTokens.expires_in * 1000,
+    );
+
+    await tokensQuery.update
+      .set({
+        googleAccessToken: refreshedTokens.access_token,
+        googleTokenExpiry: newExpiryDate,
+        lastUsed: new Date(),
+      })
+      .where(eq(tokensTable.id, googleToken.id));
+
+    console.log(
+      `[AUTH] Successfully refreshed Google access token (expires: ${newExpiryDate})`,
+    );
+
+    return refreshedTokens.access_token;
+  } catch (error) {
+    console.error(`[AUTH] Error getting valid access token:`, error);
+    return null;
+  }
 }

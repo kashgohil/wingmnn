@@ -1,7 +1,7 @@
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { CONSTANTS, ROUTES } from "./constants";
-import { verifyToken } from "./jwt";
+import { verifyToken } from "./utils/jwt";
 
 export type AuthenticateEnv = {
   Variables: {
