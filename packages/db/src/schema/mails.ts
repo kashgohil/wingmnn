@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   integer,
   pgTable,
@@ -15,9 +16,19 @@ export const mailsTable = pgTable("emails", {
   subject: text("subject"),
   from: text("from"),
   to: text("to"),
+  cc: text("cc")
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
+  bcc: text("bcc")
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
   body: text("body"),
   snippet: text("snippet"),
-  labelIds: text("label_ids"), // JSON array as text
+  labelIds: text("label_ids")
+    .array()
+    .default(sql`ARRAY[]::text[]`),
   date: timestamp("date"),
   userId: integer("user_id").references(() => usersTable.id, {
     onDelete: "no action",
@@ -26,4 +37,4 @@ export const mailsTable = pgTable("emails", {
 
 export type Mail = typeof mailsTable.$inferSelect;
 export type NewMail = typeof mailsTable.$inferInsert;
-export type MailsTable = typeof mailsTable;
+export type MailsTableType = typeof mailsTable;
