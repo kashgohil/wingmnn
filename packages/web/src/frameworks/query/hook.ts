@@ -7,7 +7,7 @@ import { type Params, Query, type QueryParams } from "./query";
 interface QueryResponse<S> {
   result: S | null;
   error: Error | null;
-  status: "idle" | "fetching" | "error" | "success";
+  status: "idle" | "fetching" | "error" | "success" | "mutating";
   refetch: () => void;
   isRefetching: boolean;
   isLoading: boolean;
@@ -16,8 +16,16 @@ interface QueryResponse<S> {
   isIdle: boolean;
 }
 
+type UseQueryParams<T, K, S = T> = Required<Pick<Params<T, K, S>, "queryFn">> &
+  Omit<Params<T, K, S>, "queryFn" | "onMutate">;
+
+type UseMutationParams<T, K, S = T> = Required<
+  Pick<Params<T, K, S>, "mutationFn">
+> &
+  Omit<Params<T, K, S>, "mutationFn" | "enabled">;
+
 export function useQuery<T, K, S = T>(
-  params: Params<T, K, S>,
+  params: UseQueryParams<T, K, S>,
 ): QueryResponse<S> {
   const { cache, batch } = React.useContext(QueryContext);
   const forceRender = useForceRender();
@@ -55,4 +63,24 @@ export function useQueryState<T, K = unknown>(key: QueryParams<K>) {
 
   if (error) return null;
   return result as T;
+}
+
+export function useMutation<T, K, S = T>(params: UseMutationParams<T, K, S>) {
+  const { cache, batch } = React.useContext(QueryContext);
+
+  const [query] = React.useState<Query<T, K, S>>(
+    new Query<T, K, S>(cache, batch, { ...params, enabled: false }),
+  );
+
+  return {
+    error: query.error,
+    status: query.status,
+
+    mutate: query.mutate,
+
+    isMutating: query.status === "mutating",
+    isSuccess: query.status === "success",
+    isError: query.status === "error",
+    isIdle: query.status === "idle",
+  };
 }

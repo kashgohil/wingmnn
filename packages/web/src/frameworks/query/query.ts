@@ -21,7 +21,17 @@ export interface Params<T, K, S> {
    *
    * NOTE: make sure function's reference remains same during the lifetime of the query.
    */
-  queryFn: (queryParams: QueryParams<K>) => Promise<T>;
+  queryFn?: (queryParams: QueryParams<K>) => Promise<T>;
+  /**
+   * The function to use for the mutation.
+   *
+   * NOTE: make sure function's reference remains same during the lifetime of the query.
+   */
+  mutationFn?: (...params: TSAny[]) => Promise<T>;
+  /**
+   * The function to use for the onMutate.
+   */
+  onMutate?: (...params: Parameters<NonNullable<this["mutationFn"]>>) => void;
   /**
    * The time to cache the query for. after this time, query will be refetched.
    */
@@ -42,6 +52,10 @@ export interface Params<T, K, S> {
    * The function to use for the onResolve.
    */
   onResolve?(response: T): void;
+  /**
+   * The function to use for the onSettled.
+   */
+  onSettled?(response: T | null, error: Error | null): void;
   /**
    * The polling to use for the query.
    */
@@ -82,7 +96,7 @@ export class Query<T, K, S = T> {
 
   initial: boolean = true;
   refetching: boolean = false;
-  status: "idle" | "fetching" | "error" | "success" = "idle";
+  status: "idle" | "fetching" | "error" | "success" | "mutating" = "idle";
 
   #polling = () => {
     const key = serializeKey(this.#params.key);
@@ -109,7 +123,7 @@ export class Query<T, K, S = T> {
     this.status = "fetching";
     if (this.status !== "fetching") this.#subscriber();
 
-    const { result, error } = await tryCatchAsync(this.#params.queryFn(key));
+    const { result, error } = await tryCatchAsync(this.#params.queryFn!(key));
 
     if (error) {
       this.status = "error";
@@ -124,6 +138,8 @@ export class Query<T, K, S = T> {
       });
       this.#params.onResolve?.(result);
     }
+
+    this.#params.onSettled?.(result, error);
 
     this.#subscriber();
 
@@ -194,6 +210,39 @@ export class Query<T, K, S = T> {
     this.initial = false;
     this.refetching = false;
   };
+
+  async mutate(...args: TSAny[]) {
+    const key = serializeKey(this.#params.key);
+    const previousValue = this.#cache.get(key);
+
+    this.status = "mutating";
+
+    if (this.#params.onMutate) {
+      const updatedValue = this.#params.onMutate(...args);
+      this.#cache.set(key, updatedValue);
+    }
+    this.#subscriber();
+
+    const { result, error } = await tryCatchAsync(
+      this.#params.mutationFn!(...args),
+    );
+
+    if (error) {
+      this.#error = error;
+      this.status = "error";
+      this.#params.onReject?.(error);
+      this.#cache.set(key, previousValue);
+    }
+
+    if (result) {
+      this.#result = this.#params.selector?.(result) ?? (result as S);
+      this.status = "success";
+      this.#cache.set(this.#params.key.primaryKey, result, {
+        cacheTime: this.#params.staleTime!,
+      });
+      this.#params.onResolve?.(result);
+    }
+  }
 
   get error() {
     return this.#error;
