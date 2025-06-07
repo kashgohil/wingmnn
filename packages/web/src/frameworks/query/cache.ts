@@ -65,14 +65,12 @@ export class Cache {
   }
 
   set<T>(key: string, value: T, params: Params = this.#params): T {
-    let subscribers = new Set<() => void>();
-
     const currentCacheValue = this.#cache.get(key);
+    const { subscribers = new Set<() => void>(), timeoutId } =
+      currentCacheValue || {};
 
-    if (currentCacheValue) {
-      subscribers = currentCacheValue.subscribers;
-
-      clearTimeout(currentCacheValue.timeoutId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
     }
 
     const newCacheValue = {
