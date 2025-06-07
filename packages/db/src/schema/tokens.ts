@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { usersTable } from "./users";
 
-export const tokenTypeEnum = pgEnum("token_type", [
+export const TokenTypeEnum = pgEnum("token_type", [
   "access",
   "refresh",
   "verification",
@@ -22,7 +22,7 @@ export const tokensTable = pgTable("tokens", {
   userId: varchar("user_id", { length: 255 })
     .notNull()
     .references(() => usersTable.id),
-  type: tokenTypeEnum("type").notNull(),
+  type: TokenTypeEnum("type").notNull(),
   value: varchar("value", { length: 2048 }).notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   expiresAt: timestamp("expires_at").notNull(),
