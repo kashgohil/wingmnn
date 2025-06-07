@@ -1,5 +1,5 @@
 import { MINUTE } from "@constants";
-import { isEqual, merge } from "@wingmnn/utils";
+import { deepEqual, merge } from "@wingmnn/utils";
 
 interface Params {
   /**
@@ -86,7 +86,7 @@ export class Cache {
 
     if (!currentCacheValue) return value;
 
-    if (!isEqual(currentCacheValue.value, newCacheValue.value)) {
+    if (!deepEqual(currentCacheValue.value, newCacheValue.value)) {
       subscribers.forEach((fn) => fn());
     }
 

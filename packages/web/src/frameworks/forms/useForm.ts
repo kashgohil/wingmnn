@@ -1,4 +1,4 @@
-import { everyObj, forEach, isEqual, someObj } from "@wingmnn/utils";
+import { deepEqual, everyObj, forEach, someObj } from "@wingmnn/utils";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { type Field } from "./type";
 import { type ValidationResult, Validations } from "./validations";
@@ -48,7 +48,7 @@ export function useForm(
   }, [fields, values, dirty]);
 
   const checkDirty = useCallback((fieldId: string, value: TSAny) => {
-    return !isEqual(value, initialValuesRef.current[fieldId]);
+    return !deepEqual(value, initialValuesRef.current[fieldId]);
   }, []);
 
   const update = useCallback(

@@ -32,3 +32,37 @@ export function isEqual(value1: TSAny, value2: TSAny): boolean {
 
   return ans;
 }
+
+type ObjOrArr = Array<unknown> | Object;
+
+function shouldDeepCompare(typ: string) {
+  return typ === "[object Object]" || typ === "[object Array]";
+}
+
+function getType(value: unknown) {
+  return Object.prototype.toString.call(value);
+}
+
+/**
+ * @param value1 primary value
+ * @param value2 secondary value
+ * @returns boolean - true, if both are equal, false, if not
+ */
+export function deepEqual(valueA: unknown, valueB: unknown): boolean {
+  const type1 = getType(valueA);
+  const type2 = getType(valueB);
+
+  if (type1 === type2 && shouldDeepCompare(type1) && shouldDeepCompare(type2)) {
+    const entriesA = Object.entries(valueA as ObjOrArr);
+    const entriesB = Object.entries(valueB as ObjOrArr);
+
+    if (entriesA.length !== entriesB.length) return false;
+
+    return entriesA.every(([key, value]) => {
+      if (!Object.hasOwn(valueB as ObjOrArr, key)) return false;
+      return deepEqual(value, (valueB as TSAny)[key]);
+    });
+  }
+
+  return Object.is(valueA, valueB);
+}
