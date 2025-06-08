@@ -87,7 +87,7 @@ export function useQueryStateWithAction<T, K = unknown>(key: QueryParams<K>) {
   }, []);
 
   React.useEffect(() => {
-    cache.get(serializedKey, setState);
+    setState(cache.get(serializedKey, setState));
   }, [serializedKey, cache]);
 
   return [state, setState, setKey] as [
