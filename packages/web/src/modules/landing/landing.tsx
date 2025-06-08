@@ -6,6 +6,7 @@ import { Wingmnn } from "@icons/wingmnn";
 import { Box, Button, Separator } from "@wingmnn/components";
 import { noop, reduce } from "@wingmnn/utils";
 import { playMouseClickSound } from "@wingmnn/utils/interactivity";
+import { motion } from "motion/react";
 import { LandingFields } from "./fields";
 
 export function Landing() {
@@ -85,11 +86,17 @@ export function Landing() {
   }
 
   return (
-    <div className="w-full h-full flex bg-black p-8 relative">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5, delay: 0.5 }}
+      className="w-full h-full flex p-8 relative bg-black-500"
+    >
       <div className="flex flex-col h-full items-center justify-center flex-1">
         <Wingmnn height={"70%"} className="animate-slow-spin" />
       </div>
       {form()}
-    </div>
+    </motion.div>
   );
 }
