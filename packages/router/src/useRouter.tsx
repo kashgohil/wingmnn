@@ -37,10 +37,9 @@ export function useRouter(config: RouterConfig) {
     return RouterUtils.processRoutes(config);
   }, [config]);
 
-  const Components = React.useMemo(() => {
-    const route = RouterUtils.getRoute(processedRoutes, location);
-    return route ? route.Component : null;
+  const route = React.useMemo(() => {
+    return RouterUtils.getRoute(processedRoutes, location);
   }, [processedRoutes, location]);
 
-  return Components;
+  return { Component: route ? route.Component : null, id: route?.id };
 }
