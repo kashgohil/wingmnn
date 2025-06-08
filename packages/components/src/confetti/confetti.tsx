@@ -250,7 +250,7 @@ export const Confetti: React.FC<Props> = (props) => {
     <div
       {...rest}
       className={cx(
-        "w-full h-full bg-gradient-to-b from-slate-900 to-slate-800 overflow-hidden absolute top-0 left-0",
+        "w-full h-full overflow-hidden absolute top-0 left-0",
         className,
       )}
     >
