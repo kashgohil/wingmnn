@@ -16,6 +16,7 @@ import { ROUTES_CONFIG } from "./config";
 
 export function AuthRouter() {
   const { isLoading } = useHeartbeat();
+  useSetup();
 
   const isAuthenticated = AuthService.isAuthenticated();
 
@@ -26,7 +27,7 @@ export function AuthRouter() {
       ) : isAuthenticated ? (
         <Content key="CONTENT_KEY" />
       ) : (
-        <Landing />
+        <Landing key="LANDING_KEY" />
       )}
     </AnimatePresence>
   );
@@ -62,9 +63,7 @@ function Loading() {
 }
 
 function Content() {
-  const Component = useRouter(ROUTES_CONFIG);
-
-  useSetup();
+  const { Component, id } = useRouter(ROUTES_CONFIG);
 
   function content() {
     if (!Component) {
@@ -99,18 +98,27 @@ function Content() {
 
   return (
     <motion.div
-      className="w-full h-full flex p-2"
+      className="w-full h-full flex p-2 bg-black-400"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Navigation key="NAVIGATION" />
-      <ErrorBoundary tree="AUTH_ROUTER">
-        <div className="flex-1 overflow-hidden h-full bg-black-100 rounded-lg">
-          {content()}
-        </div>
-      </ErrorBoundary>
+      <AnimatePresence mode="wait">
+        {id !== "ONBOARDING" ? <Navigation key="NAVIGATION" /> : null}
+        <ErrorBoundary tree="AUTH_ROUTER">
+          <motion.div
+            key={id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex-1 overflow-hidden h-full bg-black-300 rounded-lg"
+          >
+            {content()}
+          </motion.div>
+        </ErrorBoundary>
+      </AnimatePresence>
     </motion.div>
   );
 }

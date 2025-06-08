@@ -3,6 +3,7 @@ import { cx, IconButton, Separator, Tooltip } from "@wingmnn/components";
 import { Link, useLocationChangeDetection } from "@wingmnn/router";
 import { forEachObj, includes, map, reduceObj } from "@wingmnn/utils";
 import { playMouseClickSound } from "@wingmnn/utils/interactivity";
+import { motion } from "motion/react";
 import React from "react";
 import { type ModuleConfig, ModulesConfig } from "./config";
 import { Modules } from "./constants";
@@ -42,7 +43,12 @@ export function Navigation() {
   }, []);
 
   return (
-    <div className="h-full rounded-lg p-3 flex flex-col">
+    <motion.div
+      initial={{ translateX: -50 }}
+      animate={{ translateX: 0 }}
+      exit={{ translateX: -50 }}
+      className="h-full rounded-lg p-3 flex flex-col"
+    >
       <div className="mx-auto flex items-center justify-center py-2">
         <Link
           to={BaseRoutes[Modules.HOME]}
@@ -107,6 +113,6 @@ export function Navigation() {
           })}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
