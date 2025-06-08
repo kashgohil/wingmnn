@@ -5,8 +5,8 @@ import { MailsRoute } from "src/modules/mails/route";
 import { OnboardingRoute } from "src/modules/onboarding/route";
 
 export const ROUTES_CONFIG: RouterConfig = [
-  OnboardingRoute,
   HomeRoute,
+  OnboardingRoute,
   MailsRoute,
   ProjectsRoute,
 ];
