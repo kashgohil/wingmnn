@@ -11,7 +11,7 @@ export interface QueryParams<T> {
   params?: T;
 }
 
-export interface Params<T, K, S> {
+export interface Params<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
   /**
    * The key to use for the query. ideally, this should be a unique identifier for the query. and this should hold all the dependencies for the query.
    */
@@ -27,11 +27,11 @@ export interface Params<T, K, S> {
    *
    * NOTE: make sure function's reference remains same during the lifetime of the query.
    */
-  mutationFn?: (...params: TSAny[]) => Promise<T>;
+  mutationFn?: (...params: MArgs) => Promise<T>;
   /**
    * The function to use for the onMutate.
    */
-  onMutate?: (...params: Parameters<NonNullable<this["mutationFn"]>>) => void;
+  onMutate?: (...args: MArgs) => S;
   /**
    * The time to cache the query for. after this time, query will be refetched.
    */
@@ -80,7 +80,7 @@ const SANE_DEFAULT: Partial<Params<TSAny, TSAny, TSAny>> = {
   },
 };
 
-export class Query<T, K, S = T> {
+export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
   #cache: Cache;
   #batch: Batch;
 
@@ -211,17 +211,17 @@ export class Query<T, K, S = T> {
     this.refetching = false;
   };
 
-  async mutate(...args: TSAny[]) {
+  mutate = async (...args: MArgs) => {
     const key = serializeKey(this.#params.key);
     const previousValue = this.#cache.get(key);
 
     this.status = "mutating";
+    this.#subscriber();
 
     if (this.#params.onMutate) {
       const updatedValue = this.#params.onMutate(...args);
       this.#cache.set(key, updatedValue);
     }
-    this.#subscriber();
 
     const { result, error } = await tryCatchAsync(
       this.#params.mutationFn!(...args),
@@ -242,7 +242,9 @@ export class Query<T, K, S = T> {
       });
       this.#params.onResolve?.(result);
     }
-  }
+
+    this.#subscriber();
+  };
 
   get error() {
     return this.#error;

@@ -12,7 +12,7 @@ interface CacheValue<T> {
   value: T;
   params: Params;
   timeoutId: NodeJS.Timeout;
-  subscribers: Set<() => void>;
+  subscribers: Set<(value?: TSAny) => void>;
 }
 
 const DEFAULT_PARAMS: Params = {
@@ -28,7 +28,11 @@ export class Cache {
     this.#params = merge(DEFAULT_PARAMS, params) as Params;
   }
 
-  #timeout(key: string, cacheTime: number, subscriber?: () => void) {
+  #timeout(
+    key: string,
+    cacheTime: number,
+    subscriber?: (value?: TSAny) => void,
+  ) {
     const subscribers = this.#cache.get(key)?.subscribers;
     return setTimeout(() => {
       if (subscriber) subscribers?.delete(subscriber);
@@ -36,7 +40,7 @@ export class Cache {
     }, cacheTime);
   }
 
-  get(key: string, subscriber?: () => void): TSAny | undefined {
+  get<T>(key: string, subscriber?: (value?: T) => void): T | undefined {
     let cacheValue = this.#cache.get(key);
 
     if (!cacheValue) {
@@ -66,7 +70,7 @@ export class Cache {
 
   set<T>(key: string, value: T, params: Params = this.#params): T {
     const currentCacheValue = this.#cache.get(key);
-    const { subscribers = new Set<() => void>(), timeoutId } =
+    const { subscribers = new Set<(value?: TSAny) => void>(), timeoutId } =
       currentCacheValue || {};
 
     if (timeoutId) {
@@ -85,7 +89,7 @@ export class Cache {
     if (!currentCacheValue) return value;
 
     if (!deepEqual(currentCacheValue.value, newCacheValue.value)) {
-      subscribers.forEach((fn) => fn());
+      subscribers.forEach((fn) => fn(newCacheValue.value));
     }
 
     return value;

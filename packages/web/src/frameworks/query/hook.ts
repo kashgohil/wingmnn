@@ -19,10 +19,10 @@ interface QueryResponse<S> {
 type UseQueryParams<T, K, S = T> = Required<Pick<Params<T, K, S>, "queryFn">> &
   Omit<Params<T, K, S>, "queryFn" | "onMutate">;
 
-type UseMutationParams<T, K, S = T> = Required<
-  Pick<Params<T, K, S>, "mutationFn">
+type UseMutationParams<T, K, S = T, MArgs extends TSAny[] = TSAny[]> = Required<
+  Pick<Params<T, K, S, MArgs>, "mutationFn">
 > &
-  Omit<Params<T, K, S>, "mutationFn" | "enabled">;
+  Omit<Params<T, K, S, MArgs>, "mutationFn" | "enabled">;
 
 export function useQuery<T, K, S = T>(
   params: UseQueryParams<T, K, S>,
@@ -33,6 +33,8 @@ export function useQuery<T, K, S = T>(
   const [query] = React.useState<Query<T, K, S>>(
     new Query<T, K, S>(cache, batch, params, forceRender),
   );
+
+  query.updateParams(params);
 
   return {
     result: query.result,
@@ -65,12 +67,52 @@ export function useQueryState<T, K = unknown>(key: QueryParams<K>) {
   return result as T;
 }
 
-export function useMutation<T, K, S = T>(params: UseMutationParams<T, K, S>) {
-  const { cache, batch } = React.useContext(QueryContext);
+export function useQueryStateWithAction<T, K = unknown>(key: QueryParams<K>) {
+  const { cache, keyFn } = React.useContext(QueryContext);
+  const [state, setState] = React.useState<T>();
 
-  const [query] = React.useState<Query<T, K, S>>(
-    new Query<T, K, S>(cache, batch, { ...params, enabled: false }),
+  const serializedKey = React.useMemo(() => {
+    return keyFn(key);
+  }, [key, keyFn]);
+
+  const setKey = React.useCallback(<K extends keyof T>(key: K) => {
+    return (value: T[K]) =>
+      setState((draft) => {
+        if (draft) {
+          return Object.assign(draft, { [key]: value });
+        } else {
+          return { [key]: value } as T;
+        }
+      });
+  }, []);
+
+  React.useEffect(() => {
+    cache.get(serializedKey, setState);
+  }, [serializedKey, cache]);
+
+  return [state, setState, setKey] as [
+    T | undefined,
+    React.Dispatch<React.SetStateAction<T | undefined>>,
+    <K extends keyof T>(key: K) => (value: T[K]) => void,
+  ];
+}
+
+export function useMutation<T, K, S = T, MArgs extends TSAny[] = TSAny[]>(
+  params: UseMutationParams<T, K, S, MArgs>,
+) {
+  const { cache, batch } = React.useContext(QueryContext);
+  const forceRender = useForceRender();
+
+  const [query] = React.useState<Query<T, K, S, MArgs>>(
+    new Query<T, K, S, MArgs>(
+      cache,
+      batch,
+      { ...params, enabled: false },
+      forceRender,
+    ),
   );
+
+  query.updateParams(params);
 
   return {
     error: query.error,
