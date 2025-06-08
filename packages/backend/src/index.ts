@@ -2,6 +2,7 @@ import { auth } from "@auth";
 import { authenticate } from "@auth/middleware";
 import { mails } from "@mails";
 import { setup } from "@setup";
+import { users } from "@users";
 import "dotenv/config";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
@@ -28,6 +29,7 @@ app.route("/", auth);
 const protectedRoutes = new Hono().basePath("/api");
 protectedRoutes.use("*", authenticate);
 
+protectedRoutes.route("/", users);
 protectedRoutes.route("/", mails);
 protectedRoutes.route("/", setup);
 
