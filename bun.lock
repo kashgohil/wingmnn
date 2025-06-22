@@ -5,10 +5,11 @@
       "name": "wingmnn-ui",
     },
     "packages/backend": {
-      "name": "backend",
+      "name": "@wingmnn/backend",
       "dependencies": {
         "@hono/zod-validator": "^0.5.0",
         "@wingmnn/db": "workspace:*",
+        "@wingmnn/google": "workspace:*",
         "@wingmnn/http": "workspace:*",
         "@wingmnn/utils": "workspace:*",
         "bcrypt": "^5.1.1",
@@ -58,6 +59,15 @@
         "typescript": "^5",
       },
     },
+    "packages/google": {
+      "name": "@wingmnn/google",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
     "packages/http": {
       "name": "@wingmnn/http",
       "devDependencies": {
@@ -87,8 +97,19 @@
         "typescript": "^5",
       },
     },
+    "packages/watcher": {
+      "name": "@wingmnn/watcher",
+      "dependencies": {
+        "@wingmnn/db": "workspace:*",
+        "@wingmnn/google": "workspace:*",
+        "hono": "^4.7.11",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
     "packages/web": {
-      "name": "web",
+      "name": "@wingmnn/web",
       "version": "0.0.0",
       "dependencies": {
         "@tailwindcss/vite": "^4.1.8",
@@ -411,15 +432,23 @@
 
     "@vitejs/plugin-react": ["@vitejs/plugin-react@4.5.0", "", { "dependencies": { "@babel/core": "^7.26.10", "@babel/plugin-transform-react-jsx-self": "^7.25.9", "@babel/plugin-transform-react-jsx-source": "^7.25.9", "@rolldown/pluginutils": "1.0.0-beta.9", "@types/babel__core": "^7.20.5", "react-refresh": "^0.17.0" }, "peerDependencies": { "vite": "^4.2.0 || ^5.0.0 || ^6.0.0" } }, "sha512-JuLWaEqypaJmOJPLWwO335Ig6jSgC1FTONCWAxnqcQthLTK/Yc9aH6hr9z/87xciejbQcnP3GnA1FWUSWeXaeg=="],
 
+    "@wingmnn/backend": ["@wingmnn/backend@workspace:packages/backend"],
+
     "@wingmnn/components": ["@wingmnn/components@workspace:packages/components"],
 
     "@wingmnn/db": ["@wingmnn/db@workspace:packages/db"],
+
+    "@wingmnn/google": ["@wingmnn/google@workspace:packages/google"],
 
     "@wingmnn/http": ["@wingmnn/http@workspace:packages/http"],
 
     "@wingmnn/router": ["@wingmnn/router@workspace:packages/router"],
 
     "@wingmnn/utils": ["@wingmnn/utils@workspace:packages/utils"],
+
+    "@wingmnn/watcher": ["@wingmnn/watcher@workspace:packages/watcher"],
+
+    "@wingmnn/web": ["@wingmnn/web@workspace:packages/web"],
 
     "abbrev": ["abbrev@1.1.1", "", {}, "sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q=="],
 
@@ -442,8 +471,6 @@
     "argparse": ["argparse@2.0.1", "", {}, "sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q=="],
 
     "babel-plugin-react-compiler": ["babel-plugin-react-compiler@19.1.0-rc.2", "", { "dependencies": { "@babel/types": "^7.26.0" } }, "sha512-kSNA//p5fMO6ypG8EkEVPIqAjwIXm5tMjfD1XRPL/sRjYSbJ6UsvORfaeolNWnZ9n310aM0xJP7peW26BuCVzA=="],
-
-    "backend": ["backend@workspace:packages/backend"],
 
     "balanced-match": ["balanced-match@1.0.2", "", {}, "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="],
 
@@ -870,8 +897,6 @@
     "vite": ["vite@6.3.5", "", { "dependencies": { "esbuild": "^0.25.0", "fdir": "^6.4.4", "picomatch": "^4.0.2", "postcss": "^8.5.3", "rollup": "^4.34.9", "tinyglobby": "^0.2.13" }, "optionalDependencies": { "fsevents": "~2.3.3" }, "peerDependencies": { "@types/node": "^18.0.0 || ^20.0.0 || >=22.0.0", "jiti": ">=1.21.0", "less": "*", "lightningcss": "^1.21.0", "sass": "*", "sass-embedded": "*", "stylus": "*", "sugarss": "*", "terser": "^5.16.0", "tsx": "^4.8.1", "yaml": "^2.4.2" }, "optionalPeers": ["@types/node", "jiti", "less", "lightningcss", "sass", "sass-embedded", "stylus", "sugarss", "terser", "tsx", "yaml"], "bin": { "vite": "bin/vite.js" } }, "sha512-cZn6NDFE7wdTpINgs++ZJ4N49W2vRp8LCKrn3Ob1kYNtOo21vfDoaV5GzBfLU4MovSAB8uNRm4jgzVQZ+mBzPQ=="],
 
     "vite-tsconfig-paths": ["vite-tsconfig-paths@5.1.4", "", { "dependencies": { "debug": "^4.1.1", "globrex": "^0.1.2", "tsconfck": "^3.0.3" }, "peerDependencies": { "vite": "*" }, "optionalPeers": ["vite"] }, "sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w=="],
-
-    "web": ["web@workspace:packages/web"],
 
     "webidl-conversions": ["webidl-conversions@3.0.1", "", {}, "sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ=="],
 

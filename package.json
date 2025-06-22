@@ -5,8 +5,8 @@
   "description": "ui for wingmnn app",
   "main": "index.js",
   "scripts": {
-    "dev:web": "bun run --filter=web dev",
-    "dev:server": "bun run --filter=backend dev --elide-lines=0",
+    "dev:web": "bun run --filter=@wingmnn/web dev",
+    "dev:server": "bun run --filter=@wingmnn/backend dev --elide-lines=0",
     "start:all": "sh start.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
