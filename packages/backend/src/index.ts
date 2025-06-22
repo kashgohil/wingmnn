@@ -1,6 +1,7 @@
 import { auth } from "@auth";
 import { authenticate } from "@auth/middleware";
 import { mails } from "@mails";
+import { projects } from "@projects";
 import { setup } from "@setup";
 import { users } from "@users";
 import "dotenv/config";
@@ -31,6 +32,7 @@ protectedRoutes.use("*", authenticate);
 
 protectedRoutes.route("/", users);
 protectedRoutes.route("/", mails);
+protectedRoutes.route("/", projects);
 protectedRoutes.route("/", setup);
 
 app.route("/", protectedRoutes);
