@@ -113,7 +113,7 @@ function Content() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex-1 overflow-hidden h-full bg-black-300 rounded-lg"
+            className="flex-1 overflow-hidden h-full bg-black-200 rounded-lg"
           >
             {content()}
           </motion.div>
