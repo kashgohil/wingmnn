@@ -42,10 +42,10 @@ export function Onboarding() {
 
   return (
     <div className="h-full w-full flex items-center justify-center relative">
-      <Confetti className="bg-black-300 z-0" />
+      <Confetti className="bg-black-400 z-0" />
       <Card
         size="lg"
-        className="p-20 relative bg-black-100"
+        className="p-20 relative bg-black-200"
         animate={{ opacity: 1, translateY: 0 }}
         initial={{ opacity: 0.2, translateY: 20 }}
       >
