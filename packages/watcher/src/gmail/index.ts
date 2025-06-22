@@ -1,0 +1,3 @@
+class GmailSyncService {
+  async setupWatch() {}
+}
