@@ -23,10 +23,12 @@ export type ModuleConfig = BaseDetails & {
   icon: React.ComponentType<LucideProps>;
   placement?: "top" | "bottom";
   route: string;
+  accent: string;
+  accentText: string;
 };
 
 export const ModulesConfig: Record<
-  Exclude<Modules, Modules.HOME>,
+  Exclude<Modules, Modules.HOME | Modules.ONBOARDING>,
   ModuleConfig
 > = {
   [Modules.MAILS]: {
@@ -35,6 +37,8 @@ export const ModulesConfig: Record<
     description: "Mails",
     icon: Mailbox,
     route: BaseRoutes[Modules.MAILS],
+    accent: "var(--color-wisteria-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.MESSAGES]: {
     id: Modules.MESSAGES,
@@ -42,6 +46,8 @@ export const ModulesConfig: Record<
     description: "Messages",
     icon: MessageCircle,
     route: BaseRoutes[Modules.MESSAGES],
+    accent: "var(--color-cherry-blossom-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.CALENDAR]: {
     id: Modules.CALENDAR,
@@ -49,6 +55,8 @@ export const ModulesConfig: Record<
     description: "Calendar",
     icon: Calendar,
     route: BaseRoutes[Modules.CALENDAR],
+    accent: "var(--color-mint-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.FEEDS]: {
     id: Modules.FEEDS,
@@ -56,6 +64,8 @@ export const ModulesConfig: Record<
     description: "Feeds",
     icon: Newspaper,
     route: BaseRoutes[Modules.FEEDS],
+    accent: "var(--color-coral-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.FINANCE]: {
     id: Modules.FINANCE,
@@ -63,6 +73,8 @@ export const ModulesConfig: Record<
     description: "Finance",
     icon: Wallet,
     route: BaseRoutes[Modules.FINANCE],
+    accent: "var(--color-azure-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.PROJECTS]: {
     id: Modules.PROJECTS,
@@ -70,6 +82,8 @@ export const ModulesConfig: Record<
     description: "Projects",
     icon: SquareKanban,
     route: BaseRoutes[Modules.PROJECTS],
+    accent: "var(--color-amber-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.NOTES]: {
     id: Modules.NOTES,
@@ -77,6 +91,8 @@ export const ModulesConfig: Record<
     description: "Notes",
     icon: Notebook,
     route: BaseRoutes[Modules.NOTES],
+    accent: "var(--color-lime-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.FILES]: {
     id: Modules.FILES,
@@ -84,6 +100,8 @@ export const ModulesConfig: Record<
     description: "Files",
     icon: Files,
     route: BaseRoutes[Modules.FILES],
+    accent: "var(--color-indigo-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.GAMES]: {
     id: Modules.GAMES,
@@ -91,6 +109,8 @@ export const ModulesConfig: Record<
     description: "Games",
     icon: Gamepad2,
     route: BaseRoutes[Modules.GAMES],
+    accent: "var(--color-gold-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.MUSIC]: {
     id: Modules.MUSIC,
@@ -98,6 +118,8 @@ export const ModulesConfig: Record<
     description: "Music",
     icon: Music,
     route: BaseRoutes[Modules.MUSIC],
+    accent: "var(--color-sage-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.SETTINGS]: {
     id: Modules.SETTINGS,
@@ -106,6 +128,8 @@ export const ModulesConfig: Record<
     icon: Settings,
     placement: "bottom",
     route: BaseRoutes[Modules.SETTINGS],
+    accent: "var(--color-sunset-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.PROFILE]: {
     id: Modules.PROFILE,
@@ -114,6 +138,8 @@ export const ModulesConfig: Record<
     icon: CircleUserRound,
     placement: "bottom",
     route: BaseRoutes[Modules.PROFILE],
+    accent: "var(--color-plum-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.RESUMES]: {
     id: Modules.RESUMES,
@@ -121,6 +147,8 @@ export const ModulesConfig: Record<
     description: "Resumes",
     icon: FileUser,
     route: BaseRoutes[Modules.RESUMES],
+    accent: "var(--color-ocean-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.WELLNESS]: {
     id: Modules.WELLNESS,
@@ -128,6 +156,8 @@ export const ModulesConfig: Record<
     description: "Wellness",
     icon: Heart,
     route: BaseRoutes[Modules.WELLNESS],
+    accent: "var(--color-rose-500)",
+    accentText: "var(--color-black-500)",
   },
   [Modules.SHEETS]: {
     id: Modules.SHEETS,
@@ -135,5 +165,7 @@ export const ModulesConfig: Record<
     description: "Sheets",
     icon: Sheet,
     route: BaseRoutes[Modules.SHEETS],
+    accent: "var(--color-emerald-500)",
+    accentText: "var(--color-black-500)",
   },
 };
