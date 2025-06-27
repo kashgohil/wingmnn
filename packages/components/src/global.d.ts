@@ -14,6 +14,10 @@ interface Metadata {
   updatedAt: string;
 }
 
+interface Option extends BaseDetails {
+  value: string;
+}
+
 interface Attachment extends BaseDetails, Metadata {
   url: string;
   size: number;
