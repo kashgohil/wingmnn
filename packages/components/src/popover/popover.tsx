@@ -10,19 +10,27 @@ import {
 import React from "react";
 import { createPortal } from "react-dom";
 
+export type Placement =
+  | "top-left"
+  | "bottom-left"
+  | "top-right"
+  | "bottom-right"
+  | "left"
+  | "right"
+  | "top"
+  | "bottom";
+
 export interface PopoverProps extends HTMLMotionProps<"div"> {
   open: boolean;
   onClose(): void;
+  /**
+   * true: render popover inline
+   *
+   * false: render popover as a portal
+   */
+  inline?: boolean;
   anchor: React.RefObject<HTMLElement | null>;
-  placement:
-    | "top-left"
-    | "bottom-left"
-    | "top-right"
-    | "bottom-right"
-    | "left"
-    | "right"
-    | "top"
-    | "bottom";
+  placement?: Placement;
   variant?: "compact" | "normal";
   root?: "popover-root" | "tooltip-root";
   initial?: TargetAndTransition;
@@ -58,9 +66,10 @@ export function Popover(props: PopoverProps) {
   const {
     anchor,
     children,
-    placement,
+    placement = "bottom",
     onClose,
     open,
+    inline,
     onKeyDown,
     exit = {},
     initial = {},
@@ -174,7 +183,7 @@ export function Popover(props: PopoverProps) {
 
   if (!rootEl) return null;
 
-  return createPortal(
+  const content = (
     <AnimatePresence>
       {open && (
         <motion.div
@@ -215,7 +224,12 @@ export function Popover(props: PopoverProps) {
           {children}
         </motion.div>
       )}
-    </AnimatePresence>,
-    rootEl,
+    </AnimatePresence>
   );
+
+  if (!inline) {
+    return createPortal(content, rootEl);
+  }
+
+  return content;
 }
