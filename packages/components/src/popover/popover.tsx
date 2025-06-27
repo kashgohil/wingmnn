@@ -65,6 +65,7 @@ export function Popover(props: PopoverProps) {
     exit = {},
     initial = {},
     animate = {},
+    transition = {},
     variant = "normal",
     className,
     root = "popover-root",
@@ -196,6 +197,11 @@ export function Popover(props: PopoverProps) {
             translateY: 0,
             translateX: 0,
             ...animate,
+          }}
+          transition={{
+            ...transition,
+            duration: 0.2,
+            ease: "easeOut",
           }}
           ref={popoverRef}
           onKeyDown={keydown}
