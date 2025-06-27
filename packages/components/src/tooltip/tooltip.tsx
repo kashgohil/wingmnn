@@ -1,42 +1,97 @@
-import { Popover, type PopoverProps } from "@components/popover/popover";
+import { cx } from "@utility/cx";
 import { useBoolean } from "@wingmnn/utils/hooks";
 import React from "react";
+import { Popover, type Placement, type PopoverProps } from "../popover/popover";
 
-export interface TooltipProps
-  extends Omit<
-    PopoverProps,
-    "title" | "ref" | "placement" | "open" | "onClose" | "anchor"
-  > {
-  title: React.ReactNode;
+// Re-export for better IntelliSense
+export type TooltipContentProps = Omit<
+  PopoverProps,
+  "open" | "anchor" | "onClose" | "placement"
+>;
+
+export type TooltipTriggerProps = React.DetailedHTMLProps<
+  React.HTMLAttributes<HTMLDivElement>,
+  HTMLDivElement
+>;
+
+export interface TooltipProps {
   children: React.ReactNode;
-  placement?: PopoverProps["placement"];
+  placement?: Placement;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-export function Tooltip(props: TooltipProps) {
-  const { children, title, placement = "right", ...rest } = props;
+const TooltipContext = React.createContext<{
+  open: boolean;
+  toggle: () => void;
+  placement?: Placement;
+  ref?: React.RefObject<HTMLDivElement | null>;
+}>({
+  open: false,
+  toggle: () => {},
+  placement: "right",
+  ref: undefined,
+});
 
-  const ref = React.useRef(null);
+export function Tooltip(props: TooltipProps) {
+  const { children } = props;
+
+  const ref = React.useRef<HTMLDivElement>(null);
   const { value: open, toggle } = useBoolean(false);
 
-  if (!title) return children;
+  return (
+    <TooltipContext.Provider
+      value={{ open, toggle, placement: props.placement, ref }}
+    >
+      {children}
+    </TooltipContext.Provider>
+  );
+}
+
+export function TooltipTrigger(props: TooltipTriggerProps) {
+  const { className, ...rest } = props;
+  const { toggle, ref } = React.useContext(TooltipContext);
 
   return (
-    <>
-      <div tabIndex={-1} ref={ref} onMouseOver={toggle} onMouseOut={toggle}>
-        {children}
-      </div>
-      <Popover
-        {...rest}
-        open={open}
-        anchor={ref}
-        onClose={toggle}
-        root="tooltip-root"
-        placement={placement}
-        transition={{ delay: 0.3 }}
-        className="bg-white-500 text-black-200 text-xs rounded-lg"
-      >
-        {title}
-      </Popover>
-    </>
+    <div
+      {...rest}
+      ref={ref}
+      className={cx("cursor-pointer", className)}
+      onMouseEnter={toggle}
+      onMouseLeave={toggle}
+    >
+      {props.children}
+    </div>
+  );
+}
+
+export function TooltipContent(props: TooltipContentProps) {
+  const { children, className, transition, ...rest } = props;
+
+  const {
+    open,
+    toggle,
+    ref,
+    placement: contextPlacement = "right",
+  } = React.useContext(TooltipContext);
+
+  if (!ref?.current) return null;
+
+  return (
+    <Popover
+      {...rest}
+      open={open}
+      anchor={ref}
+      onClose={toggle}
+      root="tooltip-root"
+      placement={contextPlacement}
+      transition={{ delay: 0.2, ...transition }}
+      className={cx(
+        "bg-white-500 text-black-200 text-xs rounded-lg",
+        className,
+      )}
+    >
+      {children}
+    </Popover>
   );
 }
