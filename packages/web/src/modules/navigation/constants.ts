@@ -15,4 +15,5 @@ export enum Modules {
   FINANCE = "FINANCE",
   SETTINGS = "SETTINGS",
   PROFILE = "PROFILE",
+  ONBOARDING = "ONBOARDING",
 }
