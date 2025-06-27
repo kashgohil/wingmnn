@@ -1,5 +1,12 @@
 import { Wingmnn } from "@icons/wingmnn";
-import { cx, IconButton, Separator, Tooltip } from "@wingmnn/components";
+import {
+  cx,
+  IconButton,
+  Separator,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@wingmnn/components";
 import { Link, useLocationChangeDetection } from "@wingmnn/router";
 import { forEachObj, includes, map, reduceObj } from "@wingmnn/utils";
 import { playMouseClickSound } from "@wingmnn/utils/interactivity";
@@ -66,23 +73,45 @@ export function Navigation() {
       <div className="flex flex-col justify-between flex-1">
         <div className="flex flex-col space-y-1">
           {map(topModules, (module) => {
-            const { id, icon, name, route } = module;
+            const { id, icon, name, route, accent, accentText } = module;
             return (
               <Link
                 key={id}
                 to={route}
                 tabIndex={-1}
                 onClick={playMouseClickSound}
+                style={
+                  {
+                    "--accent": accent,
+                    "--accent-text": accentText,
+                  } as TSAny
+                }
               >
-                <Tooltip title={name}>
-                  <IconButton
-                    icon={icon}
-                    iconProps={{ size: 20 }}
-                    className={cx(
-                      "p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200",
-                      { "text-black-200 bg-white-500": activeModule === id },
-                    )}
-                  />
+                <Tooltip placement="right">
+                  <TooltipTrigger>
+                    <IconButton
+                      icon={icon}
+                      iconProps={{
+                        size: 20,
+                        className: cx(
+                          "text-accent group-hover/nav-item:text-[var(--accent-text)] transition-color duration-200",
+                          { "text-[var(--accent-text)]": activeModule === id },
+                        ),
+                      }}
+                      className={cx(
+                        "group/nav-item p-2 bg-transparent focus-within:outline-accent hover:bg-accent",
+                        {
+                          "bg-accent": activeModule === id,
+                        },
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    inline
+                    className="bg-accent text-[var(--accent-text)]"
+                  >
+                    {name}
+                  </TooltipContent>
                 </Tooltip>
               </Link>
             );
@@ -90,23 +119,43 @@ export function Navigation() {
         </div>
         <div className="flex flex-col space-y-1">
           {map(bottomModules, (module) => {
-            const { id, icon, name, route } = module;
+            const { id, icon, name, route, accent, accentText } = module;
             return (
               <Link
                 to={route}
                 key={id}
                 tabIndex={-1}
                 onClick={playMouseClickSound}
+                style={
+                  {
+                    "--accent": accent,
+                    "--accent-text": accentText,
+                  } as TSAny
+                }
               >
-                <Tooltip title={name}>
-                  <IconButton
-                    icon={icon}
-                    iconProps={{ size: 20 }}
-                    className={cx(
-                      "p-2 bg-transparent focus-within:outline-white-500 text-white-500 hover:bg-white-500 hover:text-black-200",
-                      { "text-black-200 bg-white-500": activeModule === id },
-                    )}
-                  />
+                <Tooltip placement="right">
+                  <TooltipTrigger>
+                    <IconButton
+                      icon={icon}
+                      iconProps={{
+                        size: 20,
+                        className: cx(
+                          "text-accent group-hover/nav-item:text-[var(--accent-text)] transition-color duration-200",
+                          { "text-[var(--accent-text)]": activeModule === id },
+                        ),
+                      }}
+                      className={cx(
+                        "group/nav-item p-2 bg-transparent focus-within:outline-accent hover:bg-accent",
+                        { "bg-accent": activeModule === id },
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    inline
+                    className="bg-accent text-[var(--accent-text)]"
+                  >
+                    {name}
+                  </TooltipContent>
                 </Tooltip>
               </Link>
             );
