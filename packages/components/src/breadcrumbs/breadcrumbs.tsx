@@ -1,6 +1,10 @@
 import { Menu } from "@components/menu/menu";
 import { Separator } from "@components/separator/separator";
-import { Tooltip } from "@components/tooltip/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@components/tooltip/tooltip";
 import type { Option } from "@components/types";
 import { Link } from "@wingmnn/router";
 import { useBoolean } from "@wingmnn/utils/hooks";
@@ -77,8 +81,9 @@ function Breadcrumb(props: { breadcrumb: Breadcrumb }) {
   if (options.length === 0) {
     return (
       <Link to={to} key={id} tabIndex={-1}>
-        <Tooltip title={description} placement="bottom">
-          {name}
+        <Tooltip placement="bottom">
+          <TooltipTrigger>{name}</TooltipTrigger>
+          <TooltipContent>{description}</TooltipContent>
         </Tooltip>
       </Link>
     );
