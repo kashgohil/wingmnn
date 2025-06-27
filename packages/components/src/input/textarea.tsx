@@ -1,6 +1,6 @@
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import React, { ChangeEvent } from "react";
+import React, { type ChangeEvent } from "react";
 
 export interface TextAreaProps
   extends Omit<

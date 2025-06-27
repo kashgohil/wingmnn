@@ -1,6 +1,6 @@
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import React, { MouseEvent } from "react";
+import React, { type MouseEvent } from "react";
 
 export interface SwitchProps
   extends Omit<
