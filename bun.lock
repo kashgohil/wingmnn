@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "wingmnn-ui",
+      "name": "wingmnn-ui"
     },
     "packages/backend": {
       "name": "@wingmnn/backend",
@@ -16,12 +16,12 @@
         "hono": "^4.7.8",
         "jose": "^6.0.11",
         "nanoid": "^5.1.5",
-        "zod": "^3.24.4",
+        "zod": "^3.24.4"
       },
       "devDependencies": {
         "@types/bcrypt": "^5.0.2",
-        "@types/bun": "latest",
-      },
+        "@types/bun": "latest"
+      }
     },
     "packages/components": {
       "name": "@wingmnn/components",
@@ -29,10 +29,10 @@
         "@wingmnn/router": "workspace:*",
         "@wingmnn/utils": "workspace:*",
         "react-resizable-panels": "^3.0.2",
-        "tailwind-merge": "^3.3.0",
+        "tailwind-merge": "^3.3.0"
       },
       "devDependencies": {
-        "@types/bun": "latest",
+        "@types/bun": "latest"
       },
       "peerDependencies": {
         "lucide-react": "^0.511.0",
@@ -40,73 +40,73 @@
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "tailwindcss": "^4.0.0",
-        "typescript": "^5",
-      },
+        "typescript": "^5"
+      }
     },
     "packages/db": {
       "name": "@wingmnn/db",
       "dependencies": {
         "dotenv": "^16.5.0",
         "drizzle-orm": "^0.43.1",
-        "pg": "^8.15.6",
+        "pg": "^8.15.6"
       },
       "devDependencies": {
         "@types/bun": "latest",
         "@types/pg": "^8.11.14",
-        "drizzle-kit": "^0.31.1",
+        "drizzle-kit": "^0.31.1"
       },
       "peerDependencies": {
-        "typescript": "^5",
-      },
+        "typescript": "^5"
+      }
     },
     "packages/google": {
       "name": "@wingmnn/google",
       "devDependencies": {
-        "@types/bun": "latest",
+        "@types/bun": "latest"
       },
       "peerDependencies": {
-        "typescript": "^5",
-      },
+        "typescript": "^5"
+      }
     },
     "packages/http": {
       "name": "@wingmnn/http",
       "devDependencies": {
-        "@types/bun": "latest",
+        "@types/bun": "latest"
       },
       "peerDependencies": {
-        "typescript": "^5",
-      },
+        "typescript": "^5"
+      }
     },
     "packages/router": {
       "name": "@wingmnn/router",
       "devDependencies": {
-        "@types/bun": "latest",
+        "@types/bun": "latest"
       },
       "peerDependencies": {
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
-        "typescript": "^5",
-      },
+        "typescript": "^5"
+      }
     },
     "packages/utils": {
       "name": "@wingmnn/utils",
       "devDependencies": {
-        "@types/bun": "latest",
+        "@types/bun": "latest"
       },
       "peerDependencies": {
-        "typescript": "^5",
-      },
+        "typescript": "^5"
+      }
     },
     "packages/watcher": {
       "name": "@wingmnn/watcher",
       "dependencies": {
         "@wingmnn/db": "workspace:*",
         "@wingmnn/google": "workspace:*",
-        "hono": "^4.7.11",
+        "hono": "^4.7.11"
       },
       "devDependencies": {
-        "@types/bun": "latest",
-      },
+        "@types/bun": "latest"
+      }
     },
     "packages/web": {
       "name": "@wingmnn/web",
@@ -122,7 +122,7 @@
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "react-scan": "^0.3.4",
-        "tailwindcss": "^4.1.8",
+        "tailwindcss": "^4.1.8"
       },
       "devDependencies": {
         "@eslint/js": "^9.25.0",
@@ -139,9 +139,9 @@
         "typescript": "~5.8.3",
         "typescript-eslint": "^8.30.1",
         "vite": "^6.3.5",
-        "vite-tsconfig-paths": "^5.1.4",
-      },
-    },
+        "vite-tsconfig-paths": "^5.1.4"
+      }
+    }
   },
   "packages": {
     "@ampproject/remapping": ["@ampproject/remapping@2.3.0", "", { "dependencies": { "@jridgewell/gen-mapping": "^0.3.5", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw=="],
@@ -1034,6 +1034,6 @@
 
     "@typescript-eslint/typescript-estree/minimatch/brace-expansion": ["brace-expansion@2.0.1", "", { "dependencies": { "balanced-match": "^1.0.0" } }, "sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA=="],
 
-    "react-scan/@types/node/undici-types": ["undici-types@6.19.8", "", {}, "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="],
+    "react-scan/@types/node/undici-types": ["undici-types@6.19.8", "", {}, "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="]
   }
 }
