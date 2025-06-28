@@ -14,7 +14,6 @@ export function Home() {
         </div>
         <Button
           size="sm"
-          variant="secondary"
           onClick={() =>
             ProjectActions.openDialog(ProjectDialog.CREATE_PROJECT)
           }

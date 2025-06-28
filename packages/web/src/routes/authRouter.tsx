@@ -88,7 +88,7 @@ function Content() {
   const { accent, accentText } = React.useMemo(() => {
     if (ExcludedModules.includes(activeModule as TSAny)) {
       return {
-        accent: "var(--color-black-500)",
+        accent: "var(--color-white-100)",
         accentText: "var(--color-white-500)",
       };
     }
@@ -99,26 +99,31 @@ function Content() {
     return { accent, accentText };
   }, [activeModule]);
 
+  React.useEffect(() => {
+    let {
+      accent = "var(--color-white-100)",
+      accentText = "var(--color-white-500)",
+    } = ModulesConfig[activeModule as ModulesConfigKey] || {};
+
+    if (ExcludedModules.includes(activeModule as TSAny)) {
+      accent = "var(--color-white-100)";
+      accentText = "var(--color-white-500)";
+    }
+
+    document.body.style.setProperty("--accent", accent);
+    document.body.style.setProperty("--accent-text", accentText);
+  }, [activeModule]);
+
   function content() {
     if (!Component) {
       return (
-        <motion.div
-          className="w-full h-full flex flex-col items-center justify-center space-y-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div className="w-full h-full flex flex-col items-center justify-center space-y-2 bg-accent/5">
           <Typography.H2>You look lost</Typography.H2>
           <Typography.H4>
             Let's get you to where all the fun stuff is!!
           </Typography.H4>
           <Link to={BaseRoutes[Modules.HOME]}>
-            <Button
-              size="sm"
-              variant="secondary"
-              className="flex items-center space-x-3 mt-4 bg-accent text-[var(--accent-text)]"
-            >
+            <Button size="sm" className="flex items-center space-x-3 mt-4">
               <Wingmnn height={24} width={24} className="animate-slow-spin" />
               <span>Take me Home, Country Roads</span>
             </Button>
@@ -127,7 +132,7 @@ function Content() {
       );
     }
 
-    return <Component />;
+    return <Component className="bg-accent/5" />;
   }
 
   return (
@@ -137,21 +142,13 @@ function Content() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      style={{ "--accent": accent, "--accent-text": accentText } as TSAny}
     >
       <AnimatePresence mode="wait">
         {id !== "ONBOARDING" ? (
           <Navigation activeModule={activeModule} key="NAVIGATION" />
         ) : null}
         <ErrorBoundary tree="AUTH_ROUTER">
-          <motion.div
-            key={id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex-1 overflow-hidden h-full bg-black-200 rounded-lg"
-          >
+          <motion.div className="flex-1 overflow-hidden h-full bg-black-200 rounded-lg">
             {content()}
           </motion.div>
         </ErrorBoundary>

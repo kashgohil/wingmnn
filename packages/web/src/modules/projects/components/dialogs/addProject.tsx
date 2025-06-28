@@ -65,7 +65,7 @@ export function AddProject(props: AddProjectProps) {
         <Button size="sm" variant="secondary" onClick={onClose}>
           Cancel
         </Button>
-        <Button size="sm" className="bg-black-500" onClick={create}>
+        <Button size="sm" onClick={create}>
           Next
         </Button>
       </DialogActions>

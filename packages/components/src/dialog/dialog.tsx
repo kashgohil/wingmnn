@@ -98,7 +98,7 @@ export function Dialog(props: DialogProps) {
             ref={dialogRef}
             onKeyDown={escape(onClose)}
             className={cx(
-              "rounded-lg bg-black-50 w-full z-1",
+              "rounded-lg bg-black-200 w-full z-1 border border-accent/40",
               dialogVariants(size),
               className,
             )}
@@ -120,7 +120,7 @@ export function DialogTitle(props: DialogTitleProps) {
       {...rest}
       className={cx(
         className,
-        "flex items-center justify-between px-4 py-3 text-xl",
+        "flex items-center justify-between px-5 py-4 text-xl",
       )}
     >
       {children}
@@ -142,7 +142,7 @@ export function DialogContent(props: DialogContentProps) {
   const { children, className, ...rest } = props;
 
   return (
-    <div {...rest} className={cx(className, "px-4 py-3")}>
+    <div {...rest} className={cx(className, "px-5 py-4")}>
       {children}
     </div>
   );
@@ -154,7 +154,7 @@ export function DialogActions(props: DialogActionsProps) {
   return (
     <div
       {...rest}
-      className={cx("px-4 w-full py-3 flex items-center", className)}
+      className={cx("px-5 w-full py-4 flex items-center", className)}
     >
       {children}
     </div>

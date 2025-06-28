@@ -2,11 +2,11 @@ import { Form } from "@frameworks/forms/components/form";
 import { useForm } from "@frameworks/forms/useForm";
 import { Github } from "@icons/github";
 import { Google } from "@icons/google";
-import { Wingmnn } from "@icons/wingmnn";
-import { Box, Button, Separator } from "@wingmnn/components";
+import { Box, Button, CurvedText, Separator } from "@wingmnn/components";
 import { noop, reduce } from "@wingmnn/utils";
 import { playMouseClickSound } from "@wingmnn/utils/interactivity";
 import { motion } from "motion/react";
+import { Content } from "./content";
 import { LandingFields } from "./fields";
 
 export function Landing() {
@@ -27,9 +27,14 @@ export function Landing() {
 
   function form() {
     return (
-      <Box className="w-1/3 flex flex-col p-16 rounded-4xl justify-center bg-white-200/70 text-black absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 backdrop-blur-lg">
-        <div className="text-5xl mb-2 text-center">wingmnn</div>
-        <div className="text-2xl text-black-50 mb-4 text-center">
+      <Box className="sticky top-0 right-0 w-1/3 flex flex-col p-16 rounded-4xl overflow-hidden justify-center bg-white-200/70 text-black-500">
+        <CurvedText
+          text="Wingmnn"
+          fontFamily="var(--font-spicy-rice)"
+          fontSize={28}
+          textColor="var(--color-black-500)"
+        />
+        <div className="text-2xl text-gray-700 mb-4 text-center font-spicy-rice font-light">
           your partner-in-crime
         </div>
         <div className="flex items-center space-x-4 mt-8">
@@ -43,7 +48,7 @@ export function Landing() {
               size="sm"
               type="submit"
               onMouseDown={playMouseClickSound}
-              className="w-full flex items-center justify-center space-x-4 focus-within:outline-black-200"
+              className="w-full flex items-center justify-center bg-black-500 text-white-500 hover:bg-black-200 space-x-4 focus-within:outline-black-200"
             >
               <Google size={16} />
               <span>Login with Google</span>
@@ -59,7 +64,7 @@ export function Landing() {
               size="sm"
               type="submit"
               onMouseDown={playMouseClickSound}
-              className="w-full flex items-center justify-center space-x-4 focus-within:outline-black-200"
+              className="w-full flex items-center justify-center space-x-4 bg-black-500 text-white-500 hover:bg-black-200 focus-within:outline-black-200"
             >
               <Github size={16} />
               <span>Login with GitHub</span>
@@ -77,7 +82,7 @@ export function Landing() {
         />
         <Button
           size="sm"
-          className="w-full mt-6 focus-within:outline-black-200"
+          className="w-full mt-6 bg-black-500 text-white-500 hover:bg-black-200 focus-within:outline-black-200"
         >
           Let's get you in there
         </Button>
@@ -91,11 +96,9 @@ export function Landing() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
-      className="w-full h-full flex p-8 relative bg-black-500"
+      className="w-full h-full flex p-8 relative bg-black-500 gap-8"
     >
-      <div className="flex flex-col h-full items-center justify-center flex-1">
-        <Wingmnn height={"70%"} className="animate-slow-spin" />
-      </div>
+      <Content />
       {form()}
     </motion.div>
   );

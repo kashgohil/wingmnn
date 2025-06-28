@@ -35,8 +35,8 @@ const variantClasses = classVariance({
 const wrapperVariantClasses = classVariance({
   normal: "rounded-lg",
   outlined:
-    "rounded-lg border border-white-950 focus-within:border-transparent",
-  underlined: "border-b border-white-950",
+    "rounded-lg border border-accent/40 focus-within:border-transparent",
+  underlined: "border-b border-accent/40",
 
   sm: "",
   md: "",
@@ -72,7 +72,7 @@ export function Input<T extends string | number = string>(
   return (
     <div
       className={cx(
-        "flex items-center focus-within:outline-white-500 focus-within:outline-2 focus-within:outline-offset-2 transition-all duration-100",
+        "flex items-center focus-within:outline-accent/40 focus-within:outline-2 focus-within:outline-offset-2 transition-all duration-200",
         wrapperVariantClasses(variant, size, disabled ? "disabled" : undefined),
         wrapperClassName,
       )}
@@ -85,7 +85,7 @@ export function Input<T extends string | number = string>(
         disabled={disabled}
         onChange={changeHandler}
         className={cx(
-          "flex-1 transition-all duration-100 outline-none disabled:cursor-not-allowed disabled:opacity-50 placeholder:!text-white-400/40",
+          "flex-1 transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-50 placeholder:!text-accent/40",
           variantClasses(variant, size),
           className,
         )}

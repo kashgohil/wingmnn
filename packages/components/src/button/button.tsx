@@ -12,9 +12,9 @@ export interface ButtonProps
 
 const variantClasses = classVariance({
   primary:
-    "bg-black-500 text-white-500 hover:bg-black-300 focus-within:outline-white-400",
+    "bg-accent text-[var(--accent-text)] hover:bg-accent/70 focus-within:outline-accent",
   secondary:
-    "bg-white-400 text-black-400 hover:bg-white-700 focus-within:outline-white-400",
+    "bg-transparent border border-accent/40 text-accent hover:bg-accent/40 focus-within:outline-accent",
   sm: "px-4 py-2",
   md: "px-8 py-4",
   lg: "px-12 py-8",

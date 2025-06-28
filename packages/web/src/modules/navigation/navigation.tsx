@@ -58,9 +58,9 @@ export function Navigation(props: { activeModule: Modules }) {
           />
         </Link>
       </div>
-      <Separator className="bg-white-950 h-[1px] my-2 mb-3 mx-2 rounded-lg" />
+      <Separator className="bg-transparent h-[1px] my-2 mb-3 mx-2 rounded-lg" />
       <div className="flex flex-col justify-between flex-1">
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col gap-2">
           {map(topModules, (module) => {
             const { id, icon, name, route, accent, accentText } = module;
             return (
@@ -106,7 +106,7 @@ export function Navigation(props: { activeModule: Modules }) {
             );
           })}
         </div>
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col gap-2">
           {map(bottomModules, (module) => {
             const { id, icon, name, route, accent, accentText } = module;
             return (

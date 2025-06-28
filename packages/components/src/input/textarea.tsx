@@ -19,8 +19,8 @@ export interface TextAreaProps
 
 const variantClasses = classVariance({
   normal: "rounded-lg",
-  outlined: "rounded-lg border border-white-950",
-  underlined: "border-b border-white-950",
+  outlined: "rounded-lg border border-accent/40",
+  underlined: "border-b border-accent/40",
 
   sm: "p-2",
   md: "p-3",
@@ -41,7 +41,7 @@ export const TextArea = (props: TextAreaProps) => {
       value={value}
       onChange={changeHandler}
       className={cx(
-        "rounded-lg bg-transparent px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-white-500 focus-within:border-transparent transition-all duration-100 placeholder:!text-white-400/40",
+        "rounded-lg bg-transparent px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent/40 focus-within:border-transparent transition-all duration-100 placeholder:!text-accent/40",
         variantClasses(variant, size),
         className,
       )}

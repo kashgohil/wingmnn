@@ -248,7 +248,7 @@ export function Upload(props: UploadProps) {
       onClick={() => inputRef.current?.click()}
       onKeyPress={click(() => inputRef.current?.click())}
       className={cx(
-        "flex flex-col items-center justify-center border border-dashed border-white-950 w-full min-h-24 rounded-lg focus-within:outline-dashed focus-within:outline-2 focus-within:outline-white-500 focus-within:outline-offset-2 focus-within:border-transparent transition-all duration-100 cursor-pointer relative p-3",
+        "flex flex-col items-center justify-center border border-dashed border-accent/40 w-full min-h-24 rounded-lg focus-within:outline-dashed focus-within:outline-2 focus-within:outline-accent/40 focus-within:outline-offset-2 focus-within:border-transparent transition-all duration-200 cursor-pointer relative p-3",
         className,
       )}
     >
