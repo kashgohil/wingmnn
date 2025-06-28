@@ -1,6 +1,7 @@
 import { QueryProvider } from "@frameworks/query/provider";
 import "./index.css";
 
+import { Vitals } from "@components/vitals";
 import { QueryClient } from "@frameworks/query/context";
 import { AuthRouter } from "@routes/authRouter";
 import { Cookie } from "@utility/browser";
@@ -23,6 +24,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryProvider value={queryClient}>
       <AuthRouter />
+      <Vitals />
     </QueryProvider>
   </StrictMode>,
 );
