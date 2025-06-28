@@ -7,8 +7,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@wingmnn/components";
-import { Link, useLocationChangeDetection } from "@wingmnn/router";
-import { forEachObj, includes, map, reduceObj } from "@wingmnn/utils";
+import { Link } from "@wingmnn/router";
+import { map, reduceObj } from "@wingmnn/utils";
 import { playMouseClickSound } from "@wingmnn/utils/interactivity";
 import { motion } from "motion/react";
 import React from "react";
@@ -16,19 +16,8 @@ import { type ModuleConfig, ModulesConfig } from "./config";
 import { Modules } from "./constants";
 import { BaseRoutes } from "./routes";
 
-export function Navigation() {
-  const location = useLocationChangeDetection();
-
-  const activeModule = React.useMemo(() => {
-    let activeModule: string = Modules.HOME;
-    forEachObj(BaseRoutes, (route, key) => {
-      if (key !== Modules.HOME && includes(location, route)) {
-        activeModule = key;
-        return false;
-      }
-    });
-    return activeModule;
-  }, [location]);
+export function Navigation(props: { activeModule: Modules }) {
+  const { activeModule } = props;
 
   const { topModules, bottomModules } = React.useMemo(() => {
     return reduceObj(

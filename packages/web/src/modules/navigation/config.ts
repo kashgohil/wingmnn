@@ -27,10 +27,13 @@ export type ModuleConfig = BaseDetails & {
   accentText: string;
 };
 
-export const ModulesConfig: Record<
-  Exclude<Modules, Modules.HOME | Modules.ONBOARDING>,
-  ModuleConfig
-> = {
+export const ExcludedModules = [Modules.HOME, Modules.ONBOARDING] as const;
+export type ModulesConfigKey = Exclude<
+  Modules,
+  (typeof ExcludedModules)[number]
+>;
+
+export const ModulesConfig: Record<ModulesConfigKey, ModuleConfig> = {
   [Modules.MAILS]: {
     id: Modules.MAILS,
     name: "Mails",
