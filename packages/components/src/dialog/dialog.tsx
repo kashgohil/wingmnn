@@ -120,7 +120,7 @@ export function DialogTitle(props: DialogTitleProps) {
       {...rest}
       className={cx(
         className,
-        "flex items-center justify-between px-5 py-4 text-xl",
+        "flex items-center justify-between px-5 py-4 text-xl text-accent",
       )}
     >
       {children}

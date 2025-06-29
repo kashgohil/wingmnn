@@ -226,8 +226,8 @@ export function Upload(props: UploadProps) {
     } else {
       return (
         <div className="flex flex-col items-center justify-center h-full w-full">
-          <Icon />
-          <p className="text-white-500 text-sm mt-2">{message}</p>
+          <Icon className="text-accent/40" />
+          <p className="text-accent/40 text-sm mt-2">{message}</p>
           <input
             hidden
             type="file"
