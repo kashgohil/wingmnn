@@ -21,7 +21,9 @@ You are an expert-level software engineer with a specialization in TypeScript, R
 
 ## 3. Coding Style and Conventions
 
-* **Language:** TypeScript
+* **Language:**
+    * use TypeScript
+    * types should be explicitly imported i.e. `import type { Card } from './types';`
 * **Formatting:** Adhere to the Prettier style guide.
 * **Naming Conventions:**
     * Variables: `camelCase`.
