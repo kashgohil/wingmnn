@@ -61,96 +61,70 @@ export function Navigation(props: { activeModule: Modules }) {
       <Separator className="bg-transparent h-[1px] my-2 mb-3 mx-2 rounded-lg" />
       <div className="flex flex-col justify-between flex-1">
         <div className="flex flex-col gap-2">
-          {map(topModules, (module) => {
-            const { id, icon, name, route, accent, accentText } = module;
-            return (
-              <Link
-                key={id}
-                to={route}
-                tabIndex={-1}
-                onClick={playMouseClickSound}
-                style={
-                  {
-                    "--accent": accent,
-                    "--accent-text": accentText,
-                  } as TSAny
-                }
-              >
-                <Tooltip placement="right">
-                  <TooltipTrigger>
-                    <IconButton
-                      icon={icon}
-                      iconProps={{
-                        size: 20,
-                        className: cx(
-                          "text-accent group-hover/nav-item:text-[var(--accent-text)] transition-color duration-200",
-                          { "text-[var(--accent-text)]": activeModule === id },
-                        ),
-                      }}
-                      className={cx(
-                        "group/nav-item p-2 bg-transparent focus-within:outline-accent hover:bg-accent",
-                        {
-                          "bg-accent": activeModule === id,
-                        },
-                      )}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    inline
-                    className="bg-accent text-[var(--accent-text)]"
-                  >
-                    {name}
-                  </TooltipContent>
-                </Tooltip>
-              </Link>
-            );
-          })}
+          {map(topModules, (module) => (
+            <Module
+              key={module.id}
+              module={module}
+              isActive={module.id === activeModule}
+            />
+          ))}
         </div>
         <div className="flex flex-col gap-2">
-          {map(bottomModules, (module) => {
-            const { id, icon, name, route, accent, accentText } = module;
-            return (
-              <Link
-                to={route}
-                key={id}
-                tabIndex={-1}
-                onClick={playMouseClickSound}
-                style={
-                  {
-                    "--accent": accent,
-                    "--accent-text": accentText,
-                  } as TSAny
-                }
-              >
-                <Tooltip placement="right">
-                  <TooltipTrigger>
-                    <IconButton
-                      icon={icon}
-                      iconProps={{
-                        size: 20,
-                        className: cx(
-                          "text-accent group-hover/nav-item:text-[var(--accent-text)] transition-color duration-200",
-                          { "text-[var(--accent-text)]": activeModule === id },
-                        ),
-                      }}
-                      className={cx(
-                        "group/nav-item p-2 bg-transparent focus-within:outline-accent hover:bg-accent",
-                        { "bg-accent": activeModule === id },
-                      )}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent
-                    inline
-                    className="bg-accent text-[var(--accent-text)]"
-                  >
-                    {name}
-                  </TooltipContent>
-                </Tooltip>
-              </Link>
-            );
-          })}
+          {map(bottomModules, (module) => (
+            <Module
+              key={module.id}
+              module={module}
+              isActive={module.id === activeModule}
+            />
+          ))}
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function Module(props: { module: ModuleConfig; isActive: boolean }) {
+  const { module, isActive } = props;
+  const { id, icon, name, route, accent, accentText, disabled } = module;
+
+  if (disabled) return null;
+
+  return (
+    <Link
+      key={id}
+      to={route}
+      tabIndex={-1}
+      onClick={playMouseClickSound}
+      style={
+        {
+          "--accent": accent,
+          "--accent-text": accentText,
+        } as TSAny
+      }
+    >
+      <Tooltip placement="right">
+        <TooltipTrigger>
+          <IconButton
+            icon={icon}
+            iconProps={{
+              size: 20,
+              className: cx(
+                "text-accent group-hover/nav-item:text-[var(--accent-text)] transition-color duration-200",
+                { "text-[var(--accent-text)]": isActive },
+              ),
+            }}
+            className={cx(
+              "group/nav-item p-2 bg-transparent focus-within:outline-accent hover:bg-accent",
+              {
+                "bg-accent": isActive,
+              },
+            )}
+          />
+        </TooltipTrigger>
+        <TooltipContent inline className="bg-accent text-[var(--accent-text)]">
+          {name}
+        </TooltipContent>
+      </Tooltip>
+    </Link>
   );
 }

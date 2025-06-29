@@ -22,6 +22,7 @@ import { BaseRoutes } from "./routes";
 export type ModuleConfig = BaseDetails & {
   icon: React.ComponentType<LucideProps>;
   placement?: "top" | "bottom";
+  disabled?: boolean;
   route: string;
   accent: string;
   accentText: string;
@@ -167,6 +168,7 @@ export const ModulesConfig: Record<ModulesConfigKey, ModuleConfig> = {
     name: "Sheets",
     description: "Sheets",
     icon: Sheet,
+    disabled: true,
     route: BaseRoutes[Modules.SHEETS],
     accent: "var(--color-emerald-500)",
     accentText: "var(--color-black-500)",
