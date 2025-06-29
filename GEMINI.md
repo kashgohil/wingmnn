@@ -1,4 +1,4 @@
-# Gemini Instruction Set for Wingmnn
+# Instruction Set for Wingmnn
 
 This document provides a set of guidelines and instructions for Gemini to follow for all prompts related to this project.
 
