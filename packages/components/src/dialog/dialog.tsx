@@ -130,8 +130,9 @@ export function DialogTitle(props: DialogTitleProps) {
           size="sm"
           shape="circle"
           onClick={onClose}
+          variant="secondary"
           iconProps={{ size: 16 }}
-          className="ml-auto p-2 bg-black-50 text-accent"
+          className="ml-auto p-2 text-accent"
         />
       ) : null}
     </div>
