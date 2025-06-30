@@ -6,6 +6,7 @@ export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
   orientation?: "vertical" | "horizontal";
   content?: string;
   stroke?: number;
+  contentClassName?: string;
 }
 
 const variant = classVariance({
@@ -24,6 +25,7 @@ export function Separator(props: SeparatorProps) {
     content,
     className,
     orientation = "horizontal",
+    contentClassName,
     ...rest
   } = props;
 
@@ -33,7 +35,7 @@ export function Separator(props: SeparatorProps) {
         <div className={cx(variant(orientation), className)} {...rest}></div>
         {content ? (
           <>
-            <div className="mx-4">{content}</div>
+            <div className={cx("mx-4", contentClassName)}>{content}</div>
             <div
               className={cx(variant(orientation), className)}
               {...rest}
@@ -56,6 +58,7 @@ export function Separator(props: SeparatorProps) {
                 content={content}
                 className={className}
                 orientation={orientation}
+                contentClassName={contentClassName}
                 {...rest}
               />
             ) : null}
