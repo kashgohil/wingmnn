@@ -21,7 +21,7 @@ export function AuthRouter() {
   const { isLoading } = useHeartbeat();
   useSetup();
 
-  const isAuthenticated = !AuthService.isAuthenticated();
+  const isAuthenticated = AuthService.isAuthenticated();
 
   return (
     <AnimatePresence mode="wait">
