@@ -2,15 +2,15 @@ import { relations } from "drizzle-orm";
 import {
   boolean,
   foreignKey,
-  integer,
   jsonb,
   pgEnum,
   pgTable,
   text,
+  timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
 import { commonFields } from "../constants";
-import { projectsTable, workflowStatusesTable } from "./projects";
+import { projectsTable, workflowStatusTable } from "./projects";
 import { usersTable } from "./users";
 
 export const TaskTypeEnum = pgEnum("task_type", [
@@ -44,6 +44,12 @@ export const TaskRelationTypeEnum = pgEnum("task_relation_type", [
   "is_caused_by",
 ]);
 
+export const ChangeTypeEnum = pgEnum("change_type", [
+  "created",
+  "updated",
+  "deleted",
+]);
+
 export const tasksTable = pgTable(
   "tasks",
   {
@@ -60,8 +66,8 @@ export const tasksTable = pgTable(
     projectId: varchar("project_id", { length: 255 })
       .notNull()
       .references(() => projectsTable.id, { onDelete: "cascade" }),
-    workflowStatusId: varchar("workflow_status_id", { length: 255 }).references(
-      () => workflowStatusesTable.id,
+    status: varchar("status", { length: 255 }).references(
+      () => workflowStatusTable.id,
       { onDelete: "set null" },
     ),
 
@@ -78,31 +84,27 @@ export const tasksTable = pgTable(
     // Hierarchy
     parentTaskId: varchar("parent_task_id", { length: 255 }),
 
-    // Time tracking
-    originalEstimate: integer("original_estimate"), // in minutes
-    remainingEstimate: integer("remaining_estimate"), // in minutes
-    timeSpent: integer("time_spent").default(0), // in minutes
-
     // Dates
-    startDate: varchar("start_date", { length: 50 }),
-    dueDate: varchar("due_date", { length: 50 }),
+    startDate: timestamp("start_date").defaultNow().notNull(),
+    dueDate: timestamp("start_date"),
 
     // Additional fields
-    storyPoints: integer("story_points"),
     tags: jsonb("tags").$type<string[]>().default([]),
     customFields: jsonb("custom_fields")
       .$type<Record<string, any>>()
       .default({}),
 
     // Status flags
-    isArchived: boolean("is_archived").default(false),
+    archived: boolean("archived").default(false),
+
+    // files
+    attachments: jsonb("attachments").$type<string[]>().default([]),
   },
   (table) => [
     {
       parentTaskRef: foreignKey({
         columns: [table.parentTaskId],
         foreignColumns: [table.id],
-        name: "tasks_parent_task_fk",
       }).onDelete("cascade"),
     },
   ],
@@ -125,18 +127,7 @@ export const taskCommentsTable = pgTable("task_comments", {
     .notNull()
     .references(() => tasksTable.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
-  isInternal: boolean("is_internal").default(false),
-  ...commonFields,
-});
-
-export const taskAttachmentsTable = pgTable("task_attachments", {
-  taskId: varchar("task_id", { length: 255 })
-    .notNull()
-    .references(() => tasksTable.id, { onDelete: "cascade" }),
-  fileName: varchar("file_name", { length: 255 }).notNull(),
-  fileUrl: varchar("file_url", { length: 1024 }).notNull(),
-  fileSize: integer("file_size"),
-  mimeType: varchar("mime_type", { length: 255 }),
+  attachments: jsonb("attachments").$type<string[]>().default([]),
   ...commonFields,
 });
 
@@ -147,7 +138,7 @@ export const taskHistoryTable = pgTable("task_history", {
   field: varchar("field", { length: 255 }).notNull(),
   oldValue: text("old_value"),
   newValue: text("new_value"),
-  changeDescription: text("change_description"),
+  type: ChangeTypeEnum("type").notNull(),
   ...commonFields,
 });
 
@@ -157,9 +148,9 @@ export const tasksRelations = relations(tasksTable, ({ one, many }) => ({
     fields: [tasksTable.projectId],
     references: [projectsTable.id],
   }),
-  workflowStatus: one(workflowStatusesTable, {
-    fields: [tasksTable.workflowStatusId],
-    references: [workflowStatusesTable.id],
+  workflowStatus: one(workflowStatusTable, {
+    fields: [tasksTable.status],
+    references: [workflowStatusTable.id],
   }),
   assignee: one(usersTable, {
     fields: [tasksTable.assignedTo],
@@ -186,7 +177,6 @@ export const tasksRelations = relations(tasksTable, ({ one, many }) => ({
     relationName: "targetTask",
   }),
   comments: many(taskCommentsTable),
-  attachments: many(taskAttachmentsTable),
   history: many(taskHistoryTable),
 }));
 
@@ -216,16 +206,6 @@ export const taskCommentsRelations = relations(
   }),
 );
 
-export const taskAttachmentsRelations = relations(
-  taskAttachmentsTable,
-  ({ one }) => ({
-    task: one(tasksTable, {
-      fields: [taskAttachmentsTable.taskId],
-      references: [tasksTable.id],
-    }),
-  }),
-);
-
 export const taskHistoryRelations = relations(taskHistoryTable, ({ one }) => ({
   task: one(tasksTable, {
     fields: [taskHistoryTable.taskId],
@@ -244,10 +224,6 @@ export type TaskRelationsTableType = typeof taskRelationsTable;
 export type TaskComment = typeof taskCommentsTable.$inferSelect;
 export type NewTaskComment = typeof taskCommentsTable.$inferInsert;
 export type TaskCommentsTableType = typeof taskCommentsTable;
-
-export type TaskAttachment = typeof taskAttachmentsTable.$inferSelect;
-export type NewTaskAttachment = typeof taskAttachmentsTable.$inferInsert;
-export type TaskAttachmentsTableType = typeof taskAttachmentsTable;
 
 export type TaskHistory = typeof taskHistoryTable.$inferSelect;
 export type NewTaskHistory = typeof taskHistoryTable.$inferInsert;

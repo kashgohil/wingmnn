@@ -1,5 +1,4 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { jsonb, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { commonFields } from "../constants";
 import { usersTable } from "./users";
 
@@ -10,19 +9,11 @@ export const mailsTable = pgTable("emails", {
   subject: text("subject"),
   from: text("from"),
   to: text("to"),
-  cc: text("cc")
-    .array()
-    .notNull()
-    .default(sql`ARRAY[]::text[]`),
-  bcc: text("bcc")
-    .array()
-    .notNull()
-    .default(sql`ARRAY[]::text[]`),
+  cc: jsonb("cc").$type<string[]>().notNull().default([]),
+  bcc: jsonb("bcc").$type<string[]>().notNull().default([]),
   body: text("body"),
   snippet: text("snippet"),
-  labelIds: text("label_ids")
-    .array()
-    .default(sql`ARRAY[]::text[]`),
+  labelIds: jsonb("label_ids").$type<string[]>().notNull().default([]),
   date: timestamp("date"),
   userId: varchar("user_id", { length: 255 }).references(() => usersTable.id, {
     onDelete: "no action",

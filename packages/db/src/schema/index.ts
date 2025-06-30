@@ -4,14 +4,10 @@ import {
   projectsTable,
   workflowsRelations,
   workflowsTable,
-  workflowStatusesRelations,
-  workflowStatusesTable,
-  workflowTransitionsRelations,
-  workflowTransitionsTable,
+  workflowStatusRelations,
+  workflowStatusTable,
 } from "./projects";
 import {
-  taskAttachmentsRelations,
-  taskAttachmentsTable,
   taskCommentsRelations,
   taskCommentsTable,
   taskHistoryRelations,
@@ -32,23 +28,19 @@ export const schema = {
   tasksTable,
   taskRelationsTable,
   taskCommentsTable,
-  taskAttachmentsTable,
   taskHistoryTable,
   projectsTable,
   workflowsTable,
-  workflowStatusesTable,
-  workflowTransitionsTable,
+  workflowStatusTable,
   mailsTable,
 };
 
 export const schemaRelations = {
   projectsRelations,
   workflowsRelations,
-  workflowStatusesRelations,
-  workflowTransitionsRelations,
+  workflowStatusRelations,
   tasksRelations,
   taskRelationsRelations,
   taskCommentsRelations,
-  taskAttachmentsRelations,
   taskHistoryRelations,
 };
