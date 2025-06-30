@@ -35,7 +35,12 @@ export function Landing() {
       transition={{ duration: 0.5, delay: 0.5 }}
       className="w-full h-full flex relative bg-black-500 gap-8"
     >
-      <div className="h-full w-full flex items-center gap-8 bg-accent/20 transition-all duration-200 p-8">
+      <div
+        className={cx(
+          "h-full w-full flex items-center gap-8 transition-all duration-200 p-8",
+          module ? "bg-accent/20" : "bg-black-100",
+        )}
+      >
         <div className="sticky left-0 flex flex-col items-start gap-2">
           {mapObj(ModulesConfig, (config, key) => {
             const {
@@ -60,11 +65,11 @@ export function Landing() {
                 className={cx(
                   "group/list-item hover:bg-accent text-accent hover:text-[var(--accent-text)] outline-offset-4 outline-accent cursor-pointer flex items-center p-2 px-4 rounded-lg gap-2 w-full",
                   module === key
-                    ? "bg-accent text-[var(--accent-text)] [&_svg]:text-[var(--accent-text)]"
+                    ? "bg-accent text-[var(--accent-text)] [&_svg]:text-[var(--accent-text)] hover:[&_svg]:text-[var(--accent-text)]"
                     : "",
                 )}
               >
-                <Icon className="text-accent group-hover/list-item:text-[var(--accent-text)]" />
+                <Icon className="text-accent" />
                 <Typography.Paragraph className="font-semibold">
                   {config.description}
                 </Typography.Paragraph>

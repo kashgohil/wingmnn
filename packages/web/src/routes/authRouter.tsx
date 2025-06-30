@@ -45,7 +45,7 @@ function Loading() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5, delay: 0.5 }}
-      className="w-full h-full flex items-center justify-center flex-col bg-white-100/20"
+      className="w-full h-full flex items-center justify-center flex-col bg-black-100"
     >
       <Typography.H1 className="text-white-500 text-center mb-4 max-w-1/2">
         {quote}
@@ -83,7 +83,7 @@ function Content() {
   function content() {
     if (!Component) {
       return (
-        <motion.div className="w-full h-full flex flex-col items-center justify-center space-y-2 text-[var(--accent-text)] bg-accent/20">
+        <motion.div className="w-full h-full flex flex-col items-center justify-center space-y-2 text-white-500 bg-black-100">
           <Typography.H2>You look lost</Typography.H2>
           <Typography.H4>
             Let's get you to where all the fun stuff is!!
