@@ -85,20 +85,6 @@ function Content() {
     return activeModule;
   }, [location]);
 
-  const { accent, accentText } = React.useMemo(() => {
-    if (ExcludedModules.includes(activeModule as TSAny)) {
-      return {
-        accent: "var(--color-white-100)",
-        accentText: "var(--color-white-500)",
-      };
-    }
-
-    const { accent, accentText } =
-      ModulesConfig[activeModule as ModulesConfigKey];
-
-    return { accent, accentText };
-  }, [activeModule]);
-
   React.useEffect(() => {
     let {
       accent = "var(--color-white-100)",
@@ -117,7 +103,7 @@ function Content() {
   function content() {
     if (!Component) {
       return (
-        <motion.div className="w-full h-full flex flex-col items-center justify-center space-y-2 bg-accent/5">
+        <motion.div className="w-full h-full flex flex-col items-center justify-center space-y-2">
           <Typography.H2>You look lost</Typography.H2>
           <Typography.H4>
             Let's get you to where all the fun stuff is!!
@@ -132,7 +118,7 @@ function Content() {
       );
     }
 
-    return <Component className="bg-accent/5" />;
+    return <Component />;
   }
 
   return (
