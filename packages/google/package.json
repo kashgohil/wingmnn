@@ -2,6 +2,10 @@
   "name": "@wingmnn/google",
   "module": "index.ts",
   "type": "module",
+  "dependencies": {
+    "@wingmnn/db": "workspace:*",
+    "@wingmnn/utils": "workspace:*"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
