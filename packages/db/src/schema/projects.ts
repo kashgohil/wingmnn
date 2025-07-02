@@ -31,6 +31,7 @@ export const projectsTable = pgTable("projects", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   status: ProjectStatusEnum("status").notNull().default("active"),
+  picture: text("picture"),
   projectLead: varchar("project_lead", { length: 255 }).references(
     () => usersTable.id,
     { onDelete: "set null" },
