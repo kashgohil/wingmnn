@@ -5,20 +5,7 @@ const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-// Scopes needed for Google OAuth
-const SCOPES = [
-  "https://www.googleapis.com/auth/userinfo.email",
-  "https://www.googleapis.com/auth/userinfo.profile",
-  // Calendar access
-  "https://www.googleapis.com/auth/calendar",
-
-  // Drive access
-  // ref: https://www.googleapis.com/discovery/v1/apis/drive/v3/rest
-  "https://www.googleapis.com/auth/drive",
-  "https://www.googleapis.com/auth/drive.file",
-  "https://www.googleapis.com/auth/drive.metadata",
-  "https://www.googleapis.com/auth/drive.photos.readonly",
-
+export const GMAIL_SCOPES = [
   // Gmail access
   // ref: https://gmail.googleapis.com/$discovery/rest?version=v1
   "https://mail.google.com/",
@@ -31,6 +18,26 @@ const SCOPES = [
   "https://www.googleapis.com/auth/gmail.send",
   "https://www.googleapis.com/auth/gmail.settings.basic",
   "https://www.googleapis.com/auth/gmail.settings.sharing",
+].join(" ");
+
+export const CALENDAR_SCOPES = [
+  // Calendar access
+  "https://www.googleapis.com/auth/calendar",
+].join(" ");
+
+export const DRIVE_SCOPES = [
+  // Drive access
+  // ref: https://www.googleapis.com/discovery/v1/apis/drive/v3/rest
+  "https://www.googleapis.com/auth/drive",
+  "https://www.googleapis.com/auth/drive.file",
+  "https://www.googleapis.com/auth/drive.metadata",
+  "https://www.googleapis.com/auth/drive.photos.readonly",
+].join(" ");
+
+// Scopes needed for Google OAuth
+export const PROFILE_SCOPES = [
+  "https://www.googleapis.com/auth/userinfo.email",
+  "https://www.googleapis.com/auth/userinfo.profile",
 
   "openid", // OpenID Connect
   "profile", // Basic profile
@@ -42,18 +49,21 @@ const SCOPES = [
  * @param state Optional state parameter for security
  * @returns URL to redirect the user to for Google authentication
  */
-export function getGoogleAuthUrl(state?: string): string {
+export function getGoogleAuthUrl(urlParams: {
+  state?: string;
+  scope?: string;
+}): string {
   const params = new URLSearchParams({
     client_id: CONSTANTS.GOOGLE_CLIENT_ID,
     redirect_uri: CONSTANTS.GOOGLE_REDIRECT_URI,
     response_type: "code",
-    scope: SCOPES,
+    scope: urlParams.scope || PROFILE_SCOPES,
     access_type: "offline",
     prompt: "consent", // Force to get refresh token
   });
 
-  if (state) {
-    params.append("state", state);
+  if (urlParams.state) {
+    params.append("state", urlParams.state);
   }
 
   return `${GOOGLE_AUTH_URL}?${params.toString()}`;
