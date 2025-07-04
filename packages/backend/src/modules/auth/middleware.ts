@@ -2,6 +2,7 @@ import { AuthenticateEnv } from "@types";
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { CONSTANTS, ROUTES } from "./constants";
+import { clearAuthCookies } from "./utils/auth";
 import { verifyToken } from "./utils/jwt";
 
 /**
@@ -26,8 +27,7 @@ export const authenticate = createMiddleware<AuthenticateEnv>(
       }
 
       if (!accessToken) {
-        console.log("[AUTH] No access token found");
-        return c.json({ message: "Unauthorized" }, 401);
+        throw new Error("No access token found");
       }
 
       console.log("[AUTH] Verifying access token");
@@ -52,6 +52,7 @@ export const authenticate = createMiddleware<AuthenticateEnv>(
       // Redirect to login page for web requests, return 401 for API requests
       const accept = c.req.header("Accept") || "";
       if (accept.includes("text/html")) {
+        clearAuthCookies(c);
         return c.redirect(`${ROUTES.UI_URL}${ROUTES.LOGIN_ROUTE}`);
       }
 

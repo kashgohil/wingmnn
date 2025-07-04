@@ -1,7 +1,8 @@
 import { CONSTANTS, ROUTES } from "@auth/constants";
 import { auth } from "@auth/router";
+import { clearAuthCookies } from "@auth/utils/auth";
 import { revokeToken } from "@auth/utils/jwt";
-import { deleteCookie, getCookie } from "hono/cookie";
+import { getCookie } from "hono/cookie";
 
 auth.post("/logout", async (c) => {
   try {
@@ -13,9 +14,7 @@ auth.post("/logout", async (c) => {
     }
 
     // Clear cookies
-    deleteCookie(c, CONSTANTS.AUTHENTICATED);
-    deleteCookie(c, CONSTANTS.ACCESS_TOKEN_COOKIE);
-    deleteCookie(c, CONSTANTS.REFRESH_TOKEN_COOKIE);
+    clearAuthCookies(c);
 
     console.log(`[AUTH] User logged out successfully`);
 

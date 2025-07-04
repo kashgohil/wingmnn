@@ -1,5 +1,6 @@
 import { CONSTANTS, ROUTES } from "@auth/constants";
 import { auth } from "@auth/router";
+import { clearAuthCookies } from "@auth/utils/auth";
 import { generateTokens } from "@auth/utils/jwt";
 import { userQuery } from "@users/utils";
 import { usersTable } from "@wingmnn/db";
@@ -7,6 +8,7 @@ import {
   getGoogleAuthUrl,
   getGoogleTokens,
   getGoogleUserInfo,
+  PROFILE_SCOPES,
   storeGoogleTokens,
 } from "@wingmnn/google";
 import { tryCatchAsync } from "@wingmnn/utils";
@@ -27,13 +29,21 @@ auth.post("/sso/google", async (c) => {
   });
 
   // Redirect to Google OAuth page
-  const authUrl = getGoogleAuthUrl(state);
+  const authUrl = getGoogleAuthUrl({ state, scope: PROFILE_SCOPES });
   return c.redirect(authUrl);
 });
 
 // Google OAuth callback route
 auth.get("/sso/google/callback", async (c) => {
-  const { code, state } = c.req.query();
+  const { code, state, error: callbackError } = c.req.query();
+
+  if (callbackError) {
+    console.log(`[AUTH] Google OAuth error: ${callbackError}`);
+    clearAuthCookies(c);
+    return c.redirect(
+      `${ROUTES.UI_URL}/${ROUTES.LOGIN_PAGE}?error=google_oauth_error`,
+    );
+  }
 
   // Verify state parameter
   const storedState = getCookie(c, "google_oauth_state");
