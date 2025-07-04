@@ -1,7 +1,6 @@
 import {
   NewProject,
   NewTask,
-  NewTaskAttachment,
   NewTaskComment,
   NewTaskHistory,
   NewTaskRelation,
@@ -9,19 +8,17 @@ import {
   NewWorkflowStatus,
   projectsTable,
   Task,
-  taskAttachmentsTable,
   taskCommentsTable,
   taskRelationsTable,
   tasksTable,
   Workflow,
   workflowsTable,
-  workflowStatusesTable,
+  workflowStatusTable,
 } from "@wingmnn/db";
 import { isEmpty, tryCatchAsync } from "@wingmnn/utils";
 import { eq } from "drizzle-orm";
 import {
   projectsQuery,
-  taskAttachmentsQuery,
   taskCommentsQuery,
   taskHistoryQuery,
   taskRelationsQuery,
@@ -75,7 +72,7 @@ export class ProjectService {
     const project = result[0];
 
     // Create default workflow for the project
-    await this.createDefaultWorkflow(project.id, data.createdBy);
+    await this.createDefaultWorkflow(data.createdBy);
 
     return project;
   }
@@ -155,23 +152,19 @@ export class ProjectService {
   }
 
   async archive(projectId: string, archivedBy: string) {
-    return this.update(projectId, { isArchived: true }, archivedBy);
+    return this.update(projectId, { status: "archived" }, archivedBy);
   }
 
   async unarchive(projectId: string, unarchivedBy: string) {
-    return this.update(projectId, { isArchived: false }, unarchivedBy);
+    return this.update(projectId, { status: "active" }, unarchivedBy);
   }
 
   // ========== WORKFLOW METHODS ==========
 
-  async createDefaultWorkflow(
-    projectId: string,
-    createdBy: string,
-  ): Promise<Workflow> {
+  async createDefaultWorkflow(createdBy: string): Promise<Workflow> {
     const workflowData: Omit<NewWorkflow, "id" | "createdAt" | "updatedAt"> = {
       name: "Default Workflow",
       description: "Default project workflow",
-      projectId,
       isDefault: true,
       createdBy,
       updatedBy: createdBy,
@@ -277,16 +270,6 @@ export class ProjectService {
     return { success: true, message: "Workflow deleted successfully" };
   }
 
-  async getWorkflowsByProject(projectId: string) {
-    const { result, error } = await tryCatchAsync(
-      workflowsQuery.getByProject(projectId),
-    );
-
-    if (error) throw new Error(`Failed to get workflows: ${error.message}`);
-
-    return result || [];
-  }
-
   // ========== WORKFLOW STATUS METHODS ==========
 
   async createWorkflowStatus(
@@ -331,7 +314,7 @@ export class ProjectService {
           updatedBy,
           updatedAt: new Date(),
         })
-        .where(eq(workflowStatusesTable.id, statusId))
+        .where(eq(workflowStatusTable.id, statusId))
         .returning(),
     );
 
@@ -351,7 +334,7 @@ export class ProjectService {
           updatedBy: deletedBy,
           updatedAt: new Date(),
         })
-        .where(eq(workflowStatusesTable.id, statusId))
+        .where(eq(workflowStatusTable.id, statusId))
         .returning(),
     );
 
@@ -410,7 +393,7 @@ export class ProjectService {
       taskId: task.id,
       field: "created",
       newValue: "Task created",
-      changeDescription: "Task was created",
+      type: "created",
       createdBy: data.createdBy,
       updatedBy: data.createdBy,
       deleted: false,
@@ -471,7 +454,7 @@ export class ProjectService {
           field,
           oldValue: String(oldValue),
           newValue: String(newValue),
-          changeDescription: `${field} changed from '${oldValue}' to '${newValue}'`,
+          type: "updated",
           createdBy: updatedBy,
           updatedBy,
           deleted: false,
@@ -502,7 +485,7 @@ export class ProjectService {
       taskId,
       field: "deleted",
       newValue: "true",
-      changeDescription: "Task was deleted",
+      type: "deleted",
       createdBy: deletedBy,
       updatedBy: deletedBy,
       deleted: false,
@@ -551,7 +534,7 @@ export class ProjectService {
   }
 
   async updateTaskStatus(taskId: string, statusId: string, updatedBy: string) {
-    return this.updateTask(taskId, { workflowStatusId: statusId }, updatedBy);
+    return this.updateTask(taskId, { status: statusId }, updatedBy);
   }
 
   // ========== TASK RELATIONS METHODS ==========
@@ -649,44 +632,6 @@ export class ProjectService {
       throw new Error(`Failed to delete task comment: ${error.message}`);
 
     return { success: true, message: "Task comment deleted successfully" };
-  }
-
-  // ========== TASK ATTACHMENTS METHODS ==========
-
-  async addTaskAttachment(
-    data: Omit<NewTaskAttachment, "id" | "createdAt" | "updatedAt">,
-  ) {
-    const { result, error } = await tryCatchAsync(
-      taskAttachmentsQuery.insert
-        .values({
-          ...data,
-          updatedBy: data.createdBy,
-        })
-        .returning(),
-    );
-
-    if (error)
-      throw new Error(`Failed to add task attachment: ${error.message}`);
-
-    return result[0];
-  }
-
-  async deleteTaskAttachment(attachmentId: string, deletedBy: string) {
-    const { result, error } = await tryCatchAsync(
-      taskAttachmentsQuery.update
-        .set({
-          deleted: true,
-          updatedBy: deletedBy,
-          updatedAt: new Date(),
-        })
-        .where(eq(taskAttachmentsTable.id, attachmentId))
-        .returning(),
-    );
-
-    if (error)
-      throw new Error(`Failed to delete task attachment: ${error.message}`);
-
-    return { success: true, message: "Task attachment deleted successfully" };
   }
 
   // ========== UTILITY METHODS ==========

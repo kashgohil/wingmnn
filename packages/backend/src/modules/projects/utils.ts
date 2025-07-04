@@ -3,7 +3,6 @@ import {
   Key,
   projectsTable,
   ProjectsTableType,
-  taskAttachmentsTable,
   taskCommentsTable,
   taskHistoryTable,
   taskRelationsTable,
@@ -12,8 +11,8 @@ import {
   Value,
   workflowsTable,
   WorkflowsTableType,
-  workflowStatusesTable,
   WorkflowStatusesTableType,
+  workflowStatusTable,
 } from "@wingmnn/db";
 import { tryCatchAsync } from "@wingmnn/utils";
 import { and, asc, count, desc, eq, like, or, sql } from "drizzle-orm";
@@ -42,13 +41,6 @@ async function getProject(
       where: eq(projectsTable[key], value),
       with: {
         projectLead: true,
-        workflows: {
-          with: {
-            statuses: {
-              orderBy: asc(workflowStatusesTable.order),
-            },
-          },
-        },
       },
     }),
   );
@@ -63,13 +55,6 @@ async function getProjectWithTasks(projectId: string) {
       where: eq(projectsTable.id, projectId),
       with: {
         projectLead: true,
-        workflows: {
-          with: {
-            statuses: {
-              orderBy: asc(workflowStatusesTable.order),
-            },
-          },
-        },
         tasks: {
           with: {
             assignee: true,
@@ -89,10 +74,8 @@ async function getProjectWithTasks(projectId: string) {
 async function searchProjects(filters: {
   search?: string;
   status?: string;
-  priority?: number;
   createdBy?: string;
   projectLead?: string;
-  tags?: string[];
   isArchived?: boolean;
   limit?: number;
   offset?: number;
@@ -112,10 +95,6 @@ async function searchProjects(filters: {
     conditions.push(eq(projectsTable.status, filters.status as any));
   }
 
-  if (filters.priority) {
-    conditions.push(eq(projectsTable.priority, filters.priority));
-  }
-
   if (filters.createdBy) {
     conditions.push(eq(projectsTable.createdBy, filters.createdBy));
   }
@@ -125,13 +104,7 @@ async function searchProjects(filters: {
   }
 
   if (filters.isArchived !== undefined) {
-    conditions.push(eq(projectsTable.isArchived, filters.isArchived));
-  }
-
-  if (filters.tags && filters.tags.length > 0) {
-    conditions.push(
-      sql`${projectsTable.tags} && ${JSON.stringify(filters.tags)}`,
-    );
+    conditions.push(eq(projectsTable.status, "archived"));
   }
 
   const { result, error } = await tryCatchAsync(
@@ -155,10 +128,9 @@ async function getProjectStats(projectId: string) {
     db
       .select({
         totalTasks: count(tasksTable.id),
-        completedTasks: count(sql`CASE WHEN ${tasksTable.workflowStatusId} IN (
-        SELECT ${workflowStatusesTable.id}
-        FROM ${workflowStatusesTable}
-        WHERE ${workflowStatusesTable.isFinal} = true
+        completedTasks: count(sql`CASE WHEN ${tasksTable.status} IN (
+        SELECT ${workflowStatusTable.id}
+        FROM ${workflowStatusTable}
       ) THEN 1 END`),
       })
       .from(tasksTable)
@@ -179,7 +151,6 @@ export const workflowsQuery = {
   insert: db.insert(workflowsTable),
   update: db.update(workflowsTable),
   delete: db.delete(workflowsTable),
-  getByProject: getWorkflowsByProject,
 };
 
 async function getWorkflow(
@@ -189,34 +160,7 @@ async function getWorkflow(
   const { result, error } = await tryCatchAsync(
     db.query.workflowsTable.findFirst({
       where: eq(workflowsTable[key], value),
-      with: {
-        project: true,
-        statuses: {
-          orderBy: asc(workflowStatusesTable.order),
-        },
-        transitions: {
-          with: {
-            fromStatus: true,
-            toStatus: true,
-          },
-        },
-      },
-    }),
-  );
-
-  if (error) throw error;
-  return result;
-}
-
-async function getWorkflowsByProject(projectId: string) {
-  const { result, error } = await tryCatchAsync(
-    db.query.workflowsTable.findMany({
-      where: eq(workflowsTable.projectId, projectId),
-      with: {
-        statuses: {
-          orderBy: asc(workflowStatusesTable.order),
-        },
-      },
+      with: { project: true },
     }),
   );
 
@@ -225,15 +169,15 @@ async function getWorkflowsByProject(projectId: string) {
 }
 
 // Workflow Statuses Query Utilities
-const workflowStatusQuery = db.query.workflowStatusesTable;
+const workflowStatusQuery = db.query.workflowStatusTable;
 
 export const workflowStatusesQuery = {
   findFirst: workflowStatusQuery.findFirst.bind(workflowStatusQuery),
   findMany: workflowStatusQuery.findMany.bind(workflowStatusQuery),
   get: getWorkflowStatus,
-  insert: db.insert(workflowStatusesTable),
-  update: db.update(workflowStatusesTable),
-  delete: db.delete(workflowStatusesTable),
+  insert: db.insert(workflowStatusTable),
+  update: db.update(workflowStatusTable),
+  delete: db.delete(workflowStatusTable),
   getByWorkflow: getStatusesByWorkflow,
 };
 
@@ -242,8 +186,8 @@ async function getWorkflowStatus(
   value: Value<WorkflowStatusesTableType, typeof key>,
 ) {
   const { result, error } = await tryCatchAsync(
-    db.query.workflowStatusesTable.findFirst({
-      where: eq(workflowStatusesTable[key], value),
+    db.query.workflowStatusTable.findFirst({
+      where: eq(workflowStatusTable[key], value),
       with: {
         workflow: true,
       },
@@ -256,9 +200,9 @@ async function getWorkflowStatus(
 
 async function getStatusesByWorkflow(workflowId: string) {
   const { result, error } = await tryCatchAsync(
-    db.query.workflowStatusesTable.findMany({
-      where: eq(workflowStatusesTable.workflowId, workflowId),
-      orderBy: asc(workflowStatusesTable.order),
+    db.query.workflowStatusTable.findMany({
+      where: eq(workflowStatusTable.workflowId, workflowId),
+      orderBy: asc(workflowsTable.order),
     }),
   );
 
@@ -389,7 +333,7 @@ async function getTasksByProject(
   }
 
   if (filters.status) {
-    conditions.push(eq(tasksTable.workflowStatusId, filters.status));
+    conditions.push(eq(tasksTable.status, filters.status));
   }
 
   if (filters.assignee) {
@@ -450,7 +394,7 @@ async function searchTasks(filters: {
   }
 
   if (filters.status) {
-    conditions.push(eq(tasksTable.workflowStatusId, filters.status));
+    conditions.push(eq(tasksTable.status, filters.status));
   }
 
   if (filters.assignee) {
@@ -512,19 +456,6 @@ export const taskCommentsQuery = {
   insert: db.insert(taskCommentsTable),
   update: db.update(taskCommentsTable),
   delete: db.delete(taskCommentsTable),
-};
-
-// Task Attachments Query Utilities
-export const taskAttachmentsQuery = {
-  findFirst: db.query.taskAttachmentsTable.findFirst.bind(
-    db.query.taskAttachmentsTable,
-  ),
-  findMany: db.query.taskAttachmentsTable.findMany.bind(
-    db.query.taskAttachmentsTable,
-  ),
-  insert: db.insert(taskAttachmentsTable),
-  update: db.update(taskAttachmentsTable),
-  delete: db.delete(taskAttachmentsTable),
 };
 
 // Task History Query Utilities
