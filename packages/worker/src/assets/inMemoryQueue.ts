@@ -42,19 +42,19 @@ export class InMemoryQueue implements Queue {
     }
 
     // Get the next job
-    const jobID = this.pendingJobs.shift();
-    if (!jobID) {
+    const jobId = this.pendingJobs.shift();
+    if (!jobId) {
       return null;
     }
 
-    const job = this.jobs.get(jobID);
+    const job = this.jobs.get(jobId);
     if (!job) {
-      console.warn(`[QUEUE] Job ${jobID} not found`);
+      console.warn(`[QUEUE] Job ${jobId} not found`);
       return this.next();
     }
 
     // Mark as processing
-    await this.markProcessing(jobID);
+    await this.markProcessing(jobId);
     return job;
   }
 
