@@ -85,9 +85,9 @@ export function TooltipContent(props: TooltipContentProps) {
       onClose={toggle}
       root="tooltip-root"
       placement={contextPlacement}
-      transition={{ delay: 0.2, ...transition }}
+      transition={{ delay: 0.1, ...transition }}
       className={cx(
-        "bg-white-500 text-black-200 text-xs rounded-lg",
+        "bg-accent text-[var(--accent-text)] text-xs rounded-lg whitespace-nowrap",
         className,
       )}
     >
