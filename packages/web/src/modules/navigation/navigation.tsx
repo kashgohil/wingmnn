@@ -54,7 +54,7 @@ export function Navigation(props: { activeModule: Modules }) {
           <Wingmnn
             width={24}
             height={24}
-            className="animate-slow-spin text-white-500"
+            className="animate-slow-spin text-accent"
           />
         </Link>
       </div>
