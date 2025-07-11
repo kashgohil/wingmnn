@@ -114,11 +114,11 @@ export function Popover(props: PopoverProps) {
           break;
         case "top":
           top = anchorRect.top - popoverRect.height;
-          left = anchorRect.left + (anchorRect.width - popoverRect.width) / 2;
+          left = anchorRect.left + anchorRect.width / 2;
           break;
         case "bottom":
           top = anchorRect.bottom;
-          left = anchorRect.left + (anchorRect.width - popoverRect.width) / 2;
+          left = anchorRect.left + anchorRect.width / 2;
           break;
         case "left":
           top = anchorRect.top + (anchorRect.height - popoverRect.height) / 2;
@@ -127,6 +127,7 @@ export function Popover(props: PopoverProps) {
         case "right":
           top = anchorRect.top + anchorRect.height / 2;
           left = anchorRect.right;
+          console.log(popoverRect);
           break;
       }
 
@@ -141,12 +142,12 @@ export function Popover(props: PopoverProps) {
       updatePosition();
       window.addEventListener("resize", updatePosition);
       window.addEventListener("scroll", updatePosition);
-
-      return () => {
-        window.removeEventListener("resize", updatePosition);
-        window.removeEventListener("scroll", updatePosition);
-      };
     }
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
   }, [open, anchor, placement]);
 
   // Handle clicks outside
