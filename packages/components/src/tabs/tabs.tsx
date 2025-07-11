@@ -1,6 +1,19 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@components/tooltip/tooltip";
+import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { type LucideProps } from "lucide-react";
-import React from "react";
+import { motion } from "motion/react";
+import React, { type MouseEvent } from "react";
+
+interface TabContext {
+  activeTab: string;
+  onChange(tabId: string): void;
+  orientation: "horizontal" | "vertical";
+}
 
 export interface Tab extends BaseDetails {
   icon: React.ComponentType<LucideProps>;
@@ -14,31 +27,148 @@ interface TabsProps
     >,
     "onChange"
   > {
+  activeTab: string;
   tabs: Array<Tab>;
-  onChange(tab: Tab): void;
+  onChange(tabId: string): void;
+}
+
+export interface TabPanelProps
+  extends Omit<
+    React.DetailedHTMLProps<
+      React.HTMLAttributes<HTMLDivElement>,
+      HTMLDivElement
+    >,
+    "onChange"
+  > {
+  activeTab: string;
+  onChange(tabId: string): void;
+  orientation?: "horizontal" | "vertical";
+}
+
+export interface TabProps
+  extends React.DetailedHTMLProps<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    HTMLButtonElement
+  > {
+  id: string;
+  tooltip?: React.ReactNode;
+  icon?: React.ComponentType<LucideProps>;
+}
+
+const TabContext = React.createContext<TabContext>({
+  activeTab: "",
+  onChange: () => {},
+  orientation: "horizontal",
+});
+
+const variantClasses = classVariance({
+  horizontal: "flex flex-row",
+  vertical: "flex flex-col",
+});
+
+export function TabPanel(props: TabPanelProps) {
+  const {
+    orientation = "horizontal",
+    activeTab,
+    className,
+    children,
+    onChange,
+    ...rest
+  } = props;
+
+  return (
+    <TabContext.Provider value={{ activeTab, onChange, orientation }}>
+      <div
+        {...rest}
+        className={cx(
+          "relative gap-1 p-1.5 rounded-lg border border-accent/50",
+          className,
+          variantClasses(orientation),
+        )}
+      >
+        {children}
+      </div>
+    </TabContext.Provider>
+  );
+}
+
+export function Tab(props: TabProps) {
+  const { icon: Icon, tooltip, className, onClick, ...rest } = props;
+
+  const { activeTab, onChange, orientation } = React.useContext(TabContext);
+
+  const clickHandler = React.useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      onClick?.(e);
+      onChange(props.id);
+    },
+    [onClick, props.id],
+  );
+
+  function tabContent() {
+    return (
+      <button
+        {...rest}
+        tabIndex={0}
+        onClick={clickHandler}
+        className={cx(
+          "relative p-2 cursor-pointer rounded-lg hover:bg-accent/20",
+          className,
+        )}
+      >
+        {activeTab === props.id && (
+          <motion.div
+            layoutId="tab-floater"
+            className="absolute inset-0 bg-accent rounded-lg"
+            transition={{ duration: 0.2 }}
+          ></motion.div>
+        )}
+        <div
+          className={cx(
+            "flex items-center justify-center gap-2 relative transition-colors duration-500",
+            activeTab === props.id
+              ? "text-[var(--accent-text)]"
+              : "text-accent",
+          )}
+        >
+          {Icon && <Icon className="w-4 h-4" />}
+          {props.children}
+        </div>
+      </button>
+    );
+  }
+
+  if (tooltip) {
+    return (
+      <Tooltip placement={orientation === "horizontal" ? "bottom" : "right"}>
+        <TooltipTrigger>{tabContent()}</TooltipTrigger>
+        <TooltipContent>{tooltip}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return tabContent();
 }
 
 export function Tabs(props: TabsProps) {
-  const { tabs, onChange, className, ...rest } = props;
+  const { tabs, onChange, activeTab, ...rest } = props;
 
   return (
-    <div
-      className={cx("flex items-center p-1 rounded-lg bg-white-950", className)}
-      {...rest}
-    >
+    <TabPanel onChange={onChange} activeTab={activeTab} {...rest}>
       {tabs.map((tab) => {
-        const { id, name, icon: Icon } = tab;
+        const { id, name, icon, description } = tab;
         return (
-          <div
+          <Tab
+            tooltip={description}
+            icon={icon}
+            id={id}
             key={id}
-            onClick={() => onChange(tab)}
-            className="flex items-center p-2 rounded-lg hover:bg-gray-100"
+            onClick={() => onChange(id)}
           >
-            {Icon && <Icon className="w-4 h-4 mr-2" />}
             {name}
-          </div>
+          </Tab>
         );
       })}
-    </div>
+    </TabPanel>
   );
 }
