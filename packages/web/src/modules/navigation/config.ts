@@ -15,7 +15,7 @@ import {
   Sheet,
   SquareKanban,
   Wallet,
-} from "lucide-react";
+} from "@wingmnn/components/icons";
 import { Modules } from "./constants";
 import { BaseRoutes } from "./routes";
 
