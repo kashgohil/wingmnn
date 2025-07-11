@@ -14,6 +14,24 @@ export type AuthenticateEnv = {
 
 export const queue = new Hono<AuthenticateEnv>().basePath("/queue");
 
+// Initialize the Queue Service
+queueService.initialize().catch((error) => {
+  console.error("[WORKER] Failed to initialize the Queue Service: ", error);
+});
+
+// Gracefully shutdown the Queue Service
+process.on("SIGTERM", async () => {
+  console.log("[APP] Received SIGTERM signal, shutting down gracefully...");
+  await queueService.shutdown();
+  process.exit(0);
+});
+
+process.on("SIGINT", async () => {
+  console.log("[APP] Received SIGINT signal, shutting down gracefully...");
+  await queueService.shutdown();
+  process.exit(0);
+});
+
 // Get queue statistics
 queue.get("/stats", async (c) => {
   const { result: stats, error } = await tryCatchAsync(queueService.getStats());
