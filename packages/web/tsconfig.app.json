@@ -32,8 +32,11 @@
       "@home/*": ["src/modules/home/*"],
       "@landing/*": ["src/modules/landing/*"],
       "@testing/*": ["src/modules/testing/*"],
+      "@mails/*": ["src/modules/mails/*"],
+      "@onboarding/*": ["src/modules/onboarding/*"],
       "@projects/*": ["src/modules/projects/*"],
       "@quotes/*": ["src/quotes/*"],
+      "@games/*": ["src/modules/games/*"],
       "@constants": ["src/constants.ts"],
       "@queryKeys": ["src/queryKeys.ts"],
       "@/*": ["src/*"]
