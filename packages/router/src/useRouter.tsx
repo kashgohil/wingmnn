@@ -1,7 +1,7 @@
 import { get } from "@wingmnn/utils";
 import React from "react";
+import { useRouterContext } from "./context";
 import { useLocationChangeDetection } from "./hooks/useLocationChangeDetection";
-import { type RouterConfig } from "./type";
 import { RouterUtils } from "./utils";
 
 // add custom event for pushState and replaceState
@@ -30,16 +30,13 @@ if (window?.history && get(window, routerFlag, "undefined") === "undefined") {
   };
 }
 
-export function useRouter(config: RouterConfig) {
+export function useRouter() {
   const location = useLocationChangeDetection();
-
-  const processedRoutes = React.useMemo(() => {
-    return RouterUtils.processRoutes(config);
-  }, [config]);
+  const processedRoutes = useRouterContext("config");
 
   const route = React.useMemo(() => {
     return RouterUtils.getRoute(processedRoutes, location);
   }, [processedRoutes, location]);
 
-  return { Component: route ? route.Component : null, id: route?.id };
+  return { Component: route ? route.Component : null, id: route?.id, location };
 }
