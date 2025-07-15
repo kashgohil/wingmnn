@@ -1,5 +1,4 @@
 import { Button } from "@wingmnn/components";
-import { playMouseClickSound } from "@wingmnn/utils/interactivity";
 import React from "react";
 
 interface Props {
@@ -49,9 +48,7 @@ export class ErrorBoundary extends React.Component<
             looks like a bug. Hit the report button and let us know what
             happened.
           </p>
-          <Button onMouseDown={playMouseClickSound} size="sm">
-            Report it
-          </Button>
+          <Button size="sm">Report it</Button>
         </div>
       );
     }
