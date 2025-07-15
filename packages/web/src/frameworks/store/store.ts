@@ -5,25 +5,25 @@ type Subscriber<T> = Effect<T>;
 type SubscribersMap<T> = { [key in keyof T]: Set<Subscriber<T>> };
 
 export class Store<T> {
-  #state: T = {} as T;
-  #effects: EffectsMap<T> = {} as EffectsMap<T>;
-  #subscribers: SubscribersMap<T> = {} as SubscribersMap<T>;
+  private state: T = {} as T;
+  private effects: EffectsMap<T> = {} as EffectsMap<T>;
+  private subscribers: SubscribersMap<T> = {} as SubscribersMap<T>;
 
   constructor(state?: T) {
     if (!state) {
-      this.#state = {} as T;
-      this.#effects = {} as EffectsMap<T>;
-      this.#subscribers = {} as SubscribersMap<T>;
+      this.state = {} as T;
+      this.effects = {} as EffectsMap<T>;
+      this.subscribers = {} as SubscribersMap<T>;
     } else {
       this.initialize(state);
     }
   }
 
-  initialize(state: T) {
-    this.#state = state;
-    for (const key in this.#state) {
-      this.#subscribers[key] = new Set();
-      this.#effects[key] = new Set();
+  private initialize(state: T) {
+    this.state = state;
+    for (const key in this.state) {
+      this.subscribers[key] = new Set();
+      this.effects[key] = new Set();
     }
   }
 
@@ -41,7 +41,7 @@ export class Store<T> {
     if (subscribe) {
       this.subscribe(key, subscribe);
     }
-    return this.#state[key];
+    return this.state[key];
   }
 
   /**
@@ -49,9 +49,9 @@ export class Store<T> {
    * @param value what you want to store against that key
    */
   set<TKey extends keyof T>(key: TKey, value: T[TKey]) {
-    this.#state[key] = value;
-    if (this.#subscribers[key].size > 0) {
-      this.#subscribers[key].forEach((subscriber) => subscriber(this));
+    this.state[key] = value;
+    if (this.subscribers[key].size > 0) {
+      this.subscribers[key].forEach((subscriber) => subscriber(this));
       this.runEffects(key);
     }
   }
@@ -61,7 +61,7 @@ export class Store<T> {
    */
   updates(updates: Partial<T> | ((state: T) => Partial<T>)) {
     if (typeof updates === "function") {
-      updates = updates(this.#state);
+      updates = updates(this.state);
     }
     for (const key in updates) {
       this.set(key, updates[key] as T[keyof T]);
@@ -72,8 +72,8 @@ export class Store<T> {
    * @param key key you want to remove from store
    */
   remove(key: keyof T) {
-    delete this.#state[key];
-    delete this.#subscribers[key];
+    delete this.state[key];
+    delete this.subscribers[key];
   }
 
   /**
@@ -81,10 +81,10 @@ export class Store<T> {
    * @param callback callback you want to run on key value change
    */
   subscribe(key: keyof T, callback: (store: Store<T>) => void) {
-    if (!this.#subscribers[key]) {
-      this.#subscribers[key] = new Set();
+    if (!this.subscribers[key]) {
+      this.subscribers[key] = new Set();
     }
-    this.#subscribers[key].add(callback);
+    this.subscribers[key].add(callback);
 
     return () => {
       this.unsubscribe(key, callback);
@@ -96,27 +96,27 @@ export class Store<T> {
    * @param callback callback you want to unsubscribe
    */
   unsubscribe(key: keyof T, callback: (store: Store<T>) => void) {
-    if (this.#subscribers[key]) {
-      this.#subscribers[key].delete(callback);
+    if (this.subscribers[key]) {
+      this.subscribers[key].delete(callback);
     }
   }
 
   addEffect(key: keyof T, effect: (store: Store<T>) => void) {
-    if (!this.#effects[key]) {
-      this.#effects[key] = new Set();
+    if (!this.effects[key]) {
+      this.effects[key] = new Set();
     }
-    this.#effects[key].add(effect);
+    this.effects[key].add(effect);
   }
 
   removeEffect(key: keyof T, effect: (store: Store<T>) => void) {
-    if (this.#effects[key]) {
-      this.#effects[key].delete(effect);
+    if (this.effects[key]) {
+      this.effects[key].delete(effect);
     }
   }
 
   runEffects(key: keyof T) {
-    if (this.#effects[key]) {
-      this.#effects[key].forEach((effect) => effect(this));
+    if (this.effects[key]) {
+      this.effects[key].forEach((effect) => effect(this));
     }
   }
 }
