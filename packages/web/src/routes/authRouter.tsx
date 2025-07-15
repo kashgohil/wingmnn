@@ -11,11 +11,10 @@ import { BaseRoutes } from "@navigation/routes";
 import { useQuote } from "@quotes/useQuote";
 import { AuthService } from "@services/authService";
 import { Button, Typography } from "@wingmnn/components";
-import { Link, useLocationChangeDetection, useRouter } from "@wingmnn/router";
+import { Link, useRouter } from "@wingmnn/router";
 import { forEachObj, includes } from "@wingmnn/utils";
 import { AnimatePresence, motion } from "motion/react";
 import React from "react";
-import { ROUTES_CONFIG } from "./config";
 
 export function AuthRouter() {
   const { isLoading } = useHeartbeat();
@@ -63,9 +62,7 @@ function Loading() {
 }
 
 function Content() {
-  const { Component, id } = useRouter(ROUTES_CONFIG);
-
-  const location = useLocationChangeDetection();
+  const { Component, id, location } = useRouter();
 
   const activeModule = React.useMemo<Modules>(() => {
     let activeModule: Modules = Modules.HOME;
