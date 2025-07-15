@@ -16,7 +16,7 @@ interface TabContext {
 }
 
 export interface Tab extends BaseDetails {
-  icon: React.ComponentType<LucideProps>;
+  icon?: React.ComponentType<LucideProps>;
 }
 
 interface TabsProps
@@ -29,6 +29,7 @@ interface TabsProps
   > {
   activeTab: string;
   tabs: Array<Tab>;
+  tabClassName?: string;
   onChange(tabId: string): void;
 }
 
@@ -112,7 +113,7 @@ export function Tab(props: TabProps) {
         tabIndex={0}
         onClick={clickHandler}
         className={cx(
-          "relative p-2 cursor-pointer rounded-lg hover:bg-accent/20",
+          "relative p-2 cursor-pointer rounded-lg hover:bg-accent/20 transition-all duration-200 focus-within:outline-accent/50 outline-offset-2",
           className,
         )}
       >
@@ -151,7 +152,7 @@ export function Tab(props: TabProps) {
 }
 
 export function Tabs(props: TabsProps) {
-  const { tabs, onChange, activeTab, ...rest } = props;
+  const { tabs, onChange, activeTab, tabClassName, ...rest } = props;
 
   return (
     <TabPanel onChange={onChange} activeTab={activeTab} {...rest}>
@@ -163,6 +164,7 @@ export function Tabs(props: TabsProps) {
             icon={icon}
             id={id}
             key={id}
+            className={tabClassName}
             onClick={() => onChange(id)}
           >
             {name}
