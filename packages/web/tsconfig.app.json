@@ -39,6 +39,7 @@
       "@games/*": ["src/modules/games/*"],
       "@constants": ["src/constants.ts"],
       "@queryKeys": ["src/queryKeys.ts"],
+      "@config": ["src/config.ts"],
       "@/*": ["src/*"]
     }
   },
