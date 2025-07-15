@@ -127,7 +127,6 @@ export function Popover(props: PopoverProps) {
         case "right":
           top = anchorRect.top + anchorRect.height / 2;
           left = anchorRect.right;
-          console.log(popoverRect);
           break;
       }
 
