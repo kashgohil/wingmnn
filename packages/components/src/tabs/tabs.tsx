@@ -5,12 +5,15 @@ import {
 } from "@components/tooltip/tooltip";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
+import { uuid } from "@wingmnn/utils";
+import { withSlideSound } from "@wingmnn/utils/interactivity";
 import { type LucideProps } from "lucide-react";
 import { motion } from "motion/react";
 import React, { type MouseEvent } from "react";
 
 interface TabContext {
   activeTab: string;
+  floaterId: string;
   onChange(tabId: string): void;
   orientation: "horizontal" | "vertical";
 }
@@ -60,6 +63,7 @@ const TabContext = React.createContext<TabContext>({
   activeTab: "",
   onChange: () => {},
   orientation: "horizontal",
+  floaterId: uuid(),
 });
 
 const variantClasses = classVariance({
@@ -77,8 +81,12 @@ export function TabPanel(props: TabPanelProps) {
     ...rest
   } = props;
 
+  const floaterId = React.useMemo(() => uuid(), []);
+
   return (
-    <TabContext.Provider value={{ activeTab, onChange, orientation }}>
+    <TabContext.Provider
+      value={{ activeTab, onChange, orientation, floaterId }}
+    >
       <div
         {...rest}
         className={cx(
@@ -96,7 +104,8 @@ export function TabPanel(props: TabPanelProps) {
 export function Tab(props: TabProps) {
   const { icon: Icon, tooltip, className, onClick, ...rest } = props;
 
-  const { activeTab, onChange, orientation } = React.useContext(TabContext);
+  const { activeTab, onChange, orientation, floaterId } =
+    React.useContext(TabContext);
 
   const clickHandler = React.useCallback(
     (e: MouseEvent<HTMLButtonElement>) => {
@@ -111,7 +120,7 @@ export function Tab(props: TabProps) {
       <button
         {...rest}
         tabIndex={0}
-        onClick={clickHandler}
+        onClick={withSlideSound(clickHandler)}
         className={cx(
           "relative p-2 cursor-pointer rounded-lg hover:bg-accent/20 transition-all duration-200 focus-within:outline-accent/50 outline-offset-2",
           className,
@@ -119,7 +128,7 @@ export function Tab(props: TabProps) {
       >
         {activeTab === props.id && (
           <motion.div
-            layoutId="tab-floater"
+            layoutId={floaterId || "tab-floater"}
             className="absolute inset-0 bg-accent rounded-lg"
             transition={{ duration: 0.2 }}
           ></motion.div>
