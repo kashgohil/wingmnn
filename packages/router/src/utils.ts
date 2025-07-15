@@ -1,4 +1,4 @@
-import { forEach } from "@wingmnn/utils";
+import { find, forEach } from "@wingmnn/utils";
 import { type RouteConfig, type RouterConfig } from "./type";
 import { getWrapperComponent } from "./wrapperComponentFn";
 
@@ -17,7 +17,7 @@ function getRouterUtils() {
 
       const updatedRoute = {
         ...route,
-        path: parent ? `${parent.path}/${route.path}` : route.path,
+        path: parent ? `${parent.path}${route.path}` : route.path,
         Component: parent
           ? getWrapperComponent(parent.Component, route.Component)
           : route.Component,
@@ -85,13 +85,52 @@ function getRouterUtils() {
     }
   }
 
-  function getQueryParams() {
-    const urlParams = new URLSearchParams(window.location.search);
+  function getQueryParams<T>(location?: string): T {
+    let paramString = window.location.search;
+    if (location) {
+      paramString = location.split("?")?.[1];
+    }
+
+    const urlParams = new URLSearchParams(paramString);
     const params: Record<string, string> = {};
     for (const [key, value] of urlParams.entries()) {
       params[key] = value;
     }
-    return params;
+    return params as T;
+  }
+
+  function getPathParams<T>(config: RouterConfig, location?: string): T {
+    let path = location || window.location.pathname;
+
+    const matchedRoute = find(config, (route) => matchRoute(route, path));
+
+    if (!matchedRoute) return {} as T;
+
+    let params: Record<string, string> = {};
+
+    const { path: routePath } = matchedRoute;
+
+    const pathChunks = path.split("/").filter(Boolean);
+    const routeChunks = routePath.trim().split("/").filter(Boolean);
+
+    for (let i = 0; i < pathChunks.length; i++) {
+      const pathChunk = pathChunks[i];
+      const routeChunk = routeChunks[i];
+
+      // if pathChunk is a parameter, then it matches any value, so we don't need to compare
+      if (routeChunk.startsWith(":")) {
+        params[routeChunk.slice(1)] = pathChunk;
+        continue;
+      }
+
+      // only last parameter can be optional, and if it is optional, then we don't need to compare
+      if (routeChunk.endsWith("?")) {
+        params[routeChunk.slice(0, -1)] = pathChunk;
+        continue;
+      }
+    }
+
+    return params as T;
   }
 
   function processRoutes(config: RouterConfig) {
@@ -123,6 +162,7 @@ function getRouterUtils() {
     getPath,
     getHash,
     getRoute,
+    getPathParams,
     getQueryParams,
 
     processRoutes,
