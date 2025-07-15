@@ -1,17 +1,12 @@
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { Link } from "@wingmnn/router";
-import {
-  type HTMLMotionProps,
-  motion,
-  type TargetAndTransition,
-} from "motion/react";
+import { type HTMLMotionProps, motion } from "motion/react";
 import React from "react";
 
 interface CardProps extends HTMLMotionProps<"div"> {
   to?: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
-  whileHover?: TargetAndTransition;
 }
 
 type CardTitleProps = React.DetailedHTMLProps<
@@ -26,6 +21,17 @@ type CardFooterProps = React.DetailedHTMLProps<
   React.HTMLAttributes<HTMLDivElement>,
   HTMLDivElement
 >;
+
+interface CardImageProps
+  extends React.DetailedHTMLProps<
+    React.HTMLAttributes<HTMLDivElement>,
+    HTMLDivElement
+  > {
+  picture: string;
+  alt: string;
+  pictureClassName?: string;
+  pictureStyle?: React.CSSProperties;
+}
 
 const variants = classVariance({
   xs: "w-60",
@@ -42,7 +48,11 @@ export function Card(props: CardProps) {
     return (
       <motion.div
         {...rest}
-        className={cx("rounded-xl p-4", variants(size), className)}
+        className={cx(
+          "rounded-xl p-4 focus-within:outline-accent/50 outline-offset-6 transition-all duration-200",
+          variants(size),
+          className,
+        )}
       >
         {children}
       </motion.div>
@@ -50,9 +60,11 @@ export function Card(props: CardProps) {
   }
 
   if (to) {
-    <Link to={to} tabIndex={-1}>
-      {content()}
-    </Link>;
+    return (
+      <Link to={to} tabIndex={-1}>
+        {content()}
+      </Link>
+    );
   }
 
   return content();
@@ -72,6 +84,21 @@ export function CardContent(props: CardContentProps) {
   return (
     <div {...rest} className={cx("px-4 py-3", className)}>
       {children}
+    </div>
+  );
+}
+
+export function CardImage(props: CardImageProps) {
+  const { className, picture, alt, pictureClassName, pictureStyle, ...rest } =
+    props;
+  return (
+    <div {...rest} className={cx("px-4 py-3", className)}>
+      <img
+        alt={alt}
+        src={picture}
+        className={cx("w-full h-full", pictureClassName)}
+        style={pictureStyle}
+      />
     </div>
   );
 }
