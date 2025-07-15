@@ -1,6 +1,7 @@
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { Link } from "@wingmnn/router";
+import { playClickSound } from "@wingmnn/utils/interactivity";
 import { type HTMLMotionProps, motion } from "motion/react";
 import React from "react";
 
@@ -61,7 +62,7 @@ export function Card(props: CardProps) {
 
   if (to) {
     return (
-      <Link to={to} tabIndex={-1}>
+      <Link onClick={playClickSound} to={to} tabIndex={-1}>
         {content()}
       </Link>
     );
