@@ -1,8 +1,8 @@
 import { Modules } from "@navigation/constants";
 import { BaseRoutes } from "@navigation/routes";
 import { Games } from "./games";
-import { Home } from "./views/home";
-import { Sudoku } from "./views/sudoku";
+import { Game } from "./views/game";
+import { Home } from "./views/home/home";
 
 export const GamesRoute = {
   id: Modules.GAMES,
@@ -15,9 +15,16 @@ export const GamesRoute = {
       Component: Home,
     },
     {
-      id: "GAMES_SUDOKU",
-      path: "/sudoku",
-      Component: Sudoku,
+      id: "GAME_PAGE",
+      path: "/:game",
+      Component: Game,
+      childRoutes: [
+        {
+          id: "GAME_PAGE_DETAILS",
+          path: "/:id",
+          Component: Game,
+        },
+      ],
     },
   ],
 };
