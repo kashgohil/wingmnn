@@ -19,7 +19,7 @@ if (window) {
   window.addEventListener("replaceState", update);
   window.addEventListener("hashchange", update);
 
-  window.onunload = () => {
+  window.onbeforeunload = () => {
     window.removeEventListener("popstate", update);
     window.removeEventListener("pushState", update);
     window.removeEventListener("replaceState", update);
@@ -28,7 +28,8 @@ if (window) {
 }
 
 function getSnapshot() {
-  return window.location.pathname;
+  return window.location.pathname + window.location.search;
 }
 
-export const useLocationChangeDetection = () => React.useSyncExternalStore(subscribe, getSnapshot)
+export const useLocationChangeDetection = () =>
+  React.useSyncExternalStore(subscribe, getSnapshot);
