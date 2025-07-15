@@ -6,6 +6,9 @@ import tsConfigPaths from "vite-tsconfig-paths";
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    STATIC_URL: JSON.stringify("https://static.wingmnn.com"),
+  },
   server: {
     proxy: {
       "/api": {
