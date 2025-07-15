@@ -9,7 +9,7 @@ import {
 } from "@wingmnn/components";
 import { Link } from "@wingmnn/router";
 import { map, reduceObj } from "@wingmnn/utils";
-import { playMouseClickSound } from "@wingmnn/utils/interactivity";
+import { playClickSound } from "@wingmnn/utils/interactivity";
 import { motion } from "motion/react";
 import React from "react";
 import { type ModuleConfig, ModulesConfig } from "./config";
@@ -48,7 +48,7 @@ export function Navigation(props: { activeModule: Modules }) {
       <div className="mx-auto flex items-center justify-center py-2">
         <Link
           to={BaseRoutes[Modules.HOME]}
-          onClick={playMouseClickSound}
+          onClick={playClickSound}
           className="focus-within:outline-2 focus-within:outline-offset-6 focus-within:outline-accent transition-all duration-100 focus-within:rounded-lg"
         >
           <Wingmnn
@@ -94,7 +94,6 @@ function Module(props: { module: ModuleConfig; isActive: boolean }) {
       key={id}
       to={route}
       tabIndex={-1}
-      onClick={playMouseClickSound}
       style={
         {
           "--accent": accent,

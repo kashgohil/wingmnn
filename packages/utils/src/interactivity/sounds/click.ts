@@ -7,7 +7,7 @@ const audioCtx = new (window.AudioContext ||
  * This version simulates a more mechanical keyboard-like click
  * with both a "down" and subtle "up" component
  */
-export function playMouseClickSound(): void {
+export function playClickSound(): void {
   if (audioCtx.state === "suspended") {
     audioCtx.resume();
   }
@@ -99,4 +99,12 @@ export function playMouseClickSound(): void {
 
   // Stop components
   resonance.stop(now + 0.1);
+}
+
+export function withClickSound<T extends (...args: any) => void>(fn?: T) {
+  return function (...args: Parameters<T>) {
+    playClickSound();
+    const result = fn?.(...args);
+    return result;
+  };
 }

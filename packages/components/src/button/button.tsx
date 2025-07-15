@@ -1,5 +1,6 @@
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
+import { withClickSound } from "@wingmnn/utils/interactivity";
 
 export interface ButtonProps
   extends React.DetailedHTMLProps<
@@ -8,6 +9,7 @@ export interface ButtonProps
   > {
   variant?: "primary" | "secondary";
   size?: "sm" | "md" | "lg";
+  noSound?: boolean;
 }
 
 const variantClasses = classVariance({
@@ -25,13 +27,16 @@ export function Button(props: ButtonProps) {
     children,
     className,
     size = "md",
+    onClick,
     variant = "primary",
+    noSound = false,
     ...rest
   } = props;
 
   return (
     <button
       {...rest}
+      onClick={noSound ? onClick : withClickSound(onClick)}
       className={cx(
         "rounded-lg active:translate-y-0.5 transition-all duration-200 cursor-pointer focus-within:outline-2 outline-offset-2",
         variantClasses(variant, size),

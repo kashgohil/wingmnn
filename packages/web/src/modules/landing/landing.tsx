@@ -18,7 +18,6 @@ import {
 } from "@wingmnn/components";
 import { mapObj, noop, reduce } from "@wingmnn/utils";
 import { useBoolean } from "@wingmnn/utils/hooks";
-import { playMouseClickSound } from "@wingmnn/utils/interactivity";
 import { ArrowRight } from "lucide-react";
 import { LandingFields } from "./fields";
 
@@ -142,7 +141,6 @@ function LandingForm() {
               <Button
                 size="sm"
                 type="submit"
-                onMouseDown={playMouseClickSound}
                 className="w-full flex items-center justify-center space-x-4"
               >
                 <Google size={16} />
@@ -158,7 +156,6 @@ function LandingForm() {
               <Button
                 size="sm"
                 type="submit"
-                onMouseDown={playMouseClickSound}
                 className="w-full flex items-center justify-center space-x-4"
               >
                 <Github size={16} />
