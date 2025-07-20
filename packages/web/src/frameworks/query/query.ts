@@ -81,84 +81,91 @@ const SANE_DEFAULT: Partial<Params<TSAny, TSAny, TSAny>> = {
 };
 
 export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
-  #cache: Cache;
-  #batch: Batch;
+  private cache: Cache;
+  private batch: Batch;
 
-  #params: Params<T, K, S> = SANE_DEFAULT as Params<T, K, S>;
-  #subscriber: () => void = noop;
-  #executor: (key: QueryParams<K>) => Promise<T | null> = () =>
+  private params: Params<T, K, S> = SANE_DEFAULT as Params<T, K, S>;
+  private subscriber: () => void = noop;
+  private executor: (key: QueryParams<K>) => Promise<T | null> = () =>
     Promise.resolve(null);
 
-  #error: Error | null = null;
-  #result: S | null = null;
+  private _error: Error | null = null;
+  private _result: S | null = null;
 
-  #poll: Map<string, () => void> = new Map();
+  private poll: Map<string, () => void> = new Map();
 
   initial: boolean = true;
   refetching: boolean = false;
   status: "idle" | "fetching" | "error" | "success" | "mutating" = "idle";
 
-  #polling = () => {
-    const key = serializeKey(this.#params.key);
+  private polling = () => {
+    const key = serializeKey(this.params.key);
     if (
-      this.#params.enabled &&
-      this.#params.polling?.enabled &&
-      !this.#poll.has(key)
+      this.params.enabled &&
+      this.params.polling?.enabled &&
+      !this.poll.has(key)
     ) {
       const clear = Poll.poll(
-        this.#executor,
-        this.#params.polling.interval,
-        this.#params.key,
+        this.executor,
+        this.params.polling.interval,
+        this.params.key,
       );
-      this.#poll.set(key, clear);
+      this.poll.set(key, clear);
     }
   };
 
-  #query = async (key: QueryParams<K>) => {
-    if (this.#cache.has(serializeKey(key))) {
-      this.#result = this.#cache.get(serializeKey(key)) as S;
+  private query = async (key: QueryParams<K>) => {
+    if (this.cache.has(serializeKey(key))) {
+      this._result = this.cache.get(serializeKey(key)) as S;
       return null;
     }
 
     this.status = "fetching";
-    if (this.status !== "fetching") this.#subscriber();
+    if (this.status !== "fetching") this.subscriber();
 
-    const { result, error } = await tryCatchAsync(this.#params.queryFn!(key));
+    const { result, error } = await tryCatchAsync(this.params.queryFn!(key));
 
     if (error) {
       this.status = "error";
-      this.#params.onReject?.(error);
+      this._error = error;
+      this.params.onReject?.(error);
     }
 
     if (result) {
-      this.#result = this.#params.selector?.(result) ?? (result as S);
+      this._result = this.params.selector?.(result) ?? (result as S);
       this.status = "success";
-      this.#cache.set(serializeKey(key), this.#result, {
-        cacheTime: this.#params.staleTime!,
+      this.cache.set(serializeKey(key), this._result, {
+        cacheTime: this.params.staleTime!,
       });
-      this.#params.onResolve?.(result);
+      this.params.onResolve?.(result);
     }
 
-    this.#params.onSettled?.(result, error);
+    this.params.onSettled?.(result, error);
 
-    this.#subscriber();
+    this.subscriber();
 
     this.initial = false;
     this.refetching = false;
 
-    return this.#result;
+    return this._result;
   };
 
-  #init = (params: Partial<Params<T, K, S>>, subscriber: () => void = noop) => {
-    this.#params = merge(SANE_DEFAULT, params) as Params<T, K, S>;
-    this.#subscriber = subscriber;
-    this.#executor = this.#batch.batch<S | null, QueryParams<K>>(this.#query);
+  private init = (
+    params: Partial<Params<T, K, S>>,
+    subscriber: () => void = noop,
+  ) => {
+    this.params = merge(SANE_DEFAULT, params) as Params<T, K, S>;
+    this.subscriber = subscriber;
 
-    if (this.#params.enabled) {
-      this.#executor.call(null, this.#params.key);
+    if (this.params.queryFn) {
+      this.executor = this.batch.batch<S | null, QueryParams<K>>(this.query);
+
+      if (this.params.enabled) {
+        this.executor.call(null, this.params.key);
+      }
+
+      this.polling();
     }
-
-    this.#polling();
   };
 
   constructor(
@@ -167,95 +174,95 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
     params: Params<T, K, S>,
     subscriber: () => void = noop,
   ) {
-    this.#cache = cache;
-    this.#batch = batch;
-    this.#init(params, subscriber);
+    this.cache = cache;
+    this.batch = batch;
+    this.init(params, subscriber);
   }
 
   updateParams = (params: Params<T, K, S>) => {
-    if (serializeKey(this.#params.key) !== serializeKey(params.key)) {
-      this.#init(params, this.#subscriber);
-    } else if (!!this.#params.enabled !== !!params.enabled) {
-      this.#init(params, this.#subscriber);
+    if (serializeKey(this.params.key) !== serializeKey(params.key)) {
+      this.init(params, this.subscriber);
+    } else if (!!this.params.enabled !== !!params.enabled) {
+      this.init(params, this.subscriber);
     } else {
-      this.#params = params;
+      this.params = params;
     }
   };
 
   refetch = async () => {
     this.refetching = true;
     this.status = "fetching";
-    this.#subscriber();
+    this.subscriber();
 
     const { result, error } = await tryCatchAsync(
-      this.#executor(this.#params.key),
+      this.executor(this.params.key),
     );
 
     if (error) {
-      this.#error = error;
+      this._error = error;
       this.status = "error";
-      this.#params.onReject?.(error);
+      this.params.onReject?.(error);
     }
 
     if (result) {
-      this.#result = this.#params.selector?.(result) ?? (result as S);
+      this._result = this.params.selector?.(result) ?? (result as S);
       this.status = "success";
-      this.#cache.set(this.#params.key.primaryKey, result, {
-        cacheTime: this.#params.staleTime!,
+      this.cache.set(this.params.key.primaryKey, result, {
+        cacheTime: this.params.staleTime!,
       });
-      this.#params.onResolve?.(result);
+      this.params.onResolve?.(result);
     }
 
-    this.#subscriber();
+    this.subscriber();
     this.initial = false;
     this.refetching = false;
   };
 
   mutate = async (...args: MArgs) => {
-    const key = serializeKey(this.#params.key);
-    const previousValue = this.#cache.get(key);
+    const key = serializeKey(this.params.key);
+    const previousValue = this.cache.get(key);
 
     this.status = "mutating";
-    this.#subscriber();
+    this.subscriber();
 
-    if (this.#params.onMutate) {
-      const updatedValue = this.#params.onMutate(...args);
-      this.#cache.set(key, updatedValue);
+    if (this.params.onMutate) {
+      const updatedValue = this.params.onMutate(...args);
+      this.cache.set(key, updatedValue);
     }
 
     const { result, error } = await tryCatchAsync(
-      this.#params.mutationFn!(...args),
+      this.params.mutationFn!(...args),
     );
 
     if (error) {
-      this.#error = error;
+      this._error = error;
       this.status = "error";
-      this.#params.onReject?.(error);
-      this.#cache.set(key, previousValue);
+      this.params.onReject?.(error);
+      this.cache.set(key, previousValue);
     }
 
     if (result) {
-      this.#result = this.#params.selector?.(result) ?? (result as S);
+      this._result = this.params.selector?.(result) ?? (result as S);
       this.status = "success";
-      this.#cache.set(this.#params.key.primaryKey, result, {
-        cacheTime: this.#params.staleTime!,
+      this.cache.set(this.params.key.primaryKey, result, {
+        cacheTime: this.params.staleTime!,
       });
-      this.#params.onResolve?.(result);
+      this.params.onResolve?.(result);
     }
 
-    this.#subscriber();
+    this.subscriber();
   };
 
   get error() {
-    return this.#error;
+    return this._error;
   }
 
   get result() {
-    return this.#result;
+    return this._result;
   }
 
   destroy() {
-    this.#subscriber = () => {};
-    this.#poll.forEach((clear) => clear());
+    this.subscriber = () => {};
+    this.poll.forEach((clear) => clear());
   }
 }
