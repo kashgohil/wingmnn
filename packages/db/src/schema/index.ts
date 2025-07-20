@@ -1,3 +1,4 @@
+import { sudokuRelations, sudokuTable } from "./games/sudoku";
 import { mailsTable } from "./mails";
 import {
   projectsRelations,
@@ -33,6 +34,7 @@ export const schema = {
   workflowsTable,
   workflowStatusTable,
   mailsTable,
+  sudokuTable,
 };
 
 export const schemaRelations = {
@@ -43,4 +45,5 @@ export const schemaRelations = {
   taskRelationsRelations,
   taskCommentsRelations,
   taskHistoryRelations,
+  sudokuRelations,
 };
