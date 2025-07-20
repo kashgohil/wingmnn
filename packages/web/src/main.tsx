@@ -6,6 +6,7 @@ import { QueryClient } from "@frameworks/query/context";
 import { AuthRouter } from "@routes/authRouter";
 import { ROUTES_CONFIG } from "@routes/config";
 import { Cookie } from "@utility/browser";
+import { ToastProvider } from "@wingmnn/components";
 import { RouterProvider } from "@wingmnn/router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -24,11 +25,13 @@ const queryClient = QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryProvider value={queryClient}>
-      <RouterProvider config={ROUTES_CONFIG}>
-        <AuthRouter />
-      </RouterProvider>
-      <Vitals />
-    </QueryProvider>
+    <ToastProvider>
+      <QueryProvider value={queryClient}>
+        <RouterProvider config={ROUTES_CONFIG}>
+          <AuthRouter />
+        </RouterProvider>
+        <Vitals />
+      </QueryProvider>
+    </ToastProvider>
   </StrictMode>,
 );
