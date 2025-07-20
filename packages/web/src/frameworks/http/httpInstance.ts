@@ -2,7 +2,9 @@ import { Cookie } from "@utility/browser";
 import { httpService } from "@wingmnn/http";
 import { RouterUtils } from "@wingmnn/router";
 
-export function responseInterceptor(response: Response) {
+export async function responseInterceptor(response: Response) {
+  const res = await response.json();
+
   // Handle response data or errors
   if (response.status === 401) {
     // Handle unauthorized error
@@ -14,18 +16,25 @@ export function responseInterceptor(response: Response) {
       if (window.location.pathname === "") RouterUtils.reload();
       RouterUtils.goTo("/");
     }, 2000);
+    throw new Error(res.message || "Unauthorized");
   }
   if (response.status === 403) {
-    // Handle forbidden error
+    throw new Error(res.message || "Forbidden");
   }
   if (response.status === 404) {
-    // Handle not found error
-  }
-  if (response.status >= 500) {
-    // Handle server error
+    throw new Error(res.message || "Not Found");
   }
 
-  return response.json();
+  if (response.status === 400) {
+    console.log(response, res);
+    throw new Error(res.message || "Invalid Request");
+  }
+
+  if (response.status >= 500) {
+    throw new Error(res.message || "Internal Server Error");
+  }
+
+  return res;
 }
 
 export function requestInterceptor(request: Request) {
