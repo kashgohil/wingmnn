@@ -1,4 +1,4 @@
-import { Button } from "@wingmnn/components";
+import { Button, Typography } from "@wingmnn/components";
 import React from "react";
 
 interface Props {
@@ -42,12 +42,14 @@ export class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="h-full w-full flex flex-col items-center justify-center space-y-2 bg-black-100 rounded-lg">
-          <p className="text-center text-2xl">Hmmm. Something went wrong.</p>
-          <p className="text-center">
+        <div className="h-full w-full flex flex-col items-center justify-center gap-2 bg-black-100 rounded-lg">
+          <Typography.H2 className="text-center font-spicy-rice">
+            Hmmm. Something went wrong.
+          </Typography.H2>
+          <Typography.Paragraph className="text-center">
             looks like a bug. Hit the report button and let us know what
             happened.
-          </p>
+          </Typography.Paragraph>
           <Button size="sm">Report it</Button>
         </div>
       );
