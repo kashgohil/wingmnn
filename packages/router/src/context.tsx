@@ -6,7 +6,7 @@ interface RouterContextProps {
   config: RouterConfig;
 }
 
-export const RouterContext = React.createContext<RouterContextProps>({
+const RouterContext = React.createContext<RouterContextProps>({
   config: [],
 });
 
