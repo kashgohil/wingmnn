@@ -56,11 +56,28 @@ export function Input<T extends string | number = string>(
     variant = "normal",
     adornments,
     wrapperClassName,
+    min,
+    max,
+    type,
     ...rest
   } = props;
 
   const changeHandler = React.useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
+      if (
+        min !== undefined &&
+        type === "number" &&
+        Number(e.target.value) < Number(min)
+      ) {
+        e.target.value = min.toString();
+      }
+      if (
+        max !== undefined &&
+        type === "number" &&
+        Number(e.target.value) > Number(min)
+      ) {
+        e.target.value = max.toString();
+      }
       onChange(e.target.value as InferredType<T, string | number>, e);
     },
     [onChange],
@@ -82,6 +99,8 @@ export function Input<T extends string | number = string>(
       ) : null}
       <input
         {...rest}
+        min={min}
+        max={max}
         disabled={disabled}
         onChange={changeHandler}
         className={cx(
