@@ -1,7 +1,12 @@
 import { projects } from "@projects/router";
 import { ProjectService } from "@projects/service/projectService";
-import { ErrorWrapper, ResponseWrapper } from "@types";
-import { Workflow, NewWorkflow, WorkflowStatus, NewWorkflowStatus } from "@wingmnn/db";
+import {
+  NewWorkflow,
+  NewWorkflowStatus,
+  Workflow,
+  WorkflowStatus,
+} from "@wingmnn/db";
+import { ErrorWrapper, ResponseWrapper } from "@wingmnn/types";
 import { tryCatchAsync } from "@wingmnn/utils";
 
 const projectService = new ProjectService();
@@ -22,21 +27,27 @@ projects.post("/workflows/create", async (c) => {
   };
 
   const { result: workflow, error } = await tryCatchAsync<Workflow>(
-    projectService.createWorkflow(workflowData)
+    projectService.createWorkflow(workflowData),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOW_CREATE_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOW_CREATE_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
-  return c.json<ResponseWrapper<Workflow>>({
-    data: workflow,
-  }, 201);
+  return c.json<ResponseWrapper<Workflow>>(
+    {
+      data: workflow,
+    },
+    201,
+  );
 });
 
 // Get workflow by ID
@@ -45,16 +56,19 @@ projects.get("/workflows/get/:workflowId", async (c) => {
   const { id: userId } = c.get("user");
 
   const { result: workflow, error } = await tryCatchAsync<Workflow>(
-    projectService.getWorkflow(workflowId)
+    projectService.getWorkflow(workflowId),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOW_GET_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOW_GET_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
   return c.json<ResponseWrapper<Workflow>>({
@@ -75,23 +89,26 @@ projects.put("/workflows/update/:workflowId", async (c) => {
   };
 
   // Remove undefined values
-  Object.keys(updateData).forEach(key => {
+  Object.keys(updateData).forEach((key) => {
     if (updateData[key as keyof typeof updateData] === undefined) {
       delete updateData[key as keyof typeof updateData];
     }
   });
 
   const { result: workflow, error } = await tryCatchAsync<Workflow>(
-    projectService.updateWorkflow(workflowId, updateData, userId)
+    projectService.updateWorkflow(workflowId, updateData, userId),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOW_UPDATE_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOW_UPDATE_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
   return c.json<ResponseWrapper<Workflow>>({
@@ -105,16 +122,19 @@ projects.delete("/workflows/delete/:workflowId", async (c) => {
   const { id: userId } = c.get("user");
 
   const { result, error } = await tryCatchAsync(
-    projectService.deleteWorkflow(workflowId, userId)
+    projectService.deleteWorkflow(workflowId, userId),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOW_DELETE_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOW_DELETE_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
   return c.json<ResponseWrapper<typeof result>>({
@@ -128,16 +148,19 @@ projects.get("/workflows/project/:projectId", async (c) => {
   const { id: userId } = c.get("user");
 
   const { result: workflows, error } = await tryCatchAsync<Workflow[]>(
-    projectService.getWorkflowsByProject(projectId)
+    projectService.getWorkflowsByProject(projectId),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOWS_GET_BY_PROJECT_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOWS_GET_BY_PROJECT_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
   return c.json<ResponseWrapper<Workflow[]>>({
@@ -150,36 +173,43 @@ projects.post("/workflows/statuses/create", async (c) => {
   const { id: userId } = c.get("user");
   const body = await c.req.json();
 
-  const statusData: Omit<NewWorkflowStatus, "id" | "createdAt" | "updatedAt"> = {
-    name: body.name,
-    description: body.description,
-    type: body.type,
-    color: body.color || "#6b7280",
-    order: body.order,
-    workflowId: body.workflowId,
-    isInitial: body.isInitial || false,
-    isFinal: body.isFinal || false,
-    createdBy: userId,
-    updatedBy: userId,
-    deleted: false,
-  };
+  const statusData: Omit<NewWorkflowStatus, "id" | "createdAt" | "updatedAt"> =
+    {
+      name: body.name,
+      description: body.description,
+      type: body.type,
+      color: body.color || "#6b7280",
+      order: body.order,
+      workflowId: body.workflowId,
+      isInitial: body.isInitial || false,
+      isFinal: body.isFinal || false,
+      createdBy: userId,
+      updatedBy: userId,
+      deleted: false,
+    };
 
   const { result: status, error } = await tryCatchAsync<WorkflowStatus>(
-    projectService.createWorkflowStatus(statusData)
+    projectService.createWorkflowStatus(statusData),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOW_STATUS_CREATE_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOW_STATUS_CREATE_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
-  return c.json<ResponseWrapper<WorkflowStatus>>({
-    data: status,
-  }, 201);
+  return c.json<ResponseWrapper<WorkflowStatus>>(
+    {
+      data: status,
+    },
+    201,
+  );
 });
 
 // Get workflow status by ID
@@ -188,16 +218,19 @@ projects.get("/workflows/statuses/get/:statusId", async (c) => {
   const { id: userId } = c.get("user");
 
   const { result: status, error } = await tryCatchAsync<WorkflowStatus>(
-    projectService.getWorkflowStatus(statusId)
+    projectService.getWorkflowStatus(statusId),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOW_STATUS_GET_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOW_STATUS_GET_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
   return c.json<ResponseWrapper<WorkflowStatus>>({
@@ -222,23 +255,26 @@ projects.put("/workflows/statuses/update/:statusId", async (c) => {
   };
 
   // Remove undefined values
-  Object.keys(updateData).forEach(key => {
+  Object.keys(updateData).forEach((key) => {
     if (updateData[key as keyof typeof updateData] === undefined) {
       delete updateData[key as keyof typeof updateData];
     }
   });
 
   const { result: status, error } = await tryCatchAsync<WorkflowStatus>(
-    projectService.updateWorkflowStatus(statusId, updateData, userId)
+    projectService.updateWorkflowStatus(statusId, updateData, userId),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOW_STATUS_UPDATE_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOW_STATUS_UPDATE_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
   return c.json<ResponseWrapper<WorkflowStatus>>({
@@ -252,16 +288,19 @@ projects.delete("/workflows/statuses/delete/:statusId", async (c) => {
   const { id: userId } = c.get("user");
 
   const { result, error } = await tryCatchAsync(
-    projectService.deleteWorkflowStatus(statusId, userId)
+    projectService.deleteWorkflowStatus(statusId, userId),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOW_STATUS_DELETE_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOW_STATUS_DELETE_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
   return c.json<ResponseWrapper<typeof result>>({
@@ -275,16 +314,19 @@ projects.get("/workflows/statuses/workflow/:workflowId", async (c) => {
   const { id: userId } = c.get("user");
 
   const { result: statuses, error } = await tryCatchAsync<WorkflowStatus[]>(
-    projectService.getStatusesByWorkflow(workflowId)
+    projectService.getStatusesByWorkflow(workflowId),
   );
 
   if (error) {
-    return c.json<ErrorWrapper>({
-      error: {
-        message: error.message,
-        code: "WORKFLOW_STATUSES_GET_BY_WORKFLOW_ERROR",
+    return c.json<ErrorWrapper>(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOW_STATUSES_GET_BY_WORKFLOW_ERROR",
+        },
       },
-    }, 400);
+      400,
+    );
   }
 
   return c.json<ResponseWrapper<WorkflowStatus[]>>({

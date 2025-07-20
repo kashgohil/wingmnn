@@ -1,6 +1,6 @@
 import { projects } from "@projects/router";
 import { ProjectService } from "@projects/service/projectService";
-import { ErrorWrapper, ResponseWrapper } from "@types";
+import { ErrorWrapper, ResponseWrapper } from "@wingmnn/types";
 import { tryCatchAsync } from "@wingmnn/utils";
 
 const projectService = new ProjectService();

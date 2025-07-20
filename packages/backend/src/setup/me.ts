@@ -1,6 +1,6 @@
 import { setup } from "@setup/router";
-import { ResponseWrapper } from "@types";
 import { User } from "@wingmnn/db";
+import { ResponseWrapper } from "@wingmnn/types";
 import { tryCatchAsync } from "@wingmnn/utils";
 import { userQuery } from "src/users/utils";
 

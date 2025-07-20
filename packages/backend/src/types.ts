@@ -7,13 +7,3 @@ export type AuthenticateEnv = {
     };
   };
 };
-
-export type ResponseWrapper<T> = {
-  data: T;
-  count?: number;
-};
-
-export type ErrorWrapper = {
-  message: string;
-  code?: string;
-};
