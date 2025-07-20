@@ -9,3 +9,9 @@ export interface Option {
 }
 
 export type InferredType<T, AllowedTypes> = T extends AllowedTypes ? T : never;
+
+export interface BaseDetails<T extends string> {
+  id: T;
+  name: string;
+  description: string;
+}

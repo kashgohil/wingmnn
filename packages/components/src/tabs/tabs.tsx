@@ -10,19 +10,20 @@ import { withSlideSound } from "@wingmnn/utils/interactivity";
 import { type LucideProps } from "lucide-react";
 import { motion } from "motion/react";
 import React, { type MouseEvent } from "react";
+import type { BaseDetails } from "../types";
 
-interface TabContext {
-  activeTab: string;
+interface TabContext<T = string> {
+  activeTab: T;
   floaterId: string;
-  onChange(tabId: string): void;
+  onChange(tabId: T): void;
   orientation: "horizontal" | "vertical";
 }
 
-export interface Tab extends BaseDetails {
+export interface Tab<T extends string> extends BaseDetails<T> {
   icon?: React.ComponentType<LucideProps>;
 }
 
-interface TabsProps
+interface TabsProps<T extends string>
   extends Omit<
     React.DetailedHTMLProps<
       React.HTMLAttributes<HTMLDivElement>,
@@ -30,13 +31,13 @@ interface TabsProps
     >,
     "onChange"
   > {
-  activeTab: string;
-  tabs: Array<Tab>;
+  activeTab: T;
+  tabs: Array<Tab<T>>;
   tabClassName?: string;
-  onChange(tabId: string): void;
+  onChange(tabId: T): void;
 }
 
-export interface TabPanelProps
+export interface TabPanelProps<T extends string>
   extends Omit<
     React.DetailedHTMLProps<
       React.HTMLAttributes<HTMLDivElement>,
@@ -44,17 +45,17 @@ export interface TabPanelProps
     >,
     "onChange"
   > {
-  activeTab: string;
-  onChange(tabId: string): void;
+  activeTab: T;
+  onChange(tabId: T): void;
   orientation?: "horizontal" | "vertical";
 }
 
-export interface TabProps
+export interface TabProps<T extends string>
   extends React.DetailedHTMLProps<
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     HTMLButtonElement
   > {
-  id: string;
+  id: T;
   tooltip?: React.ReactNode;
   icon?: React.ComponentType<LucideProps>;
 }
@@ -71,7 +72,7 @@ const variantClasses = classVariance({
   vertical: "flex flex-col",
 });
 
-export function TabPanel(props: TabPanelProps) {
+export function TabPanel<T extends string>(props: TabPanelProps<T>) {
   const {
     orientation = "horizontal",
     activeTab,
@@ -101,7 +102,7 @@ export function TabPanel(props: TabPanelProps) {
   );
 }
 
-export function Tab(props: TabProps) {
+export function TabComponent<T extends string>(props: TabProps<T>) {
   const { icon: Icon, tooltip, className, onClick, ...rest } = props;
 
   const { activeTab, onChange, orientation, floaterId } =
@@ -160,7 +161,7 @@ export function Tab(props: TabProps) {
   return tabContent();
 }
 
-export function Tabs(props: TabsProps) {
+export function Tabs<T extends string>(props: TabsProps<T>) {
   const { tabs, onChange, activeTab, tabClassName, ...rest } = props;
 
   return (
@@ -168,7 +169,7 @@ export function Tabs(props: TabsProps) {
       {tabs.map((tab) => {
         const { id, name, icon, description } = tab;
         return (
-          <Tab
+          <TabComponent
             tooltip={description}
             icon={icon}
             id={id}
@@ -177,7 +178,7 @@ export function Tabs(props: TabsProps) {
             onClick={() => onChange(id)}
           >
             {name}
-          </Tab>
+          </TabComponent>
         );
       })}
     </TabPanel>
