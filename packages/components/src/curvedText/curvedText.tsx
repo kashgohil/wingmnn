@@ -1,3 +1,4 @@
+import { cx } from "@utility/cx";
 import { uuid } from "@wingmnn/utils";
 import React from "react";
 
@@ -6,6 +7,7 @@ interface Props {
   fontFamily?: string;
   fontSize?: number;
   textColor?: string;
+  className?: string;
 }
 
 export function CurvedText(props: Props) {
@@ -14,6 +16,7 @@ export function CurvedText(props: Props) {
     fontFamily,
     fontSize = 24,
     textColor = "var(--color-white-300)",
+    className,
   } = props;
 
   const id = React.useMemo(() => uuid(), []);
@@ -21,7 +24,7 @@ export function CurvedText(props: Props) {
   return (
     <svg
       viewBox="0 0 130 50"
-      className="overflow-visible"
+      className={cx("overflow-visible", className)}
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
