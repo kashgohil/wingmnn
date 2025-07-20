@@ -182,7 +182,7 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
   updateParams = (params: Params<T, K, S>) => {
     if (serializeKey(this.params.key) !== serializeKey(params.key)) {
       this.init(params, this.subscriber);
-    } else if (!!this.params.enabled !== !!params.enabled) {
+    } else if (!!params.enabled && !!this.params.enabled !== !!params.enabled) {
       this.init(params, this.subscriber);
     } else {
       this.params = params;

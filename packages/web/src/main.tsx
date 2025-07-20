@@ -25,13 +25,13 @@ const queryClient = QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ToastProvider>
-      <QueryProvider value={queryClient}>
+    <QueryProvider value={queryClient}>
+      <ToastProvider>
         <RouterProvider config={ROUTES_CONFIG}>
           <AuthRouter />
         </RouterProvider>
         <Vitals />
-      </QueryProvider>
-    </ToastProvider>
+      </ToastProvider>
+    </QueryProvider>
   </StrictMode>,
 );
