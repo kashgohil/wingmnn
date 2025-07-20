@@ -6,7 +6,7 @@ import { useForm } from "@frameworks/forms/useForm";
 import { useAccentSetup } from "@hooks/useAccentSetup";
 import { Github } from "@icons/github";
 import { Google } from "@icons/google";
-import { ModulesConfig } from "@navigation/config";
+import { ModulesConfig, type ModulesConfigKey } from "@navigation/config";
 import {
   Button,
   CurvedText,
@@ -22,9 +22,11 @@ import { ArrowRight } from "lucide-react";
 import { LandingFields } from "./fields";
 
 export function Landing() {
-  const [module, setModule] = React.useState("");
+  const [module, setModule] = React.useState<ModulesConfigKey>();
 
   useAccentSetup(module);
+
+  const { name, description } = (module && ModulesConfig[module]) || {};
 
   return (
     <motion.div
@@ -76,18 +78,47 @@ export function Landing() {
             );
           })}
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <CurvedText
-            text="Wingmnn"
-            fontFamily="var(--font-spicy-rice)"
-            fontSize={20}
-            textColor="var(--accent)"
-          />
-
-          <div className="text-2xl text-accent/60 -translate-y-12 mb-4 text-center font-spicy-rice font-light">
-            your partner-in-crime
-          </div>
-          <LandingForm />
+        <div className="flex flex-col flex-1 h-full items-center justify-center gap-4">
+          <motion.div
+            layoutId="landing-header"
+            className={cx("flex flex-col items-center w-full")}
+          >
+            <div
+              className={cx(
+                "flex flex-col items-center",
+                module ? "w-1/6" : "w-1/2",
+              )}
+            >
+              <CurvedText
+                text="Wingmnn"
+                fontSize={36}
+                textColor="var(--accent)"
+                fontFamily="var(--font-spicy-rice)"
+              />
+              <Typography.Text
+                className={cx(
+                  "text-accent/60 mb-4 text-center font-spicy-rice font-light",
+                  module ? "text-xl" : "text-2xl",
+                )}
+              >
+                your partner-in-crime
+              </Typography.Text>
+            </div>
+            <LandingForm />
+          </motion.div>
+          <motion.div
+            className={cx(
+              "flex flex-col items-center justify-center",
+              module
+                ? "flex-1 border border-accent/20 m-8 rounded-lg w-1/2 overflow-hidden"
+                : "h-0",
+            )}
+          >
+            <Typography.H1 className="font-spicy-rice text-accent">
+              {name}
+            </Typography.H1>
+            <Typography.H4>{description}</Typography.H4>
+          </motion.div>
         </div>
       </div>
     </motion.div>
