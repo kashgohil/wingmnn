@@ -1,28 +1,25 @@
 import { http } from "@frameworks/http/httpInstance";
 import { Games } from "@games/constants";
+import type { ResponseWrapper } from "@wingmnn/types";
 
 export function GameService(game: Games) {
-  const path = `/api/games/${game}`;
+  const path = `/games/${game}`;
 
   return {
     get<T>(gameId: string) {
-      return http.get<T>(`${path}/${gameId}`);
+      return http.get<ResponseWrapper<T>>(`${path}/${gameId}`);
     },
 
     update<T>(gameId: string, payload: Partial<T>) {
-      return http.patch<T>(`${path}/${gameId}`, payload);
+      return http.patch<ResponseWrapper<T>>(`${path}/${gameId}`, payload);
     },
 
     delete<T>(gameId: string) {
-      return http.delete<T>(`${path}/${gameId}`);
+      return http.delete<ResponseWrapper<T>>(`${path}/${gameId}`);
     },
 
-    create<T>(payload: TSAny) {
-      return http.post<T>(path, payload);
-    },
-
-    set<T>(gameId: string, payload: TSAny) {
-      return http.put<T>(`${path}/${gameId}`, payload);
+    create<T, P = TSAny>(payload: P) {
+      return http.post<ResponseWrapper<T>>(path, payload);
     },
   };
 }
