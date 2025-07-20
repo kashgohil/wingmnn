@@ -1,13 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
 import { cx } from "@utility/cx";
 
-export interface Props
-  extends React.DetailedHTMLProps<
-    React.HTMLAttributes<HTMLDivElement>,
-    HTMLDivElement
-  > {
+export interface Props<T = HTMLDivElement>
+  extends React.DetailedHTMLProps<React.HTMLAttributes<T>, T> {
   as?: string;
 }
+
+type AnchorProps = React.DetailedHTMLProps<
+  React.AnchorHTMLAttributes<HTMLAnchorElement>,
+  HTMLAnchorElement
+>;
 
 function H1(props: Props) {
   const { children, className, ...rest } = props;
@@ -72,6 +74,15 @@ function Caption(props: Props) {
   );
 }
 
+function Anchor(props: AnchorProps) {
+  const { children, className, ...rest } = props;
+  return (
+    <a {...rest} className={cx(className)}>
+      {children}
+    </a>
+  );
+}
+
 export const Typography = {
   H1,
   H2,
@@ -80,4 +91,5 @@ export const Typography = {
   Text,
   Paragraph,
   Caption,
+  Anchor,
 };
