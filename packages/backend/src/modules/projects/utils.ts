@@ -38,7 +38,10 @@ async function getProject(
 ) {
   const { result, error } = await tryCatchAsync(
     db.query.projectsTable.findFirst({
-      where: eq(projectsTable[key], value),
+      where: and(
+        eq(projectsTable[key], value),
+        eq(projectsTable.deleted, false),
+      ),
       with: {
         projectLead: true,
       },
@@ -52,7 +55,10 @@ async function getProject(
 async function getProjectWithTasks(projectId: string) {
   const { result, error } = await tryCatchAsync(
     db.query.projectsTable.findFirst({
-      where: eq(projectsTable.id, projectId),
+      where: and(
+        eq(projectsTable.id, projectId),
+        eq(projectsTable.deleted, false),
+      ),
       with: {
         projectLead: true,
         tasks: {
@@ -81,6 +87,8 @@ async function searchProjects(filters: {
   offset?: number;
 }) {
   const conditions = [];
+
+  conditions.push(eq(projectsTable.deleted, false));
 
   if (filters.search) {
     conditions.push(
@@ -134,7 +142,9 @@ async function getProjectStats(projectId: string) {
       ) THEN 1 END`),
       })
       .from(tasksTable)
-      .where(eq(tasksTable.projectId, projectId)),
+      .where(
+        and(eq(tasksTable.projectId, projectId), eq(tasksTable.deleted, false)),
+      ),
   );
 
   if (error) throw error;
