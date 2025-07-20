@@ -26,7 +26,7 @@ export function Button(props: ButtonProps) {
   const {
     children,
     className,
-    size = "md",
+    size = "sm",
     onClick,
     variant = "primary",
     noSound = false,
