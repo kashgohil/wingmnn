@@ -1,7 +1,7 @@
-import { ErrorWrapper, ResponseWrapper } from "@types";
 import { users } from "@users/router";
 import { userQuery } from "@users/utils";
 import { eq, NewUser, User, usersTable } from "@wingmnn/db";
+import { ErrorWrapper, ResponseWrapper } from "@wingmnn/types";
 import { isEmpty, tryCatchAsync } from "@wingmnn/utils";
 
 users.get("/get/:userID", async (c) => {
