@@ -16,6 +16,7 @@ import type { CreateSudokuPayload, Difficulty } from "@wingmnn/types";
 import React from "react";
 import { GameError } from "../error";
 import { GameLoading } from "../loading";
+import { SudokuBoard } from "./sudokuBoard";
 
 interface SudokuProps {
   gameId: string;
@@ -31,11 +32,16 @@ export function Sudoku(props: SudokuProps) {
     [gameId],
   );
 
-  const { error, isLoading } = useQuery({
+  const {
+    error,
+    isLoading,
+    result: game,
+  } = useQuery({
     key: queryKey,
     queryFn: () => {
       return SudokuService.get(gameId);
     },
+    selector: (res) => res.data,
     enabled: !!gameId,
   });
 
@@ -51,7 +57,7 @@ export function Sudoku(props: SudokuProps) {
     return <Create />;
   }
 
-  return <div className="p-4 h-full w-full"></div>;
+  return <SudokuBoard game={game} />;
 }
 
 const DIFFICULTIES: Array<Tab<Difficulty>> = [
