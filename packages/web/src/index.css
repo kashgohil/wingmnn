@@ -533,7 +533,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground  selection:bg-accent/20 caret-accent;
   }
 
   input::-webkit-outer-spin-button,
