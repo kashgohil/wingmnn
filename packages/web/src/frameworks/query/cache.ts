@@ -86,9 +86,7 @@ export class Cache {
 
     this.#cache.set(key, newCacheValue);
 
-    if (!currentCacheValue) return value;
-
-    if (!deepEqual(currentCacheValue.value, newCacheValue.value)) {
+    if (!deepEqual(currentCacheValue?.value, newCacheValue.value)) {
       subscribers.forEach((fn) => fn(newCacheValue.value));
     }
 
