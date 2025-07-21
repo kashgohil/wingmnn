@@ -284,7 +284,10 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
   }
 
   get result() {
-    return this.cache.get(serializeKey(this.params.key), this.subscriber);
+    return (
+      this.cache.get<S>(serializeKey(this.params.key), this.subscriber) ||
+      this._result
+    );
   }
 
   destroy() {
