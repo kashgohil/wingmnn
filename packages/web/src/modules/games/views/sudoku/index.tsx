@@ -1,3 +1,4 @@
+import { LONG_STALE } from "@frameworks/query/constants";
 import { useMutation, useQuery } from "@frameworks/query/hook";
 import { Games } from "@games/constants";
 import { SudokuService } from "@games/services/sudokuService";
@@ -10,7 +11,6 @@ import {
   useToast,
   type Tab,
 } from "@wingmnn/components";
-import type { Sudoku } from "@wingmnn/db";
 import { RouterUtils } from "@wingmnn/router";
 import type { CreateSudokuPayload, Difficulty } from "@wingmnn/types";
 import React from "react";
@@ -41,11 +41,12 @@ export function Sudoku(props: SudokuProps) {
     queryFn: () => {
       return SudokuService.get(gameId);
     },
+    staleTime: LONG_STALE,
     selector: (res) => res.data,
     enabled: !!gameId,
   });
 
-  if (error) {
+  if (error || !game) {
     return <GameError game={Games.SUDOKU} />;
   }
 
@@ -81,7 +82,7 @@ function Create() {
     key: queryKey,
     staleTime: 0,
     mutationFn: () => {
-      return SudokuService.create<Sudoku, CreateSudokuPayload>({
+      return SudokuService.create<CreateSudokuPayload>({
         size,
         difficulty,
       });
@@ -94,7 +95,7 @@ function Create() {
       });
       RouterUtils.goTo(`/games/sudoku/${res.data.id}`);
     },
-    onReject(error) {
+    onReject: (error) => {
       toast({
         type: "error",
         title: "Uh Oh!!",
