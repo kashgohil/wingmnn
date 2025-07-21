@@ -1,5 +1,6 @@
 import { auth } from "@auth";
 import { authenticate } from "@auth/middleware";
+import { games } from "@games";
 import { mails } from "@mails";
 import { projects } from "@projects";
 import { setup } from "@setup";
@@ -34,6 +35,7 @@ protectedRoutes.route("/", users);
 protectedRoutes.route("/", mails);
 protectedRoutes.route("/", projects);
 protectedRoutes.route("/", setup);
+protectedRoutes.route("/", games);
 
 app.route("/", protectedRoutes);
 
