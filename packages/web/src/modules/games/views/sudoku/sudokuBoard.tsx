@@ -1,6 +1,6 @@
 import { useMutation } from "@frameworks/query/hook";
 import { SudokuService } from "@games/services/sudokuService";
-import { cx, Input } from "@wingmnn/components";
+import { cx, Input, Timer } from "@wingmnn/components";
 import type { Sudoku } from "@wingmnn/db";
 import { inRange } from "@wingmnn/utils";
 import React, { type KeyboardEvent } from "react";
@@ -75,6 +75,11 @@ export function SudokuBoard(props: { game: Sudoku }) {
       if (colIndex % 3 === 2 && inRange(colIndex, [0, 8]))
         classes += " border-r-1 border-r-accent";
 
+      if (rowIndex === 0 && colIndex === 0) classes += " rounded-tl-lg";
+      if (rowIndex === 0 && colIndex === 8) classes += " rounded-tr-lg";
+      if (rowIndex === 8 && colIndex === 0) classes += " rounded-bl-lg";
+      if (rowIndex === 8 && colIndex === 8) classes += " rounded-br-lg";
+
       if (!selectedCell) return classes;
 
       const [x, y] = [
@@ -85,14 +90,12 @@ export function SudokuBoard(props: { game: Sudoku }) {
       const inBlock =
         x <= rowIndex && rowIndex < x + 3 && y <= colIndex && colIndex < y + 3;
 
-      if (selectedCell[0] === rowIndex || selectedCell[1] === colIndex) {
-        if (inBlock) {
-          classes += " bg-accent/20";
-        } else {
-          classes += " bg-accent/10";
-        }
-      } else if (inBlock) {
-        classes += " bg-accent/10";
+      if (
+        selectedCell[0] === rowIndex ||
+        selectedCell[1] === colIndex ||
+        inBlock
+      ) {
+        classes += " bg-accent/20";
       } else {
         classes += " bg-black-100";
       }
@@ -137,12 +140,11 @@ export function SudokuBoard(props: { game: Sudoku }) {
     >
       <Input
         value={game.name}
-        variant="underlined"
         onChange={changeName}
-        className="text-center"
         placeholder="Name the game"
+        className="text-center text-3xl font-spicy-rice text-accent"
       />
-      <div className="flex flex-col border border-accent rounded-lg overflow-clip">
+      <div className="flex flex-col rounded-lg overflow-clip">
         {puzzle.map((row, rowIndex) => (
           <div key={rowIndex} className="flex">
             {row.map((cell, colIndex) => (
@@ -170,6 +172,7 @@ export function SudokuBoard(props: { game: Sudoku }) {
           </div>
         ))}
       </div>
+      <Timer format="mm:ss" className="text-4xl font-spicy-rice w-16" />
     </div>
   );
 }
