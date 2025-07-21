@@ -1,5 +1,5 @@
 import { MINUTE } from "@constants";
-import { merge, noop, tryCatchAsync } from "@wingmnn/utils";
+import { merge, noop, promiseDebounce, tryCatchAsync } from "@wingmnn/utils";
 import { Batch } from "./batching";
 import { Cache } from "./cache";
 import { Poll } from "./polling";
@@ -27,11 +27,11 @@ export interface Params<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
    *
    * NOTE: make sure function's reference remains same during the lifetime of the query.
    */
-  mutationFn?: (...params: MArgs) => Promise<T>;
+  mutationFn?: (key: QueryParams<K>, ...params: MArgs) => Promise<T>;
   /**
    * The function to use for the onMutate.
    */
-  onMutate?: (...args: MArgs) => S;
+  onMutate?: (key: QueryParams<K>, ...args: MArgs) => S;
   /**
    * The time to cache the query for. after this time, query will be refetched.
    */
@@ -51,11 +51,11 @@ export interface Params<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
   /**
    * The function to use for the onResolve.
    */
-  onResolve?(response: T): void;
+  onResolve?(response: S): void;
   /**
    * The function to use for the onSettled.
    */
-  onSettled?(response: T | null, error: Error | null): void;
+  onSettled?(response: S | null, error: Error | null): void;
   /**
    * The polling to use for the query.
    */
@@ -68,6 +68,19 @@ export interface Params<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
      * The enabled state of the polling.
      */
     enabled: boolean;
+  };
+  /**
+   * Debounce for mutation query
+   */
+  debounce?: {
+    /**
+     * Flag to check if debounce is enabled or not
+     */
+    enabled: boolean;
+    /**
+     * The debounce time to use for the mutation query.
+     */
+    debounceTime?: number;
   };
 }
 
@@ -88,6 +101,8 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
   private subscriber: () => void = noop;
   private executor: (key: QueryParams<K>) => Promise<T | null> = () =>
     Promise.resolve(null);
+  private mutation: (key: QueryParams<K>, ...args: MArgs) => Promise<T | null> =
+    () => Promise.resolve(null);
 
   private _error: Error | null = null;
   private _result: S | null = null;
@@ -115,9 +130,10 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
   };
 
   private query = async (key: QueryParams<K>) => {
-    if (this.cache.has(serializeKey(key))) {
-      this._result = this.cache.get(serializeKey(key)) as S;
-      return null;
+    const serializedKey = serializeKey(key);
+    if (this.cache.has(serializedKey)) {
+      this._result = this.cache.get(serializedKey) as S;
+      return this._result;
     }
 
     this.status = "fetching";
@@ -134,13 +150,13 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
     if (result) {
       this._result = this.params.selector?.(result) ?? (result as S);
       this.status = "success";
-      this.cache.set(serializeKey(key), this._result, {
+      this.cache.set(serializedKey, this._result, {
         cacheTime: this.params.staleTime!,
       });
-      this.params.onResolve?.(result);
+      this.params.onResolve?.(this._result);
     }
 
-    this.params.onSettled?.(result, error);
+    this.params.onSettled?.(this._result, this._error);
 
     this.subscriber();
 
@@ -166,6 +182,13 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
 
       this.polling();
     }
+
+    if (this.params.mutationFn && this.params.debounce) {
+      this.mutation = promiseDebounce<T>(
+        this.params.mutationFn,
+        this.params.debounce.debounceTime || 200,
+      );
+    }
   };
 
   constructor(
@@ -185,7 +208,7 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
     } else if (!!params.enabled && !!this.params.enabled !== !!params.enabled) {
       this.init(params, this.subscriber);
     } else {
-      this.params = params;
+      this.params = merge(this.params, params);
     }
   };
 
@@ -207,10 +230,10 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
     if (result) {
       this._result = this.params.selector?.(result) ?? (result as S);
       this.status = "success";
-      this.cache.set(this.params.key.primaryKey, result, {
+      this.cache.set(serializeKey(this.params.key), result, {
         cacheTime: this.params.staleTime!,
       });
-      this.params.onResolve?.(result);
+      this.params.onResolve?.(this._result);
     }
 
     this.subscriber();
@@ -226,28 +249,31 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
     this.subscriber();
 
     if (this.params.onMutate) {
-      const updatedValue = this.params.onMutate(...args);
-      this.cache.set(key, updatedValue);
+      const updatedValue = this.params.onMutate(this.params.key, ...args);
+      this.cache.set(key, updatedValue, {
+        cacheTime: this.params.staleTime!,
+      });
+      this.subscriber();
     }
 
     const { result, error } = await tryCatchAsync(
-      this.params.mutationFn!(...args),
+      this.mutation!(this.params.key, ...args),
     );
 
     if (error) {
       this._error = error;
       this.status = "error";
-      this.params.onReject?.(error);
+      this.params.onReject?.(this._error);
       this.cache.set(key, previousValue);
     }
 
     if (result) {
       this._result = this.params.selector?.(result) ?? (result as S);
       this.status = "success";
-      this.cache.set(this.params.key.primaryKey, result, {
+      this.cache.set(key, this._result, {
         cacheTime: this.params.staleTime!,
       });
-      this.params.onResolve?.(result);
+      this.params.onResolve?.(this._result);
     }
 
     this.subscriber();
@@ -258,7 +284,7 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
   }
 
   get result() {
-    return this._result;
+    return this.cache.get(serializeKey(this.params.key), this.subscriber);
   }
 
   destroy() {
