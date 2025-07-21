@@ -46,16 +46,16 @@ export function Sudoku(props: SudokuProps) {
     enabled: !!gameId,
   });
 
-  if (error || !game) {
-    return <GameError game={Games.SUDOKU} />;
-  }
-
   if (isLoading) {
     return <GameLoading game={Games.SUDOKU} />;
   }
 
   if (!gameId) {
     return <Create />;
+  }
+
+  if (error || !game) {
+    return <GameError game={Games.SUDOKU} />;
   }
 
   return <SudokuBoard game={game} />;
