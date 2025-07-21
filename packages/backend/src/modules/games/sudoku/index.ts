@@ -1,8 +1,7 @@
-import { zValidator } from "@hono/zod-validator";
 import { AuthenticateEnv } from "@types";
 import { DifficultyEnum, eq, Sudoku, sudokuTable } from "@wingmnn/db";
 import {
-  CreateSudokuSchema,
+  CreateSudokuPayload,
   ErrorWrapper,
   ResponseWrapper,
   SuccessWrapper,
@@ -31,11 +30,16 @@ sudoku.get("/:id", async (c) => {
       404,
     );
   }
+
+  return c.json<ResponseWrapper<Sudoku>>({
+    count: 1,
+    data: game,
+  });
 });
 
-sudoku.post("/", zValidator("json", CreateSudokuSchema), async (c) => {
+sudoku.post("/", async (c) => {
   const userId = c.var.user.id;
-  const { difficulty, size } = c.req.valid("json");
+  const { difficulty, size } = await c.req.json<CreateSudokuPayload>();
 
   const difficultyLevel = difficulty || DifficultyEnum.enumValues[0];
   const boardSize = size || 9;
