@@ -7,6 +7,7 @@ export * from "./src/forEach";
 export * from "./src/get";
 export * from "./src/identity";
 export * from "./src/includes";
+export * from "./src/inRange";
 export * from "./src/isEmpty";
 export * from "./src/isEqual";
 export * from "./src/isNil";
