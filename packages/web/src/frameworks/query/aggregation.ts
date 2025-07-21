@@ -1,4 +1,4 @@
-import { debounce, forEach } from "@wingmnn/utils";
+import { aggregatingDebounce, forEach } from "@wingmnn/utils";
 
 type WithID<T> = T & { id: string };
 
@@ -45,7 +45,7 @@ export class Aggregation {
   aggregate<T, K extends { id: string }>(params: Params<T, K>) {
     const { aggregationKey, executor, waitTime = 200 } = params;
 
-    const debouncedFn = debounce(
+    const debouncedFn = aggregatingDebounce(
       this.#trigger(aggregationKey, executor),
       waitTime,
     );
