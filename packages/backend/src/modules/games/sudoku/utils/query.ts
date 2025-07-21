@@ -21,10 +21,6 @@ async function getSudokuGame(
   const { result, error } = await tryCatchAsync(
     db.query.sudokuTable.findFirst({
       where: and(eq(sudokuTable[key], value), eq(sudokuTable.deleted, false)),
-      with: {
-        createdBy: true,
-        updatedBy: true,
-      },
     }),
   );
 
