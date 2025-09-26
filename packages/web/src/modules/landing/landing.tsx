@@ -109,9 +109,7 @@ export function Landing() {
           <motion.div
             className={cx(
               "flex flex-col items-center justify-center",
-              module
-                ? "flex-1 border border-accent/20 m-8 rounded-lg w-1/2 overflow-hidden"
-                : "h-0",
+              module ? "flex-1 m-8 rounded-lg w-1/2 overflow-hidden" : "h-0",
             )}
           >
             <Typography.H1 className="font-spicy-rice text-accent">
