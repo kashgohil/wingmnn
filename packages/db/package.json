@@ -5,6 +5,14 @@
   "exports": {
     ".": "./index.ts"
   },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:drop": "drizzle-kit drop",
+    "db:check": "drizzle-kit check"
+  },
   "dependencies": {
     "pg": "^8.15.6",
     "drizzle-orm": "^0.43.1",

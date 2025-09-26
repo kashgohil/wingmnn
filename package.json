@@ -8,7 +8,13 @@
     "dev:web": "bun run --filter=@wingmnn/web dev",
     "dev:server": "bun run --filter=@wingmnn/backend dev --elide-lines=0",
     "start:all": "sh start.sh",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:generate": "bun run --filter=@wingmnn/db db:generate",
+    "db:migrate": "bun run --filter=@wingmnn/db db:migrate",
+    "db:push": "bun run --filter=@wingmnn/db db:push",
+    "db:studio": "bun run --filter=@wingmnn/db db:studio",
+    "db:drop": "bun run --filter=@wingmnn/db db:drop",
+    "db:check": "bun run --filter=@wingmnn/db db:check"
   },
   "workspaces": {
     "packages": [
