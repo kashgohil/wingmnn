@@ -49,7 +49,7 @@ export function Navigation(props: { activeModule: Modules }) {
         <Link
           to={BaseRoutes[Modules.HOME]}
           onClick={playClickSound}
-          className="focus-within:outline-2 focus-within:outline-offset-6 focus-within:outline-accent transition-all duration-100 focus-within:rounded-lg"
+          className="focus-within:outline-2 focus-within:outline-offset-6 focus-within:outline-accent transition-all duration-100 focus-within:rounded"
         >
           <Wingmnn
             width={24}
