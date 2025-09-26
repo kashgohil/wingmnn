@@ -101,6 +101,10 @@ export class Store<T> {
     }
   }
 
+  /**
+   * @param key key that binds effect with the state
+   * @param effect effect you want to perform on a state change
+   */
   addEffect(key: keyof T, effect: (store: Store<T>) => void) {
     if (!this.effects[key]) {
       this.effects[key] = new Set();
@@ -108,12 +112,19 @@ export class Store<T> {
     this.effects[key].add(effect);
   }
 
+  /**
+   * @param key key that binds effect with the state
+   * @param effect effect function you want to remove (make sure the reference is same as the function you used in `addEffect`)
+   */
   removeEffect(key: keyof T, effect: (store: Store<T>) => void) {
     if (this.effects[key]) {
       this.effects[key].delete(effect);
     }
   }
 
+  /**
+   * @param key key that binds effect with the state
+   */
   runEffects(key: keyof T) {
     if (this.effects[key]) {
       this.effects[key].forEach((effect) => effect(this));
