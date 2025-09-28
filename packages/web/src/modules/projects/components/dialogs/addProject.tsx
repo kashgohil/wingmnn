@@ -10,6 +10,7 @@ import {
   Upload,
 } from "@wingmnn/components";
 import { noop } from "@wingmnn/utils";
+import { motion } from "motion/react";
 import React from "react";
 
 interface AddProjectProps {
@@ -35,7 +36,7 @@ export function AddProject(props: AddProjectProps) {
     <Dialog size="sm" open={open} onClose={onClose}>
       <DialogTitle onClose={onClose}>Add Project</DialogTitle>
       <DialogContent className="flex items-start h-full">
-        <div className="flex flex-col w-full space-y-3">
+        <motion.div className="flex flex-col w-full space-y-3">
           <Input
             size="sm"
             autoFocus
@@ -59,7 +60,7 @@ export function AddProject(props: AddProjectProps) {
             message="Project Image"
             onRemove={() => update({ image: undefined })}
           />
-        </div>
+        </motion.div>
       </DialogContent>
       <DialogActions className="justify-end space-x-2">
         <Button size="sm" variant="secondary" onClick={onClose}>
