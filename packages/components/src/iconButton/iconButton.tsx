@@ -24,6 +24,7 @@ export function IconButton(props: IconButtonProps) {
     return (
       <Button
         {...rest}
+        variant="icon"
         className={cx(
           "flex items-center justify-center rounded-full",
           className,
@@ -38,6 +39,7 @@ export function IconButton(props: IconButtonProps) {
     return (
       <Button
         {...rest}
+        variant="icon"
         className={cx("flex items-center justify-center rounded-lg", className)}
       >
         <Icon {...iconProps} />
@@ -49,6 +51,7 @@ export function IconButton(props: IconButtonProps) {
     return (
       <Button
         {...rest}
+        variant="icon"
         className={cx(
           "flex items-center justify-center rounded-none",
           className,

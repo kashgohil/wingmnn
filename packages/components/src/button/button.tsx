@@ -7,12 +7,13 @@ export interface ButtonProps
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     HTMLButtonElement
   > {
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "icon";
   size?: "sm" | "md" | "lg";
   noSound?: boolean;
 }
 
 const variantClasses = classVariance({
+  icon: "bg-transparent text-accent hover:bg-accent/10 focus-within:outline-accent",
   primary:
     "bg-accent text-[var(--accent-text)] hover:bg-accent/70 focus-within:outline-accent",
   secondary:

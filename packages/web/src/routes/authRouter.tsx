@@ -80,7 +80,7 @@ function Content() {
   function content() {
     if (!Component) {
       return (
-        <motion.div className="w-full h-full flex flex-col items-center justify-center space-y-2 text-white-500 bg-black-100">
+        <motion.div className="w-full h-full flex flex-col items-center justify-center space-y-2 text-white-500">
           <Typography.H2>You look lost</Typography.H2>
           <Typography.H4>
             Let's get you to where all the fun stuff is!!
@@ -111,7 +111,7 @@ function Content() {
           <Navigation activeModule={activeModule} key="NAVIGATION" />
         ) : null}
         <ErrorBoundary tree="AUTH_ROUTER">
-          <motion.div className="flex-1 overflow-hidden h-full bg-black-100 rounded-lg">
+          <motion.div className="flex-1 overflow-hidden h-full bg-accent/5 rounded-lg border border-accent/10">
             {content()}
           </motion.div>
         </ErrorBoundary>
