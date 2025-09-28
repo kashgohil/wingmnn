@@ -1,6 +1,6 @@
 import { ProjectDialog } from "@projects/constants";
 import { ProjectActions, useProjects } from "@projects/logic/useProjects";
-import { Button, Card } from "@wingmnn/components";
+import { Button, Card, Typography } from "@wingmnn/components";
 import { isEmpty, map } from "@wingmnn/utils";
 
 export function Home() {
@@ -8,10 +8,10 @@ export function Home() {
 
   if (isEmpty(projects)) {
     return (
-      <div className="h-full flex flex-col space-y-4 items-center justify-center">
-        <div className="text-center text-white-850 text-xl">
+      <div className="h-full flex flex-col gap-4 items-center justify-center">
+        <Typography.H2 className="font-semibold text-accent">
           You don't have any projects yet.
-        </div>
+        </Typography.H2>
         <Button
           size="sm"
           onClick={() =>
