@@ -1,3 +1,3 @@
-export function Notes() {
-  return <div>Howdy</div>;
+export function Notes({ children }: { children: React.ReactNode }) {
+  return <div className="flex flex-col h-full">{children}</div>;
 }
