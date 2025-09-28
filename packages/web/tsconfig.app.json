@@ -37,6 +37,8 @@
       "@projects/*": ["src/modules/projects/*"],
       "@quotes/*": ["src/quotes/*"],
       "@games/*": ["src/modules/games/*"],
+      "@notes/*": ["src/modules/notes/*"],
+      "@profile/*": ["src/modules/profile/*"],
       "@constants": ["src/constants.ts"],
       "@queryKeys": ["src/queryKeys.ts"],
       "@config": ["src/config.ts"],
