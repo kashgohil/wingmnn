@@ -89,7 +89,7 @@ export function Input<T extends string | number = string>(
   return (
     <div
       className={cx(
-        "flex items-center focus-within:outline-accent/40 focus-within:outline-2 focus-within:outline-offset-2 transition-all duration-200",
+        "flex items-center focus-within:outline-accent/80 focus-within:outline-2 focus-within:outline-offset-2 transition-all duration-200",
         wrapperVariantClasses(variant, size, disabled ? "disabled" : undefined),
         wrapperClassName,
       )}

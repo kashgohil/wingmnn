@@ -41,7 +41,7 @@ export const TextArea = (props: TextAreaProps) => {
       value={value}
       onChange={changeHandler}
       className={cx(
-        "rounded-lg bg-transparent px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent/40 focus-within:border-transparent transition-all duration-100 placeholder:!text-accent/40",
+        "rounded-lg bg-transparent px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent/80 focus-within:border-transparent transition-all duration-100 placeholder:!text-accent/40",
         variantClasses(variant, size),
         className,
       )}
