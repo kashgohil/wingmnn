@@ -2,6 +2,7 @@ import { Status } from "./constants";
 
 export interface Project extends BaseDetails, Metadata {
   image: string;
+  key: string;
 }
 
 export interface Task extends BaseDetails, Metadata {
