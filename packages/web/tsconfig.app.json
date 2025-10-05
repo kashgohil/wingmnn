@@ -42,6 +42,7 @@
       "@constants": ["src/constants.ts"],
       "@queryKeys": ["src/queryKeys.ts"],
       "@config": ["src/config.ts"],
+      "@assets/*": ["assets/*"],
       "@/*": ["src/*"]
     }
   },
