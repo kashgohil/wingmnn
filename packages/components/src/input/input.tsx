@@ -1,6 +1,7 @@
 import type { InferredType } from "@components/types";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
+import { useCombinedRefs } from "@wingmnn/utils/hooks";
 import React, { type ChangeEvent } from "react";
 
 export interface InputProps<T>
@@ -13,6 +14,7 @@ export interface InputProps<T>
   > {
   value?: InferredType<T, string | number>;
   size?: "sm" | "md" | "lg";
+  delayedFocus?: number;
   wrapperClassName?: string;
   variant?: "outlined" | "underlined" | "normal";
   adornments?: { start?: () => React.ReactNode; end?: () => React.ReactNode };
@@ -49,6 +51,9 @@ export function Input<T extends string | number = string>(
   props: InputProps<T>,
 ) {
   const {
+    ref,
+    autoFocus,
+    delayedFocus,
     className,
     disabled,
     onChange,
@@ -61,6 +66,10 @@ export function Input<T extends string | number = string>(
     type,
     ...rest
   } = props;
+
+  const focused = !!delayedFocus ? false : autoFocus;
+
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   const changeHandler = React.useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +92,16 @@ export function Input<T extends string | number = string>(
     [onChange],
   );
 
+  React.useEffect(() => {
+    if (delayedFocus) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, delayedFocus);
+    }
+  }, [delayedFocus]);
+
+  const combinedRef = useCombinedRefs(inputRef, ref);
+
   const start = adornments?.start?.();
   const end = adornments?.end?.();
 
@@ -101,6 +120,8 @@ export function Input<T extends string | number = string>(
         {...rest}
         min={min}
         max={max}
+        ref={combinedRef}
+        autoFocus={focused}
         disabled={disabled}
         onChange={changeHandler}
         className={cx(
