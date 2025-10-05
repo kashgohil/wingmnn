@@ -1,6 +1,12 @@
 type MapOf<T> = { [key in string]: T };
 type TSAny = any;
 
+interface BaseDetails {
+  id: string;
+  name: string;
+  description: string;
+}
+
 interface Metadata {
   createdBy: string;
   updatedBy: string;
