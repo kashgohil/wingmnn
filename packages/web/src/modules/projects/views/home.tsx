@@ -1,3 +1,4 @@
+import { Wingmnn } from "@icons/wingmnn";
 import { ProjectDialog } from "@projects/constants";
 import { ProjectActions, useProjects } from "@projects/logic/useProjects";
 import { Button, Card, Typography } from "@wingmnn/components";
@@ -8,10 +9,18 @@ export function Home() {
 
   if (isEmpty(projects)) {
     return (
-      <div className="h-full flex flex-col gap-4 items-center justify-center">
-        <Typography.H2 className="font-semibold text-accent">
-          You don't have any projects yet.
-        </Typography.H2>
+      <div className="h-full flex flex-col gap-8 items-center justify-center">
+        <div className="animate-pulse">
+          <Wingmnn height={240} className="animate-slow-spin text-accent" />
+        </div>
+        <div className="flex flex-col">
+          <Typography.H2 className="text-accent">
+            Nothing here yet.
+          </Typography.H2>
+          <Typography.Paragraph className="text-white-950">
+            Let's do some epic sh*t!
+          </Typography.Paragraph>
+        </div>
         <Button
           size="sm"
           onClick={() =>

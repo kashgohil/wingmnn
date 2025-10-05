@@ -25,7 +25,7 @@ function Attachment(props: AttachmentProps) {
 
   if (contentType.startsWith("image")) {
     return (
-      <div className="h-full w-full relative">
+      <div className="relative">
         <img
           alt={name}
           src={thumbnailUrl || url}
@@ -43,7 +43,7 @@ function Attachment(props: AttachmentProps) {
 
   if (contentType.startsWith("video")) {
     return (
-      <div className="h-full w-full relative">
+      <div className="relative">
         <video
           controls
           src={url}
@@ -61,7 +61,7 @@ function Attachment(props: AttachmentProps) {
 
   if (contentType.startsWith("audio")) {
     return (
-      <div className="h-full w-full relative">
+      <div className="relative">
         <audio
           controls
           src={url}
@@ -78,7 +78,7 @@ function Attachment(props: AttachmentProps) {
   }
 
   return (
-    <div className="h-full w-full relative flex flex-col items-center justify-center text-center">
+    <div className="relative flex flex-col items-center justify-center text-center">
       <div className="text-xl">{name}</div>
       <div className="text-white-950 text-sm">{description}</div>
       <IconButton
@@ -112,7 +112,7 @@ function File(props: FileProps) {
 
   if (type.startsWith("image")) {
     return (
-      <div className="h-full w-full relative">
+      <div className="relative">
         <motion.img
           src={url}
           alt={name}
@@ -132,7 +132,7 @@ function File(props: FileProps) {
 
   if (type.startsWith("video")) {
     return (
-      <div className="h-full w-full relative">
+      <div className="relative">
         <motion.video
           controls
           src={url}
@@ -152,7 +152,7 @@ function File(props: FileProps) {
 
   if (type.startsWith("audio")) {
     return (
-      <div className="h-full w-full relative">
+      <div className="relative">
         <motion.audio
           controls
           src={url}
@@ -171,7 +171,7 @@ function File(props: FileProps) {
   }
 
   return (
-    <motion.div className="h-full w-full relative flex flex-col items-center justify-center text-center flex-1">
+    <motion.div className="relative flex flex-col items-center justify-center text-center flex-1">
       <div className="text-xl">{name}</div>
       <div className="text-white-950 text-sm">{size} bytes</div>
 
