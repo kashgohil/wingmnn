@@ -12,7 +12,6 @@ import {
   Typography,
   Upload,
 } from "@wingmnn/components";
-import { PackageOpen } from "@wingmnn/components/icons";
 import { map, noop } from "@wingmnn/utils";
 import { AnimatePresence, motion } from "motion/react";
 import React from "react";
@@ -69,9 +68,23 @@ export function AddProject(props: AddProjectProps) {
   function title() {
     switch (step) {
       case "basic-details":
-        return "Tell me about this Project...";
+        return (
+          <div className="flex flex-col gap-1">
+            What do you want to call this Project?
+            <Typography.Caption className="text-white-950">
+              Give me details about the project.
+            </Typography.Caption>
+          </div>
+        );
       case "configuration":
-        return "Give it a bit of zing!";
+        return (
+          <div className="flex flex-col gap-1">
+            How do you want to manage this Project?
+            <Typography.Caption className="text-white-950">
+              Choose wisely. You cannot change your mind later.
+            </Typography.Caption>
+          </div>
+        );
     }
   }
 
@@ -167,7 +180,7 @@ export function AddProject(props: AddProjectProps) {
               <div
                 key={template.id}
                 tabIndex={0}
-                className="flex flex-col focus-within:outline-offset-2 focus-within:outline-2 focus-within:outline-accent focus-within:border-transparent transition-all justify-between rounded-lg border border-accent/50 cursor-pointer overflow-hidden"
+                className="flex flex-col focus-within:outline-offset-2 focus-within:outline-2 focus-within:outline-accent focus-within:border-transparent transition-all justify-between rounded-lg border border-accent/50 cursor-pointer overflow-hidden active:translate-y-1"
               >
                 <div
                   className="opacity-50 h-full bg-cover bg-center"
@@ -185,22 +198,6 @@ export function AddProject(props: AddProjectProps) {
                 </div>
               </div>
             ))}
-            <div
-              tabIndex={0}
-              className="flex flex-col justify-end focus-within:outline-offset-2 focus-within:outline-2 focus-within:outline-accent focus-within:border-transparent transition-all rounded-lg border border-dashed border-accent/50 cursor-pointer overflow-hidden"
-            >
-              <div className="relative flex-1 flex items-center justify-center bg-accent/5">
-                <PackageOpen size={32} className="absolute text-accent" />
-              </div>
-              <div className="p-4">
-                <Typography.H3 className="text-accent">
-                  Start fresh
-                </Typography.H3>
-                <Typography.Paragraph className="text-white-950">
-                  Make it your own
-                </Typography.Paragraph>
-              </div>
-            </div>
           </motion.div>
         );
     }
