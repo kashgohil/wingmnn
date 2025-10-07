@@ -227,7 +227,7 @@ export function Upload(props: UploadProps) {
       return (
         <div className="flex flex-col items-center justify-center h-full w-full">
           <Icon className="text-accent/80" />
-          <p className="text-accent/40 text-sm mt-2">{message}</p>
+          <p className="text-accent/40 mt-2">{message}</p>
           <input
             hidden
             type="file"
@@ -248,7 +248,7 @@ export function Upload(props: UploadProps) {
       onClick={() => inputRef.current?.click()}
       onKeyPress={click(() => inputRef.current?.click())}
       className={cx(
-        "flex flex-col items-center justify-center border border-dashed border-accent/40 w-full min-h-24 rounded-lg focus-within:outline-dashed focus-within:outline-2 focus-within:outline-accent/80 focus-within:outline-offset-2 focus-within:border-transparent transition-all duration-200 cursor-pointer relative p-3",
+        "flex flex-col items-center justify-center border border-dashed border-accent/40 w-full min-h-24 rounded-lg focus-within:outline-dashed focus-within:outline-2 focus-within:outline-accent/80 focus-within:outline-offset-2 focus-within:border-transparent transition-all duration-200 cursor-pointer relative p-4",
         className,
       )}
     >
