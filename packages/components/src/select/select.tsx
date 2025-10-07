@@ -6,7 +6,7 @@ import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { castArray, find, map, some, without } from "@wingmnn/utils";
 import { useBoolean } from "@wingmnn/utils/hooks";
-import { CrossIcon } from "lucide-react";
+import { X } from "lucide-react";
 import React from "react";
 
 interface BaseSelectProps
@@ -35,7 +35,7 @@ const variantClasses = classVariance({
   normal: "rounded-lg bg-black-200",
 });
 
-export function Select(props: SelectProps) {
+export function SelectWithOptions(props: SelectProps) {
   const {
     multi,
     className,
@@ -88,7 +88,12 @@ export function Select(props: SelectProps) {
         adornments={{
           ...props.adornments,
           end: () => (
-            <IconButton icon={CrossIcon} onClick={() => setKeyword("")} />
+            <IconButton
+              icon={X}
+              size="sm"
+              iconProps={{ size: 16 }}
+              onClick={() => setKeyword("")}
+            />
           ),
         }}
         className={cx(className, variantClasses(variant))}
