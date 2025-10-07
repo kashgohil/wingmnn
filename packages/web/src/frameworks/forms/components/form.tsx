@@ -4,7 +4,7 @@ import {
   cx,
   Input,
   Radio,
-  Select,
+  SelectWithOptions,
   Switch,
 } from "@wingmnn/components";
 import { map } from "@wingmnn/utils";
@@ -118,7 +118,7 @@ function SelectFieldRenderer(props: FieldComponentProps<SelectField>) {
   );
 
   return (
-    <Select
+    <SelectWithOptions
       multi={multi}
       value={value}
       variant="outlined"
