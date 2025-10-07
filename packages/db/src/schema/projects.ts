@@ -1,12 +1,5 @@
 import { relations } from "drizzle-orm";
-import {
-  boolean,
-  jsonb,
-  pgEnum,
-  pgTable,
-  text,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { jsonb, pgEnum, pgTable, text, varchar } from "drizzle-orm/pg-core";
 import { commonFields } from "../constants";
 import { tasksTable } from "./tasks";
 import { usersTable } from "./users";
@@ -47,7 +40,6 @@ export const projectsTable = pgTable("projects", {
 export const workflowsTable = pgTable("workflows", {
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  isDefault: boolean("is_default").default(false),
   order: jsonb("order").$type<string[]>().notNull().default([]),
   ...commonFields,
 });
