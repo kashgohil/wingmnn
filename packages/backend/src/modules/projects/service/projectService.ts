@@ -16,7 +16,7 @@ import {
   workflowStatusTable,
 } from "@wingmnn/db";
 import { isEmpty, tryCatchAsync } from "@wingmnn/utils";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import {
   projectsQuery,
   taskCommentsQuery,
@@ -28,7 +28,18 @@ import {
 } from "../utils";
 
 export class ProjectService {
-  // ========== PROJECT METHODS ==========
+  async getAll(userId: string) {
+    const { result, error } = await tryCatchAsync(
+      projectsQuery.findMany({
+        where: eq(projectsTable.createdBy, userId),
+        orderBy: desc(projectsTable.updatedAt),
+      }),
+    );
+
+    if (error) throw new Error(`Failed to get projects: ${error.message}`);
+
+    return result;
+  }
 
   async get(projectId: string) {
     const { result, error } = await tryCatchAsync(
@@ -58,10 +69,14 @@ export class ProjectService {
       throw new Error("Project name and creator are required");
     }
 
+    // Assign default workflow (Basic) to the project
+    const defaultWorkflowId = "basic";
+
     const { result, error } = await tryCatchAsync(
       projectsQuery.insert
         .values({
           ...data,
+          workflowId: defaultWorkflowId,
           updatedBy: data.createdBy,
         })
         .returning(),
@@ -70,9 +85,6 @@ export class ProjectService {
     if (error) throw new Error(`Failed to create project: ${error.message}`);
 
     const project = result[0];
-
-    // Create default workflow for the project
-    await this.createDefaultWorkflow(data.createdBy);
 
     return project;
   }
@@ -159,7 +171,50 @@ export class ProjectService {
     return this.update(projectId, { status: "active" }, unarchivedBy);
   }
 
-  // ========== WORKFLOW METHODS ==========
+  async seedDefaultWorkflows(): Promise<void> {
+    // Check if workflows already exist
+    const { result: existingWorkflows } = await tryCatchAsync(
+      workflowsQuery.findMany(),
+    );
+
+    if (existingWorkflows && existingWorkflows.length > 0) {
+      return; // Already seeded
+    }
+
+    const systemUser = "system";
+
+    // Seed predefined workflows
+    const workflows = [
+      {
+        id: "basic",
+        name: "Basic",
+        description: "Simple workflow for basic task management",
+        order: ["todo", "in-progress", "done"],
+        createdBy: systemUser,
+        updatedBy: systemUser,
+      },
+      {
+        id: "kanban",
+        name: "Kanban",
+        description: "Traditional kanban board workflow",
+        order: ["backlog", "ready", "in-progress", "review", "done"],
+        createdBy: systemUser,
+        updatedBy: systemUser,
+      },
+      {
+        id: "scrum",
+        name: "Scrum",
+        description: "Agile scrum workflow with testing phase",
+        order: ["todo", "in-progress", "review", "testing", "done"],
+        createdBy: systemUser,
+        updatedBy: systemUser,
+      },
+    ];
+
+    for (const workflow of workflows) {
+      await this.createWorkflow(workflow);
+    }
+  }
 
   async createDefaultWorkflow(createdBy: string): Promise<Workflow> {
     const workflowData: Omit<NewWorkflow, "id" | "createdAt" | "updatedAt"> = {
