@@ -1,8 +1,9 @@
 import fileImage from "@assets/doodle-projects.png";
-import { workflows } from "@projects/constants/workflows";
+import { workflows, workflowStatuses } from "@projects/constants/workflows";
 import { type Project } from "@projects/type";
 import {
   Button,
+  cx,
   Dialog,
   DialogActions,
   DialogContent,
@@ -12,7 +13,8 @@ import {
   Typography,
   Upload,
 } from "@wingmnn/components";
-import { map, noop } from "@wingmnn/utils";
+import { Check } from "@wingmnn/components/icons";
+import { Colors, map, noop } from "@wingmnn/utils";
 import { AnimatePresence, motion } from "motion/react";
 import React from "react";
 
@@ -29,6 +31,9 @@ export function AddProject(props: AddProjectProps) {
   const [dir, setDir] = React.useState<"left" | "right">("right");
   const [step, setStep] = React.useState<AddProjectStep>("basic-details");
   const [project, setProject] = React.useState({} as Project);
+  const [selectedWorkflow, setSelectedWorkflow] = React.useState<string | null>(
+    null,
+  );
 
   const update = React.useCallback((updates: Partial<Project>) => {
     setProject((draft) => ({ ...draft, ...updates }));
@@ -164,7 +169,7 @@ export function AddProject(props: AddProjectProps) {
         return (
           <motion.div
             key="configuration"
-            className="grid grid-cols-3 gap-4 absolute inset-0 w-full p-4 flex-wrap overflow-y-auto"
+            className="flex gap-4 absolute inset-0 w-full p-4 overflow-x-auto"
             variants={variants}
             initial="enter"
             animate="center"
@@ -176,27 +181,75 @@ export function AddProject(props: AddProjectProps) {
               mass: 0.8,
             }}
           >
-            {map(workflows, (template) => (
-              <div
-                key={template.id}
-                tabIndex={0}
-                className="flex flex-col focus-within:outline-offset-2 focus-within:outline-2 focus-within:outline-accent focus-within:border-transparent transition-all justify-between rounded-lg border border-accent/50 cursor-pointer overflow-hidden active:translate-y-1"
+            {map(workflows, ({ id, name, description }) => (
+              <Button
+                onClick={() => {
+                  setSelectedWorkflow(id!);
+                  update({ workflow: id! });
+                }}
+                data-selected={selectedWorkflow === id}
+                variant="stripped"
+                className="focus-within:outline-accent border focus:border-transparent border-accent/50 data-[selected=true]:bg-accent/10"
               >
                 <div
-                  className="opacity-50 h-full bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url(${fileImage})`,
+                  key={id}
+                  onClick={() => {
+                    setSelectedWorkflow(id!);
+                    update({ workflow: id! });
                   }}
-                />
-                <div className="flex-1 p-4">
-                  <Typography.H3 className="text-accent">
-                    {template.name}
-                  </Typography.H3>
-                  <Typography.Paragraph className="text-white-950">
-                    {template.description}
-                  </Typography.Paragraph>
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedWorkflow(id!);
+                      update({ workflow: id! });
+                    }
+                  }}
+                  aria-pressed={selectedWorkflow === id}
+                  aria-label={`Select ${name} workflow`}
+                  aria-describedby={`workflow-${id}-description`}
+                  className="h-full flex flex-col text-left transition-all justify-between rounded-lg cursor-pointer overflow-hidden min-w-64 relative"
+                >
+                  <div className="flex-1 flex flex-col justify-center gap-2 p-4">
+                    {map(
+                      workflowStatuses[id!],
+                      ({ id: statusId, name: statusName, color }) => (
+                        <div
+                          key={statusId}
+                          style={{
+                            background: color!,
+                          }}
+                          className="gap-2 p-2 px-4 rounded text-center"
+                        >
+                          <Typography.Paragraph
+                            className={cx(
+                              Colors.getOptimalTextClass(color!),
+                              "font-semibold",
+                            )}
+                          >
+                            {statusName}
+                          </Typography.Paragraph>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                  <div className="p-4 bg-accent/20">
+                    <Typography.H3 className="text-accent font-spicy-rice tracking-wide">
+                      {name}
+                    </Typography.H3>
+                    <Typography.Paragraph
+                      id={`workflow-${id}-description`}
+                      className="text-white-950"
+                    >
+                      {description}
+                    </Typography.Paragraph>
+                  </div>
+                  {selectedWorkflow === id && (
+                    <div className="rounded-full p-0.5 h-4 w-4 bg-accent flex items-center justify-center absolute top-2 right-2">
+                      <Check size={16} className="text-primary" />
+                    </div>
+                  )}
                 </div>
-              </div>
+              </Button>
             ))}
           </motion.div>
         );
