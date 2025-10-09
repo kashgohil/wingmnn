@@ -129,7 +129,7 @@ export const Colors = (function () {
 
     // Return the color with better contrast ratio
     // WCAG AA requires at least 4.5:1 for normal text
-    return contrastWithWhite > contrastWithBlack ? "white" : "black";
+    return contrastWithBlack > contrastWithWhite ? "black" : "white";
   }
 
   /**
@@ -138,7 +138,7 @@ export const Colors = (function () {
    */
   function getOptimalTextClass(backgroundColor: string): string {
     const textColor = getOptimalTextColor(backgroundColor);
-    return textColor === "white" ? "text-white" : "text-black";
+    return textColor === "white" ? "text-white" : "text-primary";
   }
 
   /**
@@ -167,12 +167,12 @@ export const Colors = (function () {
 
   return {
     hexToRgb,
-    parseColor,
-    isAccessible,
-    getLuminance,
     rgbStringToRgb,
-    getContrastRatio,
     getOptimalTextColor,
     getOptimalTextClass,
+    isAccessible,
+    getContrastRatio,
+    getLuminance,
+    parseColor,
   };
 })();
