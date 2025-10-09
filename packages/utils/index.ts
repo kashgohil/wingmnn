@@ -1,4 +1,5 @@
 export * from "./src/castArray";
+export * from "./src/color";
 export * from "./src/debounce";
 export * from "./src/every";
 export * from "./src/filter";
