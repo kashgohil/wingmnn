@@ -7,12 +7,13 @@ export interface ButtonProps
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     HTMLButtonElement
   > {
-  variant?: "primary" | "secondary" | "icon";
+  variant?: "primary" | "secondary" | "icon" | "stripped";
   size?: "sm" | "md" | "lg";
   noSound?: boolean;
 }
 
 const variantClasses = classVariance({
+  stripped: "!p-0",
   icon: "bg-transparent text-accent hover:bg-accent/10 focus-within:outline-accent",
   primary:
     "bg-accent text-[var(--accent-text)] hover:bg-accent/70 focus-within:outline-accent",
@@ -39,7 +40,7 @@ export function Button(props: ButtonProps) {
       {...rest}
       onClick={noSound ? onClick : withClickSound(onClick)}
       className={cx(
-        "rounded-lg active:translate-y-0.5 transition-all duration-200 cursor-pointer focus-within:outline-2 outline-offset-2",
+        "rounded-lg active:translate-y-0.5 transition-all cursor-pointer focus-within:outline-2 outline-offset-2",
         variantClasses(variant, size),
         className,
       )}
