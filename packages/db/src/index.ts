@@ -9,3 +9,12 @@ const pool = new Pool({
 
 export const db = drizzle({ client: pool, schema, logger: true });
 export type DrizzleDB = typeof db;
+
+// Export seeding functions
+export {
+  clearDatabase,
+  clearWorkflows,
+  seedDatabase,
+  seedWorkflows,
+} from "./seeds";
+export * from "./seeds/utils";

@@ -11,7 +11,13 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:drop": "drizzle-kit drop",
-    "db:check": "drizzle-kit check"
+    "db:check": "drizzle-kit check",
+    "db:seed": "bun src/seeds/index.ts",
+    "db:seed:workflows": "bun src/seeds/index.ts workflows",
+    "db:seed:clear": "bun src/seeds/index.ts clear",
+    "db:seed:force": "bun src/seeds/index.ts --force",
+    "db:seed:status": "bun src/seeds/index.ts status",
+    "db:seed:reset": "bun src/seeds/index.ts --clear && bun src/seeds/index.ts"
   },
   "dependencies": {
     "pg": "^8.15.6",
