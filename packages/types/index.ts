@@ -2,7 +2,7 @@ export * from "./src/sudoku";
 
 export type ResponseWrapper<T> = {
   data: T;
-  count?: number;
+  count?: number | string;
 };
 
 export type SuccessWrapper = {
@@ -11,5 +11,5 @@ export type SuccessWrapper = {
 
 export type ErrorWrapper = {
   message: string;
-  code?: number;
+  code?: number | string;
 };
