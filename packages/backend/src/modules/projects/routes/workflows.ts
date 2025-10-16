@@ -1,5 +1,7 @@
-import { projects } from "@projects/router";
-import { ProjectService } from "@projects/service/projectService";
+import { zValidator } from "@hono/zod-validator";
+import { projectService } from "@projects/service/projectService";
+import { workflowService } from "@projects/service/workflowService";
+import { AuthenticateEnv } from "@types";
 import {
   NewWorkflow,
   NewWorkflowStatus,
@@ -8,35 +10,57 @@ import {
 } from "@wingmnn/db";
 import { ErrorWrapper, ResponseWrapper } from "@wingmnn/types";
 import { tryCatchAsync } from "@wingmnn/utils";
+import { Hono } from "hono";
+import { z } from "zod/v4";
 
-const projectService = new ProjectService();
+export const workflows = new Hono<AuthenticateEnv>();
+
+// Get workflows
+workflows.get("/", async (c) => {
+  const { id: userId } = c.get("user");
+  const { limit = 10, offset = 0 } = c.req.query();
+
+  const { result: workflows, error } = await tryCatchAsync(
+    workflowService.getWorkflows(userId, Number(limit), Number(offset)),
+  );
+
+  if (error) {
+    return c.json(
+      {
+        error: {
+          message: error.message,
+          code: "WORKFLOWS_ERROR",
+        },
+      },
+      400,
+    );
+  }
+
+  return c.json<ResponseWrapper<typeof workflows>>({ data: workflows });
+});
 
 // Create new workflow
-projects.post("/workflows/create", async (c) => {
+workflows.post("/", async (c) => {
   const { id: userId } = c.get("user");
   const body = await c.req.json();
 
   const workflowData: Omit<NewWorkflow, "id" | "createdAt" | "updatedAt"> = {
     name: body.name,
     description: body.description,
-    projectId: body.projectId,
-    isDefault: body.isDefault || false,
     createdBy: userId,
     updatedBy: userId,
     deleted: false,
   };
 
   const { result: workflow, error } = await tryCatchAsync<Workflow>(
-    projectService.createWorkflow(workflowData),
+    workflowService.createWorkflow(workflowData),
   );
 
   if (error) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOW_CREATE_ERROR",
-        },
+        message: error.message,
+        code: 400,
       },
       400,
     );
@@ -51,21 +75,19 @@ projects.post("/workflows/create", async (c) => {
 });
 
 // Get workflow by ID
-projects.get("/workflows/get/:workflowId", async (c) => {
+workflows.get("/:workflowId", async (c) => {
   const workflowId = c.req.param("workflowId");
   const { id: userId } = c.get("user");
 
   const { result: workflow, error } = await tryCatchAsync<Workflow>(
-    projectService.getWorkflow(workflowId),
+    workflowService.getWorkflow(workflowId),
   );
 
   if (error) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOW_GET_ERROR",
-        },
+        message: error.message,
+        code: 400,
       },
       400,
     );
@@ -77,7 +99,7 @@ projects.get("/workflows/get/:workflowId", async (c) => {
 });
 
 // Update workflow
-projects.put("/workflows/update/:workflowId", async (c) => {
+workflows.put("/update/:workflowId", async (c) => {
   const workflowId = c.req.param("workflowId");
   const { id: userId } = c.get("user");
   const body = await c.req.json();
@@ -85,7 +107,6 @@ projects.put("/workflows/update/:workflowId", async (c) => {
   const updateData: Partial<NewWorkflow> = {
     name: body.name,
     description: body.description,
-    isDefault: body.isDefault,
   };
 
   // Remove undefined values
@@ -96,16 +117,14 @@ projects.put("/workflows/update/:workflowId", async (c) => {
   });
 
   const { result: workflow, error } = await tryCatchAsync<Workflow>(
-    projectService.updateWorkflow(workflowId, updateData, userId),
+    workflowService.updateWorkflow(workflowId, updateData, userId),
   );
 
   if (error) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOW_UPDATE_ERROR",
-        },
+        message: error.message,
+        code: 400,
       },
       400,
     );
@@ -117,21 +136,19 @@ projects.put("/workflows/update/:workflowId", async (c) => {
 });
 
 // Delete workflow
-projects.delete("/workflows/delete/:workflowId", async (c) => {
+workflows.delete("/delete/:workflowId", async (c) => {
   const workflowId = c.req.param("workflowId");
   const { id: userId } = c.get("user");
 
   const { result, error } = await tryCatchAsync(
-    projectService.deleteWorkflow(workflowId, userId),
+    workflowService.deleteWorkflow(workflowId, userId),
   );
 
   if (error) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOW_DELETE_ERROR",
-        },
+        message: error.message,
+        code: 400,
       },
       400,
     );
@@ -142,34 +159,56 @@ projects.delete("/workflows/delete/:workflowId", async (c) => {
   });
 });
 
-// Get workflows by project
-projects.get("/workflows/project/:projectId", async (c) => {
+// Get workflow by project
+workflows.get("/project/:projectId", async (c) => {
   const projectId = c.req.param("projectId");
   const { id: userId } = c.get("user");
 
-  const { result: workflows, error } = await tryCatchAsync<Workflow[]>(
-    projectService.getWorkflowsByProject(projectId),
+  const { result: project, error: projectError } = await tryCatchAsync(
+    projectService.get(projectId),
   );
 
-  if (error) {
+  if (projectError) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOWS_GET_BY_PROJECT_ERROR",
-        },
+        message: projectError.message,
+        code: 400,
       },
       400,
     );
   }
 
-  return c.json<ResponseWrapper<Workflow[]>>({
-    data: workflows,
+  if (!project?.workflowId) {
+    return c.json<ErrorWrapper>(
+      {
+        message: "Project has no workflow assigned",
+        code: 404,
+      },
+      404,
+    );
+  }
+
+  const { result: workflow, error } = await tryCatchAsync<Workflow>(
+    workflowService.getWorkflow(project.workflowId),
+  );
+
+  if (error) {
+    return c.json<ErrorWrapper>(
+      {
+        message: error.message,
+        code: 400,
+      },
+      400,
+    );
+  }
+
+  return c.json<ResponseWrapper<Workflow>>({
+    data: workflow,
   });
 });
 
 // Create workflow status
-projects.post("/workflows/statuses/create", async (c) => {
+workflows.post("/statuses/create", async (c) => {
   const { id: userId } = c.get("user");
   const body = await c.req.json();
 
@@ -177,28 +216,23 @@ projects.post("/workflows/statuses/create", async (c) => {
     {
       name: body.name,
       description: body.description,
-      type: body.type,
+      phase: body.phase,
       color: body.color || "#6b7280",
-      order: body.order,
       workflowId: body.workflowId,
-      isInitial: body.isInitial || false,
-      isFinal: body.isFinal || false,
       createdBy: userId,
       updatedBy: userId,
       deleted: false,
     };
 
   const { result: status, error } = await tryCatchAsync<WorkflowStatus>(
-    projectService.createWorkflowStatus(statusData),
+    workflowService.createWorkflowStatus(statusData),
   );
 
   if (error) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOW_STATUS_CREATE_ERROR",
-        },
+        message: error.message,
+        code: 400,
       },
       400,
     );
@@ -213,21 +247,19 @@ projects.post("/workflows/statuses/create", async (c) => {
 });
 
 // Get workflow status by ID
-projects.get("/workflows/statuses/get/:statusId", async (c) => {
+workflows.get("/statuses/get/:statusId", async (c) => {
   const statusId = c.req.param("statusId");
   const { id: userId } = c.get("user");
 
   const { result: status, error } = await tryCatchAsync<WorkflowStatus>(
-    projectService.getWorkflowStatus(statusId),
+    workflowService.getWorkflowStatus(statusId),
   );
 
   if (error) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOW_STATUS_GET_ERROR",
-        },
+        message: error.message,
+        code: 400,
       },
       400,
     );
@@ -239,7 +271,7 @@ projects.get("/workflows/statuses/get/:statusId", async (c) => {
 });
 
 // Update workflow status
-projects.put("/workflows/statuses/update/:statusId", async (c) => {
+workflows.put("/statuses/update/:statusId", async (c) => {
   const statusId = c.req.param("statusId");
   const { id: userId } = c.get("user");
   const body = await c.req.json();
@@ -247,11 +279,8 @@ projects.put("/workflows/statuses/update/:statusId", async (c) => {
   const updateData: Partial<NewWorkflowStatus> = {
     name: body.name,
     description: body.description,
-    type: body.type,
+    phase: body.phase,
     color: body.color,
-    order: body.order,
-    isInitial: body.isInitial,
-    isFinal: body.isFinal,
   };
 
   // Remove undefined values
@@ -262,16 +291,14 @@ projects.put("/workflows/statuses/update/:statusId", async (c) => {
   });
 
   const { result: status, error } = await tryCatchAsync<WorkflowStatus>(
-    projectService.updateWorkflowStatus(statusId, updateData, userId),
+    workflowService.updateWorkflowStatus(statusId, updateData, userId),
   );
 
   if (error) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOW_STATUS_UPDATE_ERROR",
-        },
+        message: error.message,
+        code: 400,
       },
       400,
     );
@@ -283,21 +310,19 @@ projects.put("/workflows/statuses/update/:statusId", async (c) => {
 });
 
 // Delete workflow status
-projects.delete("/workflows/statuses/delete/:statusId", async (c) => {
+workflows.delete("/statuses/delete/:statusId", async (c) => {
   const statusId = c.req.param("statusId");
   const { id: userId } = c.get("user");
 
   const { result, error } = await tryCatchAsync(
-    projectService.deleteWorkflowStatus(statusId, userId),
+    workflowService.deleteWorkflowStatus(statusId, userId),
   );
 
   if (error) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOW_STATUS_DELETE_ERROR",
-        },
+        message: error.message,
+        code: 400,
       },
       400,
     );
@@ -309,21 +334,18 @@ projects.delete("/workflows/statuses/delete/:statusId", async (c) => {
 });
 
 // Get statuses by workflow
-projects.get("/workflows/statuses/workflow/:workflowId", async (c) => {
+workflows.get("/statuses/workflow/:workflowId", async (c) => {
   const workflowId = c.req.param("workflowId");
-  const { id: userId } = c.get("user");
 
   const { result: statuses, error } = await tryCatchAsync<WorkflowStatus[]>(
-    projectService.getStatusesByWorkflow(workflowId),
+    workflowService.getStatusesByWorkflow(workflowId),
   );
 
   if (error) {
     return c.json<ErrorWrapper>(
       {
-        error: {
-          message: error.message,
-          code: "WORKFLOW_STATUSES_GET_BY_WORKFLOW_ERROR",
-        },
+        message: error.message,
+        code: 400,
       },
       400,
     );
@@ -333,3 +355,39 @@ projects.get("/workflows/statuses/workflow/:workflowId", async (c) => {
     data: statuses,
   });
 });
+
+// Get statuses by workflow
+workflows.post(
+  "/multiple-workflow-statuses",
+  zValidator(
+    "json",
+    z.object({
+      workflowIds: z.array(z.string()).min(1).max(100),
+    }),
+  ),
+  async (c) => {
+    const { workflowIds = [] } = c.req.valid("json");
+
+    const results = await Promise.all(
+      workflowIds.map((workflowId) =>
+        tryCatchAsync<WorkflowStatus[]>(
+          workflowService.getStatusesByWorkflow(workflowId),
+        ),
+      ),
+    );
+
+    const data = results.reduce(
+      (acc, result, index) => {
+        if (result.result && !result.error) {
+          acc[workflowIds[index]] = result.result;
+        }
+        return acc;
+      },
+      {} as Record<string, WorkflowStatus[]>,
+    );
+
+    return c.json<ResponseWrapper<Record<string, WorkflowStatus[]>>>({
+      data,
+    });
+  },
+);
