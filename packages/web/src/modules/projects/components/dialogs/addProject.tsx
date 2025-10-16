@@ -1,6 +1,10 @@
 import fileImage from "@assets/doodle-projects.png";
-import { workflows, workflowStatuses } from "@projects/constants/workflows";
+import { LONG_STALE } from "@frameworks/query/constants";
+import { useQuery } from "@frameworks/query/hook";
+import type { QueryParams } from "@frameworks/query/query";
+import { ProjectsService } from "@projects/services/projectsService";
 import { type Project } from "@projects/type";
+import { PROJECT_WORKFLOW_KEY, WORKFLOW_STATUS_PRIMARY_KEY } from "@queryKeys";
 import {
   Button,
   cx,
@@ -14,7 +18,7 @@ import {
   Upload,
 } from "@wingmnn/components";
 import { Check } from "@wingmnn/components/icons";
-import { Colors, map, noop } from "@wingmnn/utils";
+import { Colors, isEmpty, map, noop } from "@wingmnn/utils";
 import { AnimatePresence, motion } from "motion/react";
 import React from "react";
 
@@ -31,9 +35,46 @@ export function AddProject(props: AddProjectProps) {
   const [dir, setDir] = React.useState<"left" | "right">("right");
   const [step, setStep] = React.useState<AddProjectStep>("basic-details");
   const [project, setProject] = React.useState({} as Project);
-  const [selectedWorkflow, setSelectedWorkflow] = React.useState<string | null>(
-    null,
+  const [selectedWorkflow, setSelectedWorkflow] =
+    React.useState<string>("basic");
+
+  const {
+    result: workflows,
+    isLoading: workflowsLoading,
+    isError: workflowsError,
+  } = useQuery({
+    key: PROJECT_WORKFLOW_KEY,
+    staleTime: LONG_STALE,
+    queryFn: ProjectsService.getWorkflows,
+    selector: (res) => res.data,
+  });
+
+  const statusKey = React.useMemo(() => {
+    return {
+      primaryKey: WORKFLOW_STATUS_PRIMARY_KEY,
+      params: map(workflows || [], (workflow) => workflow.id),
+    };
+  }, [workflows]);
+
+  const statusQueryFn = React.useCallback(
+    (queryParams: QueryParams<Array<string>>) => {
+      const { params } = queryParams;
+      return ProjectsService.getStatusForWorkflows(params!);
+    },
+    [],
   );
+
+  const {
+    result: statuses,
+    isLoading: statusesLoading,
+    isError: statusesError,
+  } = useQuery({
+    key: statusKey,
+    staleTime: LONG_STALE,
+    queryFn: statusQueryFn,
+    selector: (res) => res.data,
+    enabled: !isEmpty(workflows),
+  });
 
   const update = React.useCallback((updates: Partial<Project>) => {
     setProject((draft) => ({ ...draft, ...updates }));
@@ -41,7 +82,6 @@ export function AddProject(props: AddProjectProps) {
 
   const next = React.useCallback(() => {
     setDir("right");
-    // Use a small delay to ensure direction is set before step changes
     React.startTransition(() => {
       switch (step) {
         case "basic-details":
@@ -57,7 +97,6 @@ export function AddProject(props: AddProjectProps) {
 
   const back = React.useCallback(() => {
     setDir("left");
-    // Use a small delay to ensure direction is set before step changes
     React.startTransition(() => {
       switch (step) {
         case "basic-details":
@@ -143,8 +182,8 @@ export function AddProject(props: AddProjectProps) {
                 value={project.key}
                 placeholder={
                   project.name
-                    ? `Key - ${project.name?.slice(0, 4)?.toUpperCase()}`
-                    : "Key"
+                    ? `Project Key - ${project.name?.slice(0, 4)?.toUpperCase()}`
+                    : "Project Key"
                 }
                 onChange={(key: string) => update({ key })}
               />
@@ -166,6 +205,12 @@ export function AddProject(props: AddProjectProps) {
           </motion.div>
         );
       case "configuration":
+        if (workflowsLoading || statusesLoading) {
+          return <div></div>;
+        }
+        if (workflowsError || statusesError) {
+          return <div></div>;
+        }
         return (
           <motion.div
             key="configuration"
@@ -181,7 +226,7 @@ export function AddProject(props: AddProjectProps) {
               mass: 0.8,
             }}
           >
-            {map(workflows, ({ id, name, description }) => (
+            {map(workflows || [], ({ id, name, description }) => (
               <Button
                 onClick={() => {
                   setSelectedWorkflow(id!);
@@ -211,19 +256,19 @@ export function AddProject(props: AddProjectProps) {
                 >
                   <div className="flex-1 flex flex-col justify-center gap-2 p-4">
                     {map(
-                      workflowStatuses[id!],
+                      statuses![id!],
                       ({ id: statusId, name: statusName, color }) => (
                         <div
                           key={statusId}
                           style={{
                             background: color!,
                           }}
-                          className="gap-2 p-2 px-4 rounded text-center"
+                          className="gap-2 p-1.5 px-4 rounded text-center"
                         >
                           <Typography.Paragraph
                             className={cx(
                               Colors.getOptimalTextClass(color!),
-                              "font-semibold",
+                              "font-semibold text-sm",
                             )}
                           >
                             {statusName}
@@ -233,15 +278,15 @@ export function AddProject(props: AddProjectProps) {
                     )}
                   </div>
                   <div className="p-4 bg-accent/20">
-                    <Typography.H3 className="text-accent font-spicy-rice tracking-wide">
+                    <Typography.Paragraph className="text-accent font-semibold">
                       {name}
-                    </Typography.H3>
-                    <Typography.Paragraph
+                    </Typography.Paragraph>
+                    <Typography.Caption
                       id={`workflow-${id}-description`}
-                      className="text-white-950"
+                      className="text-white-950 leading-0"
                     >
                       {description}
-                    </Typography.Paragraph>
+                    </Typography.Caption>
                   </div>
                   {selectedWorkflow === id && (
                     <div className="rounded-full p-0.5 h-4 w-4 bg-accent flex items-center justify-center absolute top-2 right-2">
@@ -261,7 +306,7 @@ export function AddProject(props: AddProjectProps) {
       size="lg"
       open={open}
       onClose={onClose}
-      className="relative flex h-150"
+      className="relative flex h-150 overflow-hidden"
     >
       <div
         className="w-1/4 opacity-50 h-full bg-cover bg-center"
