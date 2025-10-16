@@ -243,16 +243,19 @@ async function getSystemUser(): Promise<string> {
   if (systemUser.length === 0) {
     // Create system user if it doesn't exist
     console.log("Creating system user for seeding...");
-    const [newUser] = await db
-      .insert(usersTable)
-      .values({
-        name: "System",
-        email: systemEmail,
-        authProvider: "email",
-        isOnboarded: true,
-      })
+    await db.insert(usersTable).values({
+      name: "System",
+      email: systemEmail,
+      authProvider: "email",
+      isOnboarded: true,
+    });
+    const [user] = await db
+      .update(usersTable)
+      .set({ id: "system" })
+      .where(eq(usersTable.email, systemEmail))
       .returning();
-    return newUser.id;
+
+    return user.id;
   }
 
   return systemUser[0].id;
