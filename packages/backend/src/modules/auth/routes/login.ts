@@ -10,7 +10,7 @@ import { z } from "zod";
 
 // Email/Password Login
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(6),
 });
 
