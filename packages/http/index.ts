@@ -130,6 +130,7 @@ export function httpService(config: HttpServiceConfig) {
   ): Promise<T> {
     return _request<T>(url, {
       ...options,
+      headers: { "Content-Type": "application/json", ...options?.headers },
       method: "POST",
       body: JSON.stringify(body),
     });
