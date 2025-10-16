@@ -212,7 +212,6 @@ async function getStatusesByWorkflow(workflowId: string) {
   const { result, error } = await tryCatchAsync(
     db.query.workflowStatusTable.findMany({
       where: eq(workflowStatusTable.workflowId, workflowId),
-      orderBy: asc(workflowsTable.order),
     }),
   );
 
