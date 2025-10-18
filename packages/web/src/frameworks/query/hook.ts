@@ -4,17 +4,67 @@ import React from "react";
 import { QueryContext } from "./context";
 import { type Params, Query, type QueryParams } from "./query";
 
-interface QueryResponse<S> {
-  result: S | null;
-  error: Error | null;
-  status: "idle" | "fetching" | "error" | "success" | "mutating";
+type QueryBase<S> = {
   refetch: () => void;
   isRefetching: boolean;
-  isLoading: boolean;
-  isSuccess: boolean;
-  isError: boolean;
-  isIdle: boolean;
-}
+};
+
+type QueryIdle<S> = QueryBase<S> & {
+  status: "idle";
+  result: null;
+  error: null;
+  isIdle: true;
+  isLoading: false;
+  isError: false;
+  isSuccess: false;
+};
+
+type QueryLoading<S> = QueryBase<S> & {
+  status: "fetching";
+  result: null;
+  error: null;
+  isIdle: false;
+  isLoading: true;
+  isError: false;
+  isSuccess: false;
+};
+
+type QueryError<S> = QueryBase<S> & {
+  status: "error";
+  result: null;
+  error: Error;
+  isIdle: false;
+  isLoading: false;
+  isError: true;
+  isSuccess: false;
+};
+
+type QuerySuccess<S> = QueryBase<S> & {
+  status: "success";
+  result: S;
+  error: null;
+  isIdle: false;
+  isLoading: false;
+  isError: false;
+  isSuccess: true;
+};
+
+type QueryMutating<S> = QueryBase<S> & {
+  status: "mutating";
+  result: S | null;
+  error: null;
+  isIdle: false;
+  isLoading: false;
+  isError: false;
+  isSuccess: false;
+};
+
+type QueryResponse<S> =
+  | QueryIdle<S>
+  | QueryLoading<S>
+  | QueryError<S>
+  | QuerySuccess<S>
+  | QueryMutating<S>;
 
 type UseQueryParams<T, K, S = T> = Required<Pick<Params<T, K, S>, "queryFn">> &
   Omit<Params<T, K, S>, "queryFn" | "onMutate">;
@@ -36,19 +86,70 @@ export function useQuery<T, K, S = T>(
 
   query.updateParams(params);
 
-  return {
-    result: query.result,
-    error: query.error,
-    status: query.status,
-
+  const status = query.status;
+  const base: QueryBase<S> = {
     refetch: query.refetch,
-
-    isRefetching: query.refetching && query.status === "fetching",
-    isLoading: query.status === "fetching",
-    isSuccess: query.status === "success",
-    isError: query.status === "error",
-    isIdle: query.status === "idle",
+    isRefetching: query.refetching && status === "fetching",
   };
+
+  switch (status) {
+    case "idle":
+      return {
+        ...base,
+        status,
+        result: null,
+        error: null,
+        isIdle: true,
+        isLoading: false,
+        isError: false,
+        isSuccess: false,
+      };
+    case "fetching":
+      return {
+        ...base,
+        status,
+        result: null,
+        error: null,
+        isIdle: false,
+        isLoading: true,
+        isError: false,
+        isSuccess: false,
+      };
+    case "error":
+      return {
+        ...base,
+        status,
+        result: null,
+        error: query.error!,
+        isIdle: false,
+        isLoading: false,
+        isError: true,
+        isSuccess: false,
+      };
+    case "success":
+      return {
+        ...base,
+        status,
+        result: query.result as S,
+        error: null,
+        isIdle: false,
+        isLoading: false,
+        isError: false,
+        isSuccess: true,
+      };
+    case "mutating":
+    default:
+      return {
+        ...base,
+        status: "mutating",
+        result: query.result,
+        error: null,
+        isIdle: false,
+        isLoading: false,
+        isError: false,
+        isSuccess: false,
+      };
+  }
 }
 
 export function useQueryState<T, K = unknown>(key: QueryParams<K>) {
