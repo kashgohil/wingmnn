@@ -50,14 +50,10 @@ export class ProjectService {
       throw new Error("Project name and creator are required");
     }
 
-    // Assign default workflow (Basic) to the project
-    const defaultWorkflowId = "basic";
-
     const { result, error } = await tryCatchAsync(
       projectsQuery.insert
         .values({
           ...data,
-          workflowId: defaultWorkflowId,
           updatedBy: data.createdBy,
         })
         .returning(),
