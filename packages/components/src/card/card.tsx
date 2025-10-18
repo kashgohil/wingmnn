@@ -50,7 +50,7 @@ export function Card(props: CardProps) {
       <motion.div
         {...rest}
         className={cx(
-          "rounded-xl p-4 focus-within:outline-accent/50 outline-offset-6 transition-all duration-200",
+          "rounded-xl p-4 focus-within:outline-accent/50 outline-offset-6 transition-all duration-200 active:translate-y-0.5",
           variants(size),
           className,
         )}
@@ -74,7 +74,7 @@ export function Card(props: CardProps) {
 export function CardTitle(props: CardTitleProps) {
   const { className, children, ...rest } = props;
   return (
-    <div {...rest} className={cx("px-4 py-3", className)}>
+    <div {...rest} className={cx("px-4 py-1", className)}>
       {children}
     </div>
   );
@@ -83,7 +83,7 @@ export function CardTitle(props: CardTitleProps) {
 export function CardContent(props: CardContentProps) {
   const { className, children, ...rest } = props;
   return (
-    <div {...rest} className={cx("px-4 py-3", className)}>
+    <div {...rest} className={cx("px-4 py-1", className)}>
       {children}
     </div>
   );
@@ -93,7 +93,7 @@ export function CardImage(props: CardImageProps) {
   const { className, picture, alt, pictureClassName, pictureStyle, ...rest } =
     props;
   return (
-    <div {...rest} className={cx("px-4 py-3", className)}>
+    <div {...rest} className={cx("", className)}>
       <img
         alt={alt}
         src={picture}
@@ -107,7 +107,7 @@ export function CardImage(props: CardImageProps) {
 export function CardFooter(props: CardFooterProps) {
   const { className, children, ...rest } = props;
   return (
-    <div {...rest} className={cx("px-4 py-3", className)}>
+    <div {...rest} className={cx("px-4 py-1", className)}>
       {children}
     </div>
   );
