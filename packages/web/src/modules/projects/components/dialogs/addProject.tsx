@@ -3,7 +3,6 @@ import { LONG_STALE } from "@frameworks/query/constants";
 import { useQuery } from "@frameworks/query/hook";
 import type { QueryParams } from "@frameworks/query/query";
 import { ProjectsService } from "@projects/services/projectsService";
-import { type Project } from "@projects/type";
 import { PROJECT_WORKFLOW_KEY, WORKFLOW_STATUS_PRIMARY_KEY } from "@queryKeys";
 import {
   Button,
@@ -16,8 +15,11 @@ import {
   TextArea,
   Typography,
   Upload,
+  useToast,
 } from "@wingmnn/components";
 import { Check } from "@wingmnn/components/icons";
+import type { Project } from "@wingmnn/db";
+import { RouterUtils } from "@wingmnn/router";
 import { Colors, isEmpty, map, noop } from "@wingmnn/utils";
 import { AnimatePresence, motion } from "motion/react";
 import React from "react";
@@ -37,6 +39,8 @@ export function AddProject(props: AddProjectProps) {
   const [project, setProject] = React.useState({} as Project);
   const [selectedWorkflow, setSelectedWorkflow] =
     React.useState<string>("basic");
+
+  const toast = useToast();
 
   const {
     result: workflows,
@@ -80,6 +84,30 @@ export function AddProject(props: AddProjectProps) {
     setProject((draft) => ({ ...draft, ...updates }));
   }, []);
 
+  const create = React.useCallback(
+    (project: Project) => {
+      ProjectsService.createProject(project)
+        .then(() => {
+          toast({
+            type: "success",
+            title: `${project.name} created successfully`,
+          });
+          RouterUtils.goTo(`/projects/${project.id}`);
+        })
+        .catch(() => {
+          toast({
+            type: "error",
+            title: "Failed to create project",
+            description: "Please try again later",
+          });
+        })
+        .finally(() => {
+          onClose();
+        });
+    },
+    [onClose, toast],
+  );
+
   const next = React.useCallback(() => {
     setDir("right");
     React.startTransition(() => {
@@ -88,12 +116,11 @@ export function AddProject(props: AddProjectProps) {
           setStep("configuration");
           break;
         case "configuration":
-          console.log(project);
-          onClose();
+          create(project);
           break;
       }
     });
-  }, [project, onClose, step]);
+  }, [project, create, step]);
 
   const back = React.useCallback(() => {
     setDir("left");
@@ -193,14 +220,14 @@ export function AddProject(props: AddProjectProps) {
               name="description"
               variant="outlined"
               className="w-full"
-              value={project.description}
               placeholder="Tell me about it"
+              value={project.description || ""}
               onChange={(description: string) => update({ description })}
             />
             <Upload
               onUpload={noop}
               message="Give it a face"
-              onRemove={() => update({ image: undefined })}
+              onRemove={() => update({ picture: null })}
             />
           </motion.div>
         );
@@ -230,7 +257,7 @@ export function AddProject(props: AddProjectProps) {
               <Button
                 onClick={() => {
                   setSelectedWorkflow(id!);
-                  update({ workflow: id! });
+                  update({ workflowId: id! });
                 }}
                 data-selected={selectedWorkflow === id}
                 variant="stripped"
@@ -240,13 +267,13 @@ export function AddProject(props: AddProjectProps) {
                   key={id}
                   onClick={() => {
                     setSelectedWorkflow(id!);
-                    update({ workflow: id! });
+                    update({ workflowId: id! });
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       setSelectedWorkflow(id!);
-                      update({ workflow: id! });
+                      update({ workflowId: id! });
                     }
                   }}
                   aria-pressed={selectedWorkflow === id}
