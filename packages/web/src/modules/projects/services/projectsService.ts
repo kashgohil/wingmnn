@@ -1,20 +1,29 @@
 import { http } from "@frameworks/http/httpInstance";
-import type { Workflow, WorkflowStatus } from "@wingmnn/db";
+import type {
+  NewProject,
+  Project,
+  Workflow,
+  WorkflowStatus,
+} from "@wingmnn/db";
 import type { ResponseWrapper } from "@wingmnn/types";
-import { type Project } from "../type";
 
 export const ProjectsService = (function () {
   async function getProjects() {
-    return await http.get<Array<Project>>("/projects");
+    return await http.get<ResponseWrapper<Array<Project>>>("/projects");
   }
-  async function createProject(project: Project) {
-    return await http.put<Project>("/projects", project);
+  async function createProject(project: NewProject) {
+    return await http.put<ResponseWrapper<Project>>("/projects", project);
   }
   async function deleteProject(projectId: string) {
-    return await http.delete<Project>(`/projects/${projectId}`);
+    return await http.delete<ResponseWrapper<Project>>(
+      `/projects/${projectId}`,
+    );
   }
   async function updateProject(projectId: string, project: Partial<Project>) {
-    return await http.put<Project>(`/projects/${projectId}`, project);
+    return await http.put<ResponseWrapper<Project>>(
+      `/projects/${projectId}`,
+      project,
+    );
   }
 
   async function getWorkflows() {
