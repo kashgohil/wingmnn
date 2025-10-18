@@ -1,10 +1,4 @@
-import type { WorkflowStatus } from '@wingmnn/db';
-
-export interface Project extends BaseDetails, Metadata {
-  image: string;
-  key: string;
-  workflow?: string;
-}
+import type { WorkflowStatus } from "@wingmnn/db";
 
 export interface Task extends BaseDetails, Metadata {
   status?: string; // References WorkflowStatus.id
