@@ -19,7 +19,7 @@ export function useHeartbeat() {
     staleTime: QUICK_STALE,
     polling: {
       enabled: true,
-      interval: 4 * MINUTE,
+      interval: 1 * MINUTE,
     },
   });
 
