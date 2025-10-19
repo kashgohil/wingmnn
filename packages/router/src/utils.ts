@@ -110,7 +110,7 @@ function getRouterUtils() {
 
     const { path: routePath } = matchedRoute;
 
-    const pathChunks = path.split("/").filter(Boolean);
+    const pathChunks = path.trim().split("/").filter(Boolean);
     const routeChunks = routePath.trim().split("/").filter(Boolean);
 
     for (let i = 0; i < pathChunks.length; i++) {
