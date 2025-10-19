@@ -129,6 +129,7 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
     const serializedKey = serializeKey(key);
     if (!this.refetching && this.cache.has(serializedKey)) {
       this._result = this.cache.get(serializedKey) as S;
+      this.status = "success";
       return this._result;
     }
 
