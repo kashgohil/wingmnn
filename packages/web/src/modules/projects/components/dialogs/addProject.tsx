@@ -4,6 +4,7 @@ import { useQuery } from "@frameworks/query/hook";
 import type { QueryParams } from "@frameworks/query/query";
 import { ProjectsService } from "@projects/services/projectsService";
 import { PROJECT_WORKFLOW_KEY, WORKFLOW_STATUS_PRIMARY_KEY } from "@queryKeys";
+import { UploadService } from "@services/uploadService";
 import {
   Button,
   cx,
@@ -20,7 +21,7 @@ import {
 import { Check } from "@wingmnn/components/icons";
 import type { Project } from "@wingmnn/db";
 import { RouterUtils } from "@wingmnn/router";
-import { Colors, isEmpty, map, noop } from "@wingmnn/utils";
+import { Colors, isEmpty, map, tryCatchAsync } from "@wingmnn/utils";
 import { AnimatePresence, motion } from "motion/react";
 import React from "react";
 
@@ -39,6 +40,7 @@ export function AddProject(props: AddProjectProps) {
   const [project, setProject] = React.useState({} as Project);
   const [selectedWorkflow, setSelectedWorkflow] =
     React.useState<string>("basic");
+  const [attachment, setAttachment] = React.useState<Attachment | undefined>();
 
   const toast = useToast();
 
@@ -83,6 +85,31 @@ export function AddProject(props: AddProjectProps) {
   const update = React.useCallback((updates: Partial<Project>) => {
     setProject((draft) => ({ ...draft, ...updates }));
   }, []);
+
+  const handleUpload = React.useCallback(
+    async (files: File[]) => {
+      const file = files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", "project-pictures");
+
+      const { result, error } = await tryCatchAsync(UploadService.image(file));
+
+      if (error) {
+        toast({
+          type: "error",
+          title: "Upload failed",
+          description: "Please try again",
+        });
+      }
+
+      setAttachment(result!);
+      update({ picture: result!.url });
+    },
+    [toast, update],
+  );
 
   const create = React.useCallback(
     (project: Project) => {
@@ -225,9 +252,13 @@ export function AddProject(props: AddProjectProps) {
               onChange={(description: string) => update({ description })}
             />
             <Upload
-              onUpload={noop}
+              attachment={attachment}
+              onUpload={handleUpload}
               message="Give it a face"
-              onRemove={() => update({ picture: null })}
+              onRemove={() => {
+                setAttachment(undefined);
+                update({ picture: null });
+              }}
             />
           </motion.div>
         );
