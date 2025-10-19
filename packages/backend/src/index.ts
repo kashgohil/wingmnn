@@ -5,6 +5,7 @@ import { mails } from "@mails";
 import { projects } from "@projects";
 import { setup } from "@setup";
 import { users } from "@users";
+import { storage } from "@wingmnn/storage";
 import "dotenv/config";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
@@ -36,6 +37,7 @@ protectedRoutes.route("/", mails);
 protectedRoutes.route("/", projects);
 protectedRoutes.route("/", setup);
 protectedRoutes.route("/", games);
+protectedRoutes.route("/storage", storage);
 
 app.route("/", protectedRoutes);
 

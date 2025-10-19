@@ -15,7 +15,8 @@
     "@wingmnn/types": "workspace:*",
     "@wingmnn/db": "workspace:*",
     "@wingmnn/http": "workspace:*",
-    "@wingmnn/google": "workspace:*"
+    "@wingmnn/google": "workspace:*",
+    "@wingmnn/storage": "workspace:*"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
