@@ -120,18 +120,14 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
       this.params.polling?.enabled &&
       !this.poll.has(key)
     ) {
-      const clear = Poll.poll(
-        this.executor,
-        this.params.polling.interval,
-        this.params.key,
-      );
+      const clear = Poll.poll(this.refetch, this.params.polling.interval);
       this.poll.set(key, clear);
     }
   };
 
   private query = async (key: QueryParams<K>) => {
     const serializedKey = serializeKey(key);
-    if (this.cache.has(serializedKey)) {
+    if (!this.refetching && this.cache.has(serializedKey)) {
       this._result = this.cache.get(serializedKey) as S;
       return this._result;
     }

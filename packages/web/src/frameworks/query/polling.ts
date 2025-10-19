@@ -7,7 +7,9 @@ export const Poll = {
     pollTime: number = MINUTE,
     ...args: TSAny[]
   ) {
-    const intervalId = setInterval(() => fn(...args), pollTime);
+    const intervalId = setInterval(() => {
+      fn(...args);
+    }, pollTime);
     return () => clearInterval(intervalId);
   },
 };
