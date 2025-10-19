@@ -12,6 +12,7 @@ import {
   Separator,
   Typography,
 } from "@wingmnn/components";
+import { Link } from "@wingmnn/router";
 import { isEmpty, map } from "@wingmnn/utils";
 
 export function Home() {
@@ -95,20 +96,22 @@ export function Home() {
         </Typography.H1>
         <div className="flex space-y-4">
           {map(projects!, (project) => (
-            <Card
-              key={project.id}
-              style={{ backgroundImage: `url(${fileImage})` }}
-              className="h-40 flex items-center justify-center border border-accent/50 w-80 bg-cover bg-center backdrop-opacity-50 overflow-hidden"
-            >
-              <CardTitle className="text-center flex flex-col items-center">
-                <Typography.H2 className="text-accent bg-black-200 w-fit px-4 py-1 rounded-t-lg">
-                  {project.name}
-                </Typography.H2>
-                <Typography.Paragraph className="bg-black-200 px-4 py-1 rounded-lg">
-                  {project.description}
-                </Typography.Paragraph>
-              </CardTitle>
-            </Card>
+            <Link to={`/projects/${project.id}`}>
+              <Card
+                key={project.id}
+                style={{ backgroundImage: `url(${fileImage})` }}
+                className="h-40 flex items-center justify-center border border-accent/50 w-80 bg-cover bg-center backdrop-opacity-50 overflow-hidden"
+              >
+                <CardTitle className="text-center flex flex-col items-center">
+                  <Typography.H2 className="text-accent bg-black-200 w-fit px-4 py-1 rounded-t-lg">
+                    {project.name}
+                  </Typography.H2>
+                  <Typography.Paragraph className="bg-black-200 px-4 py-1 rounded-lg">
+                    {project.description}
+                  </Typography.Paragraph>
+                </CardTitle>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>
