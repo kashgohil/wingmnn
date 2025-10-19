@@ -22,6 +22,17 @@ import { teamsTable } from "./teams";
 import { tokensTable } from "./tokens";
 import { usersTable } from "./users";
 
+export const schemaRelations = {
+  projectsRelations,
+  workflowsRelations,
+  workflowStatusRelations,
+  tasksRelations,
+  taskRelationsRelations,
+  taskCommentsRelations,
+  taskHistoryRelations,
+  sudokuRelations,
+};
+
 export const schema = {
   usersTable,
   tokensTable,
@@ -35,15 +46,5 @@ export const schema = {
   workflowStatusTable,
   mailsTable,
   sudokuTable,
-};
-
-export const schemaRelations = {
-  projectsRelations,
-  workflowsRelations,
-  workflowStatusRelations,
-  tasksRelations,
-  taskRelationsRelations,
-  taskCommentsRelations,
-  taskHistoryRelations,
-  sudokuRelations,
+  ...schemaRelations,
 };
