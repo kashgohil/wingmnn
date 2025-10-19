@@ -5,7 +5,7 @@ import { Cache } from "./cache";
 import { Poll } from "./polling";
 import { serializeKey } from "./utils";
 
-export interface QueryParams<T> {
+export interface QueryParams<T = TSAny> {
   primaryKey: string;
   secondaryKey?: string;
   params?: T;

@@ -8,6 +8,10 @@ import type {
 import type { ResponseWrapper } from "@wingmnn/types";
 
 export const ProjectsService = (function () {
+  async function getProject(projectId: string) {
+    return await http.get<ResponseWrapper<Project>>(`/projects/${projectId}`);
+  }
+
   async function getProjects() {
     return await http.get<ResponseWrapper<Array<Project>>>("/projects");
   }
@@ -39,6 +43,7 @@ export const ProjectsService = (function () {
   }
 
   return {
+    getProject,
     getProjects,
     createProject,
     deleteProject,
