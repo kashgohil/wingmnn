@@ -1,93 +1,103 @@
 import { motion } from "motion/react";
 import React from "react";
 import { Card } from "./Card";
-import type { ColumnData } from "./types";
+import { useVirtualization } from "./hooks/useVirtualization";
+import type { DragState, KanbanColumn } from "./types";
 
 interface ColumnProps {
-  column: ColumnData;
-  draggingCardId: string | null;
-  sourceColumnId: string | null;
-  dropTarget: { columnId: string; index: number } | null;
-  onDragStart: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
-  onDragOver: (
-    e: React.DragEvent<HTMLDivElement>,
-    columnId: string,
-    index: number,
-  ) => void;
-  onDragEnd: () => void;
-  onDrop: (e: React.DragEvent<HTMLDivElement>, columnId: string) => void;
+	column: KanbanColumn;
+	dragState: DragState;
+	onPointerDown: (e: React.PointerEvent<HTMLDivElement>, cardId: string, columnId: string) => void;
+	onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
+	onPointerUp: (e: React.PointerEvent<HTMLDivElement>) => void;
 }
 
-export function Column({
-  column,
-  draggingCardId,
-  dropTarget,
-  sourceColumnId,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
-  onDrop,
-}: ColumnProps) {
-  const handleDragOver = (
-    e: React.DragEvent<HTMLDivElement>,
-    index: number,
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const middleY = rect.top + rect.height / 2;
-    const newIndex = e.clientY < middleY ? index : index + 1;
-    if (dropTarget?.columnId !== column.id || dropTarget?.index !== newIndex) {
-      onDragOver(e, column.id, newIndex);
-    }
-  };
+const ESTIMATED_ITEM_HEIGHT = 80; // Estimated card height
+const COLUMN_HEIGHT = 600; // Fixed column height
 
-  return (
-    <motion.div
-      onDrop={(e) => onDrop(e, column.id)}
-      onDragEnd={onDragEnd}
-      className="p-2 rounded-lg border border-accent gap-2"
-    >
-      <h3 style={{ textAlign: "center" }}>{column.title}</h3>
-      <div
-        onDragOver={(e) => handleDragOver(e, column.cards.length)}
-        style={{ minHeight: "50px" }}
-      >
-        {column.cards.map((card, index) => (
-          <div key={card.id} onDragOver={(e) => handleDragOver(e, index)}>
-            {dropTarget &&
-              dropTarget.columnId === column.id &&
-              dropTarget.index === index &&
-              sourceColumnId !== column.id && (
-                <div
-                  style={{
-                    height: "40px",
-                    margin: "4px 0",
-                    backgroundColor: "#e0e0e0",
-                    borderRadius: "4px",
-                  }}
-                />
-              )}
-            <Card
-              card={card}
-              isDragging={draggingCardId === card.id}
-              onDragStart={onDragStart}
-            />
-          </div>
-        ))}
-        {dropTarget &&
-          dropTarget.columnId === column.id &&
-          dropTarget.index === column.cards.length && (
-            <div
-              style={{
-                height: "40px",
-                margin: "4px 0",
-                backgroundColor: "#e0e0e0",
-                borderRadius: "4px",
-              }}
-            />
-          )}
-      </div>
-    </motion.div>
-  );
+export function Column({ column, dragState, onPointerDown, onPointerMove, onPointerUp }: ColumnProps) {
+	const { containerRef, visibleItems, totalHeight, offsetY, handleScroll, measureItem } = useVirtualization({
+		items: column.cards,
+		estimatedItemHeight: ESTIMATED_ITEM_HEIGHT,
+		containerHeight: COLUMN_HEIGHT,
+		overscan: 3,
+	});
+
+	const isDragOver = dragState.targetColumnId === column.id;
+	const isSourceColumn = dragState.sourceColumnId === column.id;
+	const isDragging = dragState.isDragging;
+
+	return (
+		<motion.div
+			data-column-id={column.id}
+			className={`
+        w-80 bg-card border border-border rounded-lg p-4
+        ${isDragOver ? "bg-accent/20 border-accent" : ""}
+        ${isSourceColumn && isDragging ? "opacity-75" : ""}
+      `}
+			onPointerMove={isDragging ? onPointerMove : undefined}
+			onPointerUp={isDragging ? onPointerUp : undefined}
+		>
+			<h3 className="text-lg font-semibold text-card-foreground mb-4 text-center">{column.title}</h3>
+
+			<div
+				ref={containerRef}
+				className="overflow-y-auto"
+				style={{ height: COLUMN_HEIGHT }}
+				onScroll={handleScroll}
+			>
+				<div style={{ height: totalHeight, position: "relative" }}>
+					<div
+						style={{
+							transform: `translateY(${offsetY}px)`,
+							position: "absolute",
+							top: 0,
+							left: 0,
+							right: 0,
+						}}
+					>
+						{visibleItems.map(({ item: card, index }) => {
+							const actualIndex = index; // This is the actual index in the column
+							return (
+								<div
+									key={card.id}
+									className="w-full"
+								>
+									{/* Show drop indicator above this card if it's the drop target */}
+									{isDragOver && dragState.dropIndex === actualIndex && (
+										<motion.div
+											initial={{ opacity: 0, scaleY: 0 }}
+											animate={{ opacity: 1, scaleY: 1 }}
+											className="h-0.5 bg-accent rounded-full mx-2 mb-2"
+										/>
+									)}
+
+									<div
+										ref={(el) => measureItem(actualIndex, el)}
+										className="w-full"
+									>
+										<Card
+											card={card}
+											isDragging={dragState.draggedCardId === card.id}
+											onPointerDown={onPointerDown}
+											columnId={column.id}
+										/>
+									</div>
+								</div>
+							);
+						})}
+
+						{/* Show drop indicator at the end if dropping after the last card */}
+						{isDragOver && dragState.dropIndex === column.cards.length && (
+							<motion.div
+								initial={{ opacity: 0, scaleY: 0 }}
+								animate={{ opacity: 1, scaleY: 1 }}
+								className="h-0.5 bg-accent rounded-full mx-2 mt-2"
+							/>
+						)}
+					</div>
+				</div>
+			</div>
+		</motion.div>
+	);
 }

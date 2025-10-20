@@ -1,51 +1,34 @@
+import { motion } from "motion/react";
 import React from "react";
-import type { CardData } from "./types";
+import type { KanbanCard } from "./types";
 
 interface CardProps {
-  card: CardData;
-  isDragging: boolean;
-  onDragStart: (e: React.DragEvent<HTMLDivElement>, cardId: string) => void;
+	card: KanbanCard;
+	isDragging: boolean;
+	onPointerDown: (e: React.PointerEvent<HTMLDivElement>, cardId: string, columnId: string) => void;
+	columnId: string;
 }
 
-export const Card: React.FC<CardProps> = ({
-  card,
-  isDragging,
-  onDragStart,
-}) => {
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    // Set data to be transferred
-    e.dataTransfer.setData("text/plain", card.id);
-    e.dataTransfer.effectAllowed = "move";
+export const Card: React.FC<CardProps> = ({ card, isDragging, onPointerDown, columnId }) => {
+	const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		onPointerDown(e, card.id, columnId);
+	};
 
-    // Defer the state update to allow the browser to capture the drag image
-    setTimeout(() => {
-      onDragStart(e, card.id);
-    }, 0);
-  };
-
-  return (
-    <div
-      draggable
-      onDragStart={handleDragStart}
-      style={{
-        padding: "8px",
-        margin: "4px 0",
-        backgroundColor: "white",
-        border: "1px solid #ccc",
-        borderRadius: "4px",
-        cursor: "grab",
-        // Hide the original card completely when dragging
-        opacity: isDragging ? 0 : 1,
-        height: isDragging ? 0 : "auto",
-        paddingTop: isDragging ? 0 : "8px",
-        paddingBottom: isDragging ? 0 : "8px",
-        marginTop: isDragging ? 0 : "4px",
-        marginBottom: isDragging ? 0 : "4px",
-        borderWidth: isDragging ? 0 : "1px",
-        overflow: "hidden",
-      }}
-    >
-      {card.content}
-    </div>
-  );
+	return (
+		<motion.div
+			data-card-id={card.id}
+			data-column-id={columnId}
+			onPointerDown={handlePointerDown}
+			className={`
+        p-3 mb-2 bg-card border border-border rounded-lg cursor-grab
+        hover:shadow-md transition-shadow duration-200
+        ${isDragging ? "opacity-50 scale-95" : "opacity-100 scale-100"}
+      `}
+			whileHover={{ scale: 1.02 }}
+			whileTap={{ scale: 0.98 }}
+			transition={{ duration: 0.1 }}
+		>
+			<div className="text-sm font-medium text-card-foreground break-words whitespace-pre-wrap">{card.content}</div>
+		</motion.div>
+	);
 };
