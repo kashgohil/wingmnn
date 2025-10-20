@@ -89,6 +89,8 @@
       "name": "@wingmnn/router",
       "devDependencies": {
         "@types/bun": "latest",
+        "@types/react": "^19.1.0",
+        "@types/react-dom": "^19.1.0",
       },
       "peerDependencies": {
         "@wingmnn/utils": "workspace:*",
