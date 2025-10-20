@@ -39,6 +39,7 @@
       "@games/*": ["src/modules/games/*"],
       "@notes/*": ["src/modules/notes/*"],
       "@profile/*": ["src/modules/profile/*"],
+      "@finance/*": ["src/modules/finance/*"],
       "@constants": ["src/constants.ts"],
       "@queryKeys": ["src/queryKeys.ts"],
       "@config": ["src/config.ts"],

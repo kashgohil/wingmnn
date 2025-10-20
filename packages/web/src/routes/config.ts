@@ -1,3 +1,4 @@
+import { FinanceRoute } from "@finance/route";
 import { GamesRoute } from "@games/route";
 import { HomeRoute } from "@home/route";
 import { MailsRoute } from "@mails/route";
@@ -14,5 +15,6 @@ export const ROUTES_CONFIG: RouterConfig = [
   ProjectsRoute,
   NotesRoute,
   GamesRoute,
+  FinanceRoute,
   ProfileRoute,
 ];
