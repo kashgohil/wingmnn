@@ -1,5 +1,6 @@
 {
   "name": "@wingmnn/backend",
+  "type": "module",
   "scripts": {
     "dev": "bun run --hot src/index.ts --elide-lines=0",
     "test": "bun test"
