@@ -1,9 +1,6 @@
 import fileImage from "@assets/doodle-projects.png";
-import { LONG_STALE } from "@frameworks/query/constants";
-import { useQuery } from "@frameworks/query/hook";
-import type { QueryParams } from "@frameworks/query/query";
+import { useWorkflows, useWorkflowStatuses } from "@projects/hooks/useProjects";
 import { ProjectsService } from "@projects/services/projectsService";
-import { PROJECT_WORKFLOW_KEY, WORKFLOW_STATUS_PRIMARY_KEY } from "@queryKeys";
 import { UploadService } from "@services/uploadService";
 import {
   Button,
@@ -48,38 +45,18 @@ export function AddProject(props: AddProjectProps) {
     result: workflows,
     isLoading: workflowsLoading,
     isError: workflowsError,
-  } = useQuery({
-    key: PROJECT_WORKFLOW_KEY,
-    staleTime: LONG_STALE,
-    queryFn: ProjectsService.getWorkflows,
-    selector: (res) => res.data,
-  });
+  } = useWorkflows({ enabled: open });
 
-  const statusKey = React.useMemo(() => {
-    return {
-      primaryKey: WORKFLOW_STATUS_PRIMARY_KEY,
-      params: map(workflows || [], (workflow) => workflow.id),
-    };
+  const workflowIds = React.useMemo(() => {
+    return workflows?.map((workflow) => workflow.id) || [];
   }, [workflows]);
-
-  const statusQueryFn = React.useCallback(
-    (queryParams: QueryParams<Array<string>>) => {
-      const { params } = queryParams;
-      return ProjectsService.getStatusForWorkflows(params!);
-    },
-    [],
-  );
 
   const {
     result: statuses,
     isLoading: statusesLoading,
     isError: statusesError,
-  } = useQuery({
-    key: statusKey,
-    staleTime: LONG_STALE,
-    queryFn: statusQueryFn,
-    selector: (res) => res.data,
-    enabled: !isEmpty(workflows),
+  } = useWorkflowStatuses(workflowIds, {
+    enabled: open && !isEmpty(workflowIds),
   });
 
   const update = React.useCallback((updates: Partial<Project>) => {
