@@ -36,6 +36,12 @@ export const ProjectsService = (function () {
     );
   }
 
+  async function getWorkflow(workflowId: string) {
+    return await http.get<ResponseWrapper<Workflow>>(
+      `/projects/workflow/${workflowId}`,
+    );
+  }
+
   async function getStatusForWorkflows(workflowIds: Array<string>) {
     return await http.post<
       ResponseWrapper<Record<string, Array<WorkflowStatus>>>
@@ -49,6 +55,7 @@ export const ProjectsService = (function () {
     deleteProject,
     updateProject,
 
+    getWorkflow,
     getWorkflows,
     getStatusForWorkflows,
   };
