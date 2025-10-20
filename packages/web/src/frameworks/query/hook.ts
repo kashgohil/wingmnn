@@ -4,6 +4,7 @@ import React from "react";
 import { QueryContext } from "./context";
 import { type Params, Query, type QueryParams } from "./query";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type QueryBase<S> = {
   refetch: () => void;
   isRefetching: boolean;
@@ -73,6 +74,11 @@ type UseMutationParams<T, K, S = T, MArgs extends TSAny[] = TSAny[]> = Required<
   Pick<Params<T, K, S, MArgs>, "mutationFn">
 > &
   Omit<Params<T, K, S, MArgs>, "mutationFn" | "enabled">;
+
+export type CustomQueryParams = Pick<
+  Params<unknown, unknown, unknown>,
+  "debounce" | "enabled" | "polling" | "staleTime"
+>;
 
 export function useQuery<T, K, S = T>(
   params: UseQueryParams<T, K, S>,
