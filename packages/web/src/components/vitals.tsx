@@ -1,6 +1,6 @@
 import { SECOND } from "@constants";
 import { Typography } from "@wingmnn/components";
-import { Code } from "lucide-react";
+import { Code } from "@wingmnn/components/icons";
 import React from "react";
 
 export function Vitals() {

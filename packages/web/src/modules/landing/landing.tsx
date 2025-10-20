@@ -16,9 +16,9 @@ import {
   Separator,
   Typography,
 } from "@wingmnn/components";
+import { ArrowRight } from "@wingmnn/components/icons";
 import { mapObj, noop, reduce } from "@wingmnn/utils";
 import { useBoolean } from "@wingmnn/utils/hooks";
-import { ArrowRight } from "lucide-react";
 import { LandingFields } from "./fields";
 
 export function Landing() {
