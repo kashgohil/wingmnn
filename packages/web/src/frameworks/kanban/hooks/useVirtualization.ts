@@ -39,6 +39,38 @@ export function useVirtualization<T>({
 		itemMeasurements: new Map(),
 	});
 
+	// Helper function to recalculate measurements
+	const recalculateMeasurements = useCallback(
+		(measurements: Map<number, ItemMeasurement>) => {
+			// Recalculate total height
+			let totalHeight = 0;
+			for (let i = 0; i < items.length; i++) {
+				const measurement = measurements.get(i);
+				if (measurement) {
+					totalHeight += measurement.height;
+				} else {
+					totalHeight += estimatedItemHeight;
+				}
+			}
+
+			// Recalculate positions
+			let currentTop = 0;
+			const newMeasurements = new Map(measurements);
+			for (let i = 0; i < items.length; i++) {
+				const measurement = newMeasurements.get(i);
+				if (measurement) {
+					newMeasurements.set(i, { ...measurement, top: currentTop });
+					currentTop += measurement.height;
+				} else {
+					currentTop += estimatedItemHeight;
+				}
+			}
+
+			return { newMeasurements, totalHeight };
+		},
+		[items.length, estimatedItemHeight]
+	);
+
 	// Measure item heights when they mount or update
 	const measureItem = useCallback(
 		(index: number, element: HTMLDivElement | null) => {
@@ -51,38 +83,23 @@ export function useVirtualization<T>({
 				for (const entry of entries) {
 					const height = entry.contentRect.height;
 					setState((prev) => {
+						// Check if height actually changed to prevent infinite loops
+						const currentMeasurement = prev.itemMeasurements.get(index);
+						if (currentMeasurement && Math.abs(currentMeasurement.height - height) < 1) {
+							return prev; // No significant change, don't update
+						}
+
 						const newMeasurements = new Map(prev.itemMeasurements);
 						const oldMeasurement = newMeasurements.get(index);
 						const top = oldMeasurement?.top ?? index * estimatedItemHeight;
 
 						newMeasurements.set(index, { height, top });
 
-						// Recalculate total height
-						let totalHeight = 0;
-						for (let i = 0; i < items.length; i++) {
-							const measurement = newMeasurements.get(i);
-							if (measurement) {
-								totalHeight += measurement.height;
-							} else {
-								totalHeight += estimatedItemHeight;
-							}
-						}
-
-						// Recalculate positions
-						let currentTop = 0;
-						for (let i = 0; i < items.length; i++) {
-							const measurement = newMeasurements.get(i);
-							if (measurement) {
-								newMeasurements.set(i, { ...measurement, top: currentTop });
-								currentTop += measurement.height;
-							} else {
-								currentTop += estimatedItemHeight;
-							}
-						}
+						const { newMeasurements: recalculatedMeasurements, totalHeight } = recalculateMeasurements(newMeasurements);
 
 						return {
 							...prev,
-							itemMeasurements: newMeasurements,
+							itemMeasurements: recalculatedMeasurements,
 							totalHeight,
 						};
 					});
@@ -94,38 +111,21 @@ export function useVirtualization<T>({
 			// Initial measurement
 			const height = element.offsetHeight;
 			setState((prev) => {
+				// Check if we already have a measurement for this index
+				if (prev.itemMeasurements.has(index)) {
+					return prev; // Already measured, don't update
+				}
+
 				const newMeasurements = new Map(prev.itemMeasurements);
-				const oldMeasurement = newMeasurements.get(index);
-				const top = oldMeasurement?.top ?? index * estimatedItemHeight;
+				const top = index * estimatedItemHeight;
 
 				newMeasurements.set(index, { height, top });
 
-				// Recalculate total height
-				let totalHeight = 0;
-				for (let i = 0; i < items.length; i++) {
-					const measurement = newMeasurements.get(i);
-					if (measurement) {
-						totalHeight += measurement.height;
-					} else {
-						totalHeight += estimatedItemHeight;
-					}
-				}
-
-				// Recalculate positions
-				let currentTop = 0;
-				for (let i = 0; i < items.length; i++) {
-					const measurement = newMeasurements.get(i);
-					if (measurement) {
-						newMeasurements.set(i, { ...measurement, top: currentTop });
-						currentTop += measurement.height;
-					} else {
-						currentTop += estimatedItemHeight;
-					}
-				}
+				const { newMeasurements: recalculatedMeasurements, totalHeight } = recalculateMeasurements(newMeasurements);
 
 				return {
 					...prev,
-					itemMeasurements: newMeasurements,
+					itemMeasurements: recalculatedMeasurements,
 					totalHeight,
 				};
 			});
@@ -135,7 +135,7 @@ export function useVirtualization<T>({
 				itemRefs.current.delete(index);
 			};
 		},
-		[items.length, estimatedItemHeight]
+		[items.length, estimatedItemHeight, recalculateMeasurements]
 	);
 
 	const calculateVisibleRange = useCallback(
@@ -207,10 +207,19 @@ export function useVirtualization<T>({
 	// Cleanup ResizeObserver on unmount
 	useEffect(() => {
 		return () => {
-			// ResizeObserver cleanup is handled in measureItem
+			// ResizeObserver cleanup is handled in measureItem return function
 			itemRefs.current.clear();
 		};
 	}, []);
+
+	// Reset measurements when items change
+	useEffect(() => {
+		setState((prev) => ({
+			...prev,
+			itemMeasurements: new Map(),
+			totalHeight: items.length * estimatedItemHeight,
+		}));
+	}, [items.length, estimatedItemHeight]);
 
 	const visibleItems = items.slice(state.visibleStartIndex, state.visibleEndIndex + 1);
 	const visibleItemsWithIndex = visibleItems.map((item, index) => ({
@@ -225,5 +234,15 @@ export function useVirtualization<T>({
 		offsetY: state.offsetY,
 		handleScroll,
 		measureItem,
+		getItemHeight: (index: number) => {
+			const measurement = state.itemMeasurements.get(index);
+			return measurement?.height ?? estimatedItemHeight;
+		},
+		averageHeight: (() => {
+			const values = Array.from(state.itemMeasurements.values());
+			if (values.length === 0) return estimatedItemHeight;
+			const sum = values.reduce((acc, m) => acc + m.height, 0);
+			return sum / values.length;
+		})(),
 	};
 }

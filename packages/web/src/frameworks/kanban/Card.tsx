@@ -24,7 +24,6 @@ export const Card: React.FC<CardProps> = ({ card, isDragging, onPointerDown, col
         hover:shadow-md transition-shadow duration-200
         ${isDragging ? "opacity-50 scale-95" : "opacity-100 scale-100"}
       `}
-			whileHover={{ scale: 1.02 }}
 			whileTap={{ scale: 0.98 }}
 			transition={{ duration: 0.1 }}
 		>

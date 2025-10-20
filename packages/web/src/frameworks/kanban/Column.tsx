@@ -1,103 +1,100 @@
-import { motion } from "motion/react";
+import { cx, Typography } from "@wingmnn/components";
+import { AnimatePresence, motion } from "motion/react";
 import React from "react";
 import { Card } from "./Card";
-import { useVirtualization } from "./hooks/useVirtualization";
 import type { DragState, KanbanColumn } from "./types";
 
 interface ColumnProps {
-	column: KanbanColumn;
-	dragState: DragState;
-	onPointerDown: (e: React.PointerEvent<HTMLDivElement>, cardId: string, columnId: string) => void;
-	onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
-	onPointerUp: (e: React.PointerEvent<HTMLDivElement>) => void;
+  column: KanbanColumn;
+  dragState: DragState;
+  onPointerDown: (
+    e: React.PointerEvent<HTMLDivElement>,
+    cardId: string,
+    columnId: string,
+  ) => void;
+  onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerUp: (e: React.PointerEvent<HTMLDivElement>) => void;
 }
 
-const ESTIMATED_ITEM_HEIGHT = 80; // Estimated card height
-const COLUMN_HEIGHT = 600; // Fixed column height
+export function Column({
+  column,
+  dragState,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+}: ColumnProps) {
+  const isDragOver = dragState.targetColumnId === column.id;
+  const isSourceColumn = dragState.sourceColumnId === column.id;
+  const isDragging = dragState.isDragging;
 
-export function Column({ column, dragState, onPointerDown, onPointerMove, onPointerUp }: ColumnProps) {
-	const { containerRef, visibleItems, totalHeight, offsetY, handleScroll, measureItem } = useVirtualization({
-		items: column.cards,
-		estimatedItemHeight: ESTIMATED_ITEM_HEIGHT,
-		containerHeight: COLUMN_HEIGHT,
-		overscan: 3,
-	});
+  return (
+    <motion.div
+      data-column-id={column.id}
+      className={cx(
+        "w-80 rounded-lg p-2 h-full",
+        isDragOver ? "bg-accent/20 border-accent" : "",
+        isSourceColumn && isDragging ? "opacity-75" : "",
+      )}
+      onPointerMove={isDragging ? onPointerMove : undefined}
+      onPointerUp={isDragging ? onPointerUp : undefined}
+    >
+      <Typography.H3 className="text-accent mb-4 text-center">
+        {column.title}
+      </Typography.H3>
 
-	const isDragOver = dragState.targetColumnId === column.id;
-	const isSourceColumn = dragState.sourceColumnId === column.id;
-	const isDragging = dragState.isDragging;
+      <div className="overflow-y-auto h-full">
+        <motion.div
+          className="space-y-2"
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+        >
+          <AnimatePresence mode="wait">
+            {column.cards.map((card, index) => {
+              const isDragging = dragState.draggedCardId === card.id;
 
-	return (
-		<motion.div
-			data-column-id={column.id}
-			className={`
-        w-80 bg-card border border-border rounded-lg p-4
-        ${isDragOver ? "bg-accent/20 border-accent" : ""}
-        ${isSourceColumn && isDragging ? "opacity-75" : ""}
-      `}
-			onPointerMove={isDragging ? onPointerMove : undefined}
-			onPointerUp={isDragging ? onPointerUp : undefined}
-		>
-			<h3 className="text-lg font-semibold text-card-foreground mb-4 text-center">{column.title}</h3>
+              if (isDragging) return null;
 
-			<div
-				ref={containerRef}
-				className="overflow-y-auto"
-				style={{ height: COLUMN_HEIGHT }}
-				onScroll={handleScroll}
-			>
-				<div style={{ height: totalHeight, position: "relative" }}>
-					<div
-						style={{
-							transform: `translateY(${offsetY}px)`,
-							position: "absolute",
-							top: 0,
-							left: 0,
-							right: 0,
-						}}
-					>
-						{visibleItems.map(({ item: card, index }) => {
-							const actualIndex = index; // This is the actual index in the column
-							return (
-								<div
-									key={card.id}
-									className="w-full"
-								>
-									{/* Show drop indicator above this card if it's the drop target */}
-									{isDragOver && dragState.dropIndex === actualIndex && (
-										<motion.div
-											initial={{ opacity: 0, scaleY: 0 }}
-											animate={{ opacity: 1, scaleY: 1 }}
-											className="h-0.5 bg-accent rounded-full mx-2 mb-2"
-										/>
-									)}
+              return (
+                <motion.div
+                  key={card.id}
+                  className="w-full"
+                  data-card-index={index}
+                >
+                  {/* Show drop indicator above this card if it's the drop target */}
+                  {isDragOver && dragState.dropIndex === index && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="border-2 border-dashed border-accent/70 rounded-lg bg-accent/10 mb-2 p-3"
+                      style={{
+                        height: dragState.draggedCardDimensions?.height,
+                      }}
+                    ></motion.div>
+                  )}
 
-									<div
-										ref={(el) => measureItem(actualIndex, el)}
-										className="w-full"
-									>
-										<Card
-											card={card}
-											isDragging={dragState.draggedCardId === card.id}
-											onPointerDown={onPointerDown}
-											columnId={column.id}
-										/>
-									</div>
-								</div>
-							);
-						})}
+                  <div className="w-full">
+                    <Card
+                      card={card}
+                      columnId={column.id}
+                      isDragging={isDragging}
+                      onPointerDown={onPointerDown}
+                    />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
 
-						{/* Show drop indicator at the end if dropping after the last card */}
-						{isDragOver && dragState.dropIndex === column.cards.length && (
-							<motion.div
-								initial={{ opacity: 0, scaleY: 0 }}
-								animate={{ opacity: 1, scaleY: 1 }}
-								className="h-0.5 bg-accent rounded-full mx-2 mt-2"
-							/>
-						)}
-					</div>
-				</div>
-			</div>
-		</motion.div>
-	);
+          {/* Show drop indicator at the end if dropping after the last card */}
+          {isDragOver && dragState.dropIndex === column.cards.length && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="border-2 border-dashed border-accent/70 rounded-lg bg-accent/10 mt-2 p-3"
+              style={{ height: dragState.draggedCardDimensions?.height }}
+            ></motion.div>
+          )}
+        </motion.div>
+      </div>
+    </motion.div>
+  );
 }
