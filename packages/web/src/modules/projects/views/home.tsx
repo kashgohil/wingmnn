@@ -2,7 +2,7 @@ import fileImage from "@assets/doodle-projects.png";
 import { useQuery } from "@frameworks/query/hook";
 import { Wingmnn } from "@icons/wingmnn";
 import { ProjectDialog } from "@projects/constants";
-import { ProjectActions } from "@projects/logic/useProjects";
+import { ProjectActions } from "@projects/hooks/useProjectDialogs";
 import { ProjectsService } from "@projects/services/projectsService";
 import { PROJECTS_KEY } from "@queryKeys";
 import {

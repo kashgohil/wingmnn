@@ -1,7 +1,7 @@
-import { ProjectActions, useProjects } from "@projects/logic/useProjects";
+import { ProjectDialog } from "@projects/constants";
+import { ProjectActions, useProjects } from "@projects/hooks/useProjectDialogs";
 import { AddProject } from "./addProject";
 import { AddTask } from "./addTask";
-import { ProjectDialog } from "@projects/constants";
 
 export function ProjectDialogs() {
   const dialogs = useProjects("dialogs");
