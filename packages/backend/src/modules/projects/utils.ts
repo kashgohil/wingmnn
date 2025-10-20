@@ -15,7 +15,7 @@ import {
   workflowStatusTable,
 } from "@wingmnn/db";
 import { tryCatchAsync } from "@wingmnn/utils";
-import { and, asc, count, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
 
 // Projects Query Utilities
 const projectQuery = db.query.projectsTable;
@@ -170,7 +170,6 @@ async function getWorkflow(
   const { result, error } = await tryCatchAsync(
     db.query.workflowsTable.findFirst({
       where: eq(workflowsTable[key], value),
-      with: { project: true },
     }),
   );
 
@@ -252,7 +251,6 @@ async function getTask(
         comments: {
           orderBy: desc(taskCommentsTable.createdAt),
         },
-        attachments: true,
       },
     }),
   );
@@ -285,7 +283,6 @@ async function getTaskWithRelations(taskId: string) {
         comments: {
           orderBy: desc(taskCommentsTable.createdAt),
         },
-        attachments: true,
         history: {
           orderBy: desc(taskHistoryTable.createdAt),
           limit: 50,
