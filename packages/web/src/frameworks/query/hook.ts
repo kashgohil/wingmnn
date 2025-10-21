@@ -52,7 +52,7 @@ type QuerySuccess<S> = QueryBase<S> & {
 
 type QueryMutating<S> = QueryBase<S> & {
   status: "mutating";
-  result: S | null;
+  result: S;
   error: null;
   isIdle: false;
   isLoading: false;
@@ -148,7 +148,7 @@ export function useQuery<T, K, S = T>(
       return {
         ...base,
         status: "mutating",
-        result: query.result,
+        result: query.result as S,
         error: null,
         isIdle: false,
         isLoading: false,
