@@ -91,9 +91,12 @@ export function Home() {
         </Typography.H1>
         <div className="flex space-y-4">
           {map(projects!, (project) => (
-            <Link to={`/projects/${project.id}`} onClick={playClickSound}>
+            <Link
+              key={project.id}
+              onClick={playClickSound}
+              to={`/projects/${project.id}`}
+            >
               <Card
-                key={project.id}
                 style={{
                   backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${fileImage})`,
                 }}
