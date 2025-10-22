@@ -130,7 +130,7 @@ export function TabComponent<T extends string>(props: TabProps<T>) {
         {activeTab === props.id && (
           <motion.div
             layoutId={floaterId || "tab-floater"}
-            className="absolute inset-0 bg-accent rounded-lg"
+            className={cx("absolute inset-0 bg-accent rounded-lg", className)}
             transition={{ duration: 0.2 }}
           ></motion.div>
         )}
