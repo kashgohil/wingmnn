@@ -130,6 +130,7 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
     if (!this.refetching && this.cache.has(serializedKey)) {
       this._result = this.cache.get(serializedKey) as S;
       this.status = "success";
+      this.subscriber();
       return this._result;
     }
 
@@ -170,6 +171,14 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
     this.params = merge(SANE_DEFAULT, params) as Params<T, K, S>;
     this.subscriber = subscriber;
 
+    // If cache already has data for this key, surface it immediately as success
+    const key = this.params.key ? serializeKey(this.params.key) : "";
+    if (key && this.cache.has(key)) {
+      this._result = this.cache.get(key) as S;
+      this.status = "success";
+      this.subscriber();
+    }
+
     if (this.params.queryFn) {
       this.executor = this.batch.batch<S | null, QueryParams<K>>(this.query);
 
@@ -206,6 +215,14 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
       this.init(params, this.subscriber);
     } else {
       this.params = merge(this.params, params);
+
+      // If status is idle but cache already has value, promote to success
+      const key = serializeKey(this.params.key);
+      if (this.status === "idle" && this.cache.has(key)) {
+        this._result = this.cache.get(key) as S;
+        this.status = "success";
+        this.subscriber();
+      }
     }
   };
 
