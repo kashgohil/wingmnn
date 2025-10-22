@@ -1,40 +1,45 @@
 import { createStore } from "@frameworks/store/create";
 import { ProjectDialog } from "@projects/constants";
-import type { Project } from "@wingmnn/db";
 
 interface ProjectsState {
-  projects: Array<Project>;
-  dialogs: Record<ProjectDialog, boolean>;
+	dialogs: Record<ProjectDialog, { open: boolean; params?: TSAny }>;
 }
 
 const { useState: useProjects, store } = createStore<ProjectsState>({
-  projects: [],
-
-  dialogs: {
-    [ProjectDialog.CREATE_PROJECT]: false,
-    [ProjectDialog.EDIT_PROJECT]: false,
-    [ProjectDialog.CREATE_TASK]: false,
-    [ProjectDialog.EDIT_TASK]: false,
-  },
+	dialogs: {
+		[ProjectDialog.CREATE_PROJECT]: { open: false },
+		[ProjectDialog.EDIT_PROJECT]: { open: false },
+		[ProjectDialog.CREATE_TASK]: { open: false },
+		[ProjectDialog.EDIT_TASK]: { open: false },
+	},
 });
 
 const ProjectActions = (function () {
-  return {
-    openDialog: (dialog: ProjectDialog) => {
-      store.set("dialogs", { ...store.get("dialogs"), [dialog]: true });
-    },
+	return {
+		openDialog: <T>(dialog: ProjectDialog, params?: T) => {
+			store.set("dialogs", {
+				...store.get("dialogs"),
+				[dialog]: { open: true, params },
+			});
+		},
 
-    closeDialog: (dialog: ProjectDialog) => {
-      store.set("dialogs", { ...store.get("dialogs"), [dialog]: false });
-    },
+		closeDialog: (dialog: ProjectDialog) => {
+			store.set("dialogs", {
+				...store.get("dialogs"),
+				[dialog]: { open: false },
+			});
+		},
 
-    toggleDialog: (dialog: ProjectDialog) => {
-      store.set("dialogs", {
-        ...store.get("dialogs"),
-        [dialog]: !store.get("dialogs")[dialog],
-      });
-    },
-  };
+		toggleDialog: (dialog: ProjectDialog) => {
+			store.set("dialogs", {
+				...store.get("dialogs"),
+				[dialog]: {
+					open: !store.get("dialogs")[dialog].open,
+					params: store.get("dialogs")[dialog].params,
+				},
+			});
+		},
+	};
 })();
 
 export { ProjectActions, useProjects };
