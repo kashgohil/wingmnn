@@ -1,10 +1,8 @@
 import fileImage from "@assets/doodle-projects.png";
-import { useQuery } from "@frameworks/query/hook";
 import { Wingmnn } from "@icons/wingmnn";
 import { ProjectDialog } from "@projects/constants";
 import { ProjectActions } from "@projects/hooks/useProjectDialogs";
-import { ProjectsService } from "@projects/services/projectsService";
-import { PROJECTS_KEY } from "@queryKeys";
+import { useProjects } from "@projects/hooks/useProjects";
 import {
   Button,
   Card,
@@ -14,35 +12,14 @@ import {
 } from "@wingmnn/components";
 import { Link } from "@wingmnn/router";
 import { isEmpty, map } from "@wingmnn/utils";
+import { playClickSound } from "@wingmnn/utils/interactivity";
 
 export function Home() {
   const {
     result: projects = [],
-    isLoading: projectsLoading,
     isError: projectsError,
-  } = useQuery({
-    key: PROJECTS_KEY,
-    queryFn: ProjectsService.getProjects,
-    selector: (res) => res.data,
-  });
-
-  if (projectsLoading) {
-    return (
-      <div className="h-full flex flex-col gap-8 items-center justify-center">
-        <div className="animate-pulse">
-          <Wingmnn height={240} className="animate-slow-spin text-accent" />
-        </div>
-        <div className="flex flex-col">
-          <Typography.H2 className="text-accent">
-            Loading projects...
-          </Typography.H2>
-          <Typography.Paragraph className="text-white-950">
-            Please wait while we fetch your projects.
-          </Typography.Paragraph>
-        </div>
-      </div>
-    );
-  }
+    isSuccess,
+  } = useProjects();
 
   if (projectsError) {
     return (
@@ -56,6 +33,24 @@ export function Home() {
           </Typography.H2>
           <Typography.Paragraph className="text-white-950">
             Please try again later.
+          </Typography.Paragraph>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSuccess) {
+    return (
+      <div className="h-full flex flex-col gap-8 items-center justify-center">
+        <div className="animate-pulse">
+          <Wingmnn height={240} className="animate-slow-spin text-accent" />
+        </div>
+        <div className="flex flex-col">
+          <Typography.H2 className="text-accent">
+            Loading projects...
+          </Typography.H2>
+          <Typography.Paragraph className="text-white-950">
+            Please wait while we fetch your projects.
           </Typography.Paragraph>
         </div>
       </div>
@@ -96,14 +91,16 @@ export function Home() {
         </Typography.H1>
         <div className="flex space-y-4">
           {map(projects!, (project) => (
-            <Link to={`/projects/${project.id}`}>
+            <Link to={`/projects/${project.id}`} onClick={playClickSound}>
               <Card
                 key={project.id}
-                style={{ backgroundImage: `url(${fileImage})` }}
-                className="h-40 flex items-center justify-center border border-accent/50 w-80 bg-cover bg-center backdrop-opacity-50 overflow-hidden"
+                style={{
+                  backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${fileImage})`,
+                }}
+                className="h-40 flex items-center justify-center  w-80 bg-cover bg-center backdrop-opacity-50 overflow-hidden"
               >
                 <CardTitle className="text-center flex flex-col items-center">
-                  <Typography.H2 className="text-accent bg-black-200 w-fit px-4 py-1 rounded-t-lg">
+                  <Typography.H2 className="text-accent bg-black-200 w-fit px-4 pt-1 tracking-wide rounded-t-lg font-spicy-rice">
                     {project.name}
                   </Typography.H2>
                   <Typography.Paragraph className="bg-black-200 px-4 py-1 rounded-lg">
