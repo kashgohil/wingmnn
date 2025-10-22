@@ -4,19 +4,22 @@ import { AddProject } from "./addProject";
 import { AddTask } from "./addTask";
 
 export function ProjectDialogs() {
-	const dialogs = useProjects("dialogs");
+  const {
+    [ProjectDialog.CREATE_TASK]: createTask,
+    [ProjectDialog.CREATE_PROJECT]: createProject,
+  } = useProjects("dialogs");
 
-	return (
-		<>
-			<AddProject
-				open={dialogs[ProjectDialog.CREATE_PROJECT].open}
-				onClose={() => ProjectActions.closeDialog(ProjectDialog.CREATE_PROJECT)}
-			/>
-			<AddTask
-				open={dialogs[ProjectDialog.CREATE_TASK].open}
-				status={dialogs[ProjectDialog.CREATE_TASK].params}
-				onClose={() => ProjectActions.closeDialog(ProjectDialog.CREATE_TASK)}
-			/>
-		</>
-	);
+  return (
+    <>
+      <AddProject
+        open={createProject.open}
+        onClose={() => ProjectActions.closeDialog(ProjectDialog.CREATE_PROJECT)}
+      />
+      <AddTask
+        open={createTask.open}
+        status={createTask.params}
+        onClose={() => ProjectActions.closeDialog(ProjectDialog.CREATE_TASK)}
+      />
+    </>
+  );
 }
