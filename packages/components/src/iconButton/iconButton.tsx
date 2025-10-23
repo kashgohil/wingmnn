@@ -20,6 +20,7 @@ export function IconButton(props: IconButtonProps) {
 		shape = "rounded",
 		iconProps = {},
 		className,
+		variant = "icon",
 		...rest
 	} = props;
 
@@ -29,10 +30,10 @@ export function IconButton(props: IconButtonProps) {
 		return (
 			<Button
 				{...rest}
-				variant="icon"
+				variant={variant}
 				className={cx(
 					"flex items-center justify-center rounded-full",
-					className
+					className,
 				)}
 			>
 				<Icon {...iconProps} />
@@ -44,7 +45,7 @@ export function IconButton(props: IconButtonProps) {
 		return (
 			<Button
 				{...rest}
-				variant="icon"
+				variant={variant}
 				className={cx("flex items-center justify-center rounded-lg", className)}
 			>
 				<Icon {...iconProps} />
@@ -56,10 +57,10 @@ export function IconButton(props: IconButtonProps) {
 		return (
 			<Button
 				{...rest}
-				variant="icon"
+				variant={variant}
 				className={cx(
 					"flex items-center justify-center rounded-none",
-					className
+					className,
 				)}
 			>
 				<Icon {...iconProps} />
