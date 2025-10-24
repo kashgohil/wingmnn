@@ -20,15 +20,15 @@ export interface SwitchProps
 }
 
 const variantClasses = classVariance({
-	sm: "h-4 w-8 p-0.5",
-	lg: "h-6 w-12 p-1.5",
-	md: "h-5 w-10 p-1",
+	sm: "w-8 h-4",
+	lg: "w-12 h-6",
+	md: "w-10 h-5",
 });
 
 const knobVariantClasses = classVariance({
-	sm: "w-4 h-4",
-	lg: "w-6 h-6",
-	md: "w-5 h-5",
+	sm: "w-2.5 h-2.5",
+	lg: "w-4.5 h-4.5",
+	md: "w-3.5 h-3.5",
 });
 
 export function Switch(props: SwitchProps) {
@@ -61,18 +61,20 @@ export function Switch(props: SwitchProps) {
 				className={cx(
 					className,
 					variantClasses(size),
-					"relative rounded-full cursor-pointer transition-colors duration-200",
+					"relative rounded-full flex items-center cursor-pointer transition-all duration-200 border border-accent/80 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent/80 p-1",
 					checked
-						? "bg-accent/50 hover:bg-accent/40"
-						: "bg-accent/10 hover:bg-accent/20",
+						? "bg-accent/40 hover:bg-accent/30"
+						: "bg-accent/5 hover:bg-accent/10",
 				)}
 			>
 				<div
 					className={cx(
 						knobWrapperClassName,
 						knobVariantClasses(size),
-						"absolute top-0 left-0 rounded-full bg-accent border border-black shadow-md transition-transform duration-200 flex items-center justify-center",
-						checked ? "translate-x-full" : "translate-x-0",
+						"absolute top-1/2 -translate-y-1/2 rounded-full bg-accent transition-all duration-200",
+						checked
+							? "left-[calc(100%-2px)] -translate-x-full"
+							: "left-0.5 translate-x-0",
 					)}
 				>
 					{knob}
