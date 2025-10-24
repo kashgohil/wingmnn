@@ -132,7 +132,7 @@ export function DialogTitle(props: DialogTitleProps) {
           onClick={onClose}
           variant="secondary"
           iconProps={{ size: 16 }}
-          className="ml-auto p-2 text-accent"
+          className="p-2 text-accent"
         />
       ) : null}
     </div>
