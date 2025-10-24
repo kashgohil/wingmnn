@@ -3,6 +3,7 @@ import React from "react";
 
 import { Form } from "@frameworks/forms/components/form";
 import { useForm } from "@frameworks/forms/useForm";
+import { http } from "@frameworks/http/httpInstance";
 import { useAccentSetup } from "@hooks/useAccentSetup";
 import { Github } from "@icons/github";
 import { Google } from "@icons/google";
@@ -17,7 +18,7 @@ import {
   Typography,
 } from "@wingmnn/components";
 import { ArrowRight } from "@wingmnn/components/icons";
-import { mapObj, noop, reduce } from "@wingmnn/utils";
+import { forEachObj, mapObj, noop, reduce } from "@wingmnn/utils";
 import { useBoolean } from "@wingmnn/utils/hooks";
 import { LandingFields } from "./fields";
 
@@ -139,7 +140,21 @@ function LandingForm() {
 
   const { value, toggle } = useBoolean(false);
 
-  const { formData } = useForm(fields);
+  const { formData, update } = useForm(fields);
+
+  const submit = React.useCallback(() => {
+    const form = new FormData();
+
+    forEachObj<MapOf<string>>(formData.values, (value, key) => {
+      form.append(key as string, value);
+    });
+
+    console.log({ form: form.values() });
+
+    http.post("/auth/login", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  }, [formData]);
 
   return (
     <>
@@ -200,12 +215,12 @@ function LandingForm() {
 
           <Form
             fields={fields}
-            onChange={noop}
             onSubmit={noop}
+            onChange={update}
             formData={formData}
             classes={fieldClassNames}
           />
-          <Button size="sm" className="w-full mt-6">
+          <Button size="sm" className="w-full mt-6" onClick={submit}>
             <Typography.Paragraph>Let's get you in there</Typography.Paragraph>
           </Button>
         </DialogContent>

@@ -22,9 +22,19 @@ export const LandingFields = (function () {
     } as unknown as Field;
   }
 
+  function email(): Field {
+    return {
+      id: "email",
+      name: "Email",
+      type: FieldType.INPUT,
+      dataType: DataType.STRING,
+      validations: { mandatory: true },
+    } as unknown as Field;
+  }
+
   // public
   function loginFields(): Array<Field> {
-    return [username(), password()];
+    return [email(), password()];
   }
 
   function signupFields(): Array<Field> {
