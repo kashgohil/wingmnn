@@ -4,7 +4,6 @@ import { ProjectActions } from "@projects/hooks/useProjectDialogs";
 import { useProject } from "@projects/hooks/useProjects";
 import {
 	Button,
-	cx,
 	Dialog,
 	DialogActions,
 	DialogContent,
@@ -75,8 +74,8 @@ export function AddTask({ open, onClose, status }: AddTaskProps) {
 			open={open}
 			onClose={onClose}
 			style={accentStyles}
+			className="flex flex-col"
 			size={expand ? "lg" : "md"}
-			className={cx(expand ? "min-h-2/3 flex flex-col" : "")}
 		>
 			<DialogTitle
 				onClose={onClose}
@@ -108,9 +107,10 @@ export function AddTask({ open, onClose, status }: AddTaskProps) {
 					onChange={(title: string) => update({ title })}
 				/>
 				<LexicalEditor
-					name="description"
 					className="flex-1"
+					name="task-description"
 					placeholder="Elaborate on the task..."
+					onChange={(description: string) => update({ description })}
 				/>
 				<div className="flex items-end justify-between">
 					<div className="flex flex-col items-start gap-2">
