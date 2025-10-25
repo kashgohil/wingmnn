@@ -338,7 +338,6 @@ export function LexicalFloatingToolbar() {
 						size="sm"
 						className="p-2"
 						icon={button.icon}
-						title={button.label}
 						iconProps={{ size: 16 }}
 						onClick={button.command}
 						disabled={button.disabled}
@@ -361,7 +360,6 @@ export function LexicalFloatingToolbar() {
 						size="sm"
 						className="p-2"
 						icon={button.icon}
-						title={button.label}
 						iconProps={{ size: 16 }}
 						onClick={button.command}
 						disabled={button.disabled}
@@ -384,7 +382,6 @@ export function LexicalFloatingToolbar() {
 						size="sm"
 						className="p-2"
 						icon={button.icon}
-						title={button.label}
 						iconProps={{ size: 16 }}
 						onClick={button.command}
 						disabled={button.disabled}
