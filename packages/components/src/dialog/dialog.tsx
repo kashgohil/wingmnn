@@ -41,10 +41,17 @@ type DialogActionsProps = React.DetailedHTMLProps<
 >;
 
 const dialogVariants = classVariance({
-	sm: "max-w-1/4",
-	md: "max-w-1/3",
-	lg: "max-w-1/2",
-	xl: "max-w-2/3",
+	sm: "25%",
+	md: "33.33%",
+	lg: "50%",
+	xl: "66.66%",
+});
+
+const dialogHeightVariants = classVariance({
+	sm: "40%",
+	md: "50%",
+	lg: "80%",
+	xl: "90%",
 });
 
 export function Dialog(props: DialogProps) {
@@ -91,15 +98,32 @@ export function Dialog(props: DialogProps) {
 				>
 					<motion.div
 						{...rest}
-						initial={{ opacity: 0, scale: 0.9, ...initial }}
-						animate={{ opacity: 1, scale: 1, ...animate }}
-						exit={{ opacity: 0, scale: 0.9, ...exit }}
+						initial={{
+							opacity: 0,
+							scale: 0.9,
+							maxHeight: dialogHeightVariants(size),
+							maxWidth: dialogVariants(size),
+							...initial,
+						}}
+						animate={{
+							opacity: 1,
+							scale: 1,
+							maxHeight: dialogHeightVariants(size),
+							maxWidth: dialogVariants(size),
+							...animate,
+						}}
+						exit={{
+							opacity: 0,
+							scale: 0.9,
+							maxHeight: dialogHeightVariants(size),
+							maxWidth: dialogVariants(size),
+							...exit,
+						}}
 						role="dialog"
 						ref={dialogRef}
 						onKeyDown={escape(onClose)}
 						className={cx(
-							"rounded-lg bg-black-200 w-full z-1 border border-accent/40",
-							dialogVariants(size),
+							"rounded-lg h-full bg-black-200 w-full z-1 border border-accent/40",
 							className,
 						)}
 					>
