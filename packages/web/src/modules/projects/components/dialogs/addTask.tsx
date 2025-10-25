@@ -1,13 +1,15 @@
-import { SimpleRichTextEditor } from "@frameworks/editor";
+import { Editor as LexicalEditor } from "@frameworks/lexical/editor";
 import { ProjectDialog } from "@projects/constants";
 import { ProjectActions } from "@projects/hooks/useProjectDialogs";
 import { useProject } from "@projects/hooks/useProjects";
 import {
 	Button,
+	cx,
 	Dialog,
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	IconButton,
 	Input,
 	Switch,
 	Typography,
@@ -17,6 +19,8 @@ import {
 	BadgePlus,
 	ChevronRight,
 	Hourglass,
+	Maximize,
+	Minimize,
 	Paperclip,
 	Tag,
 	Timer,
@@ -38,7 +42,16 @@ export function AddTask({ open, onClose, status }: AddTaskProps) {
 
 	const { key } = project || {};
 
-	const { value: keepCreating, toggle: toggleKeepCreating } = useBoolean(false);
+	const {
+		value: expand,
+		toggle: toggleExpand,
+		unset: unsetExpand,
+	} = useBoolean(false);
+	const {
+		value: keepCreating,
+		toggle: toggleKeepCreating,
+		unset: unsetKeepCreating,
+	} = useBoolean(false);
 
 	const [state, setState] = React.useState<NewTask>({} as NewTask);
 
@@ -48,7 +61,9 @@ export function AddTask({ open, onClose, status }: AddTaskProps) {
 
 	// Reset form when dialog opens/closes
 	React.useEffect(() => {
-		if (open) {
+		if (!open) {
+			unsetExpand();
+			unsetKeepCreating();
 			setState({} as NewTask);
 		}
 	}, [open]);
@@ -60,31 +75,42 @@ export function AddTask({ open, onClose, status }: AddTaskProps) {
 			open={open}
 			onClose={onClose}
 			style={accentStyles}
+			size={expand ? "lg" : "md"}
+			className={cx(expand ? "min-h-2/3 flex flex-col" : "")}
 		>
-			<DialogTitle onClose={onClose}>
+			<DialogTitle
+				onClose={onClose}
+				className="flex items-center justify-between"
+			>
 				<div className="flex items-center gap-2 tracking-wide font-spicy-rice text-accent">
 					{key} <ChevronRight size={16} />{" "}
 					<span className="text-white-950 text-base">{status?.name}</span>
 				</div>
+				<IconButton
+					size="sm"
+					shape="circle"
+					variant="secondary"
+					onClick={toggleExpand}
+					iconProps={{ size: 16 }}
+					icon={expand ? Minimize : Maximize}
+					className="p-2 text-accent ml-auto mr-2"
+				/>
 			</DialogTitle>
-			<DialogContent className="gap-2 flex flex-col">
+			<DialogContent className="gap-2 flex flex-col flex-1">
 				<Input
 					size="sm"
 					autoFocus
 					type="text"
 					name="title"
 					value={state.title}
-					wrapperClassName="flex-1"
+					wrapperClassName="outline-none text-accent font-semi-bold text-lg"
 					placeholder="What is it about?"
 					onChange={(title: string) => update({ title })}
 				/>
-				<SimpleRichTextEditor
-					className="h-full"
-					enableAutoSave={false}
-					enableKeyboardShortcuts={true}
-					value={state.description || ""}
+				<LexicalEditor
+					name="description"
+					className="flex-1"
 					placeholder="Elaborate on the task..."
-					onChange={(description: string) => update({ description })}
 				/>
 				<div className="flex items-end justify-between">
 					<div className="flex flex-col items-start gap-2">
@@ -134,22 +160,28 @@ export function AddTask({ open, onClose, status }: AddTaskProps) {
 					</div>
 				</div>
 			</DialogContent>
-			<DialogActions className="flex items-center justify-end gap-2">
-				<Typography.Caption className="text-accent/80">
-					Keep creating tasks
-				</Typography.Caption>
-				<Switch
-					checked={keepCreating}
-					onChange={toggleKeepCreating}
-				/>
-				<Button
-					size="sm"
-					variant="secondary"
-					onClick={() => ProjectActions.closeDialog(ProjectDialog.CREATE_TASK)}
-				>
-					Cancel
-				</Button>
-				<Button size="sm">Create</Button>
+			<DialogActions className="flex items-center justify-between gap-2">
+				<div className="flex items-center gap-2">
+					<Switch
+						checked={keepCreating}
+						onChange={toggleKeepCreating}
+					/>
+					<Typography.Caption className="text-accent/80">
+						Keep creating tasks
+					</Typography.Caption>
+				</div>
+				<div className="flex items-center gap-2">
+					<Button
+						size="sm"
+						variant="secondary"
+						onClick={() =>
+							ProjectActions.closeDialog(ProjectDialog.CREATE_TASK)
+						}
+					>
+						Cancel
+					</Button>
+					<Button size="sm">Create</Button>
+				</div>
 			</DialogActions>
 		</Dialog>
 	);
