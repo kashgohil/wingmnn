@@ -35,11 +35,22 @@ interface AddTaskProps {
   status: WorkflowStatus;
 }
 
-const PRIORITY_OPTIONS = [
-  { name: "Low", id: "low", description: "", value: "low" },
-  { name: "Medium", id: "medium", description: "", value: "medium" },
-  { name: "High", id: "high", description: "", value: "high" },
-  { name: "Critical", id: "critical", description: "", value: "critical" },
+const PRIORITY_OPTIONS: Record<string, CoreOption> = {
+  low: { name: "Low", id: "low", description: "" },
+  medium: { name: "Medium", id: "medium", description: "" },
+  high: { name: "High", id: "high", description: "" },
+  critical: {
+    name: "Critical",
+    id: "critical",
+    description: "",
+  },
+};
+
+const OPTIONS = [
+  PRIORITY_OPTIONS["low"],
+  PRIORITY_OPTIONS["medium"],
+  PRIORITY_OPTIONS["high"],
+  PRIORITY_OPTIONS["critical"],
 ];
 
 export function AddTask({ open, onClose, status }: AddTaskProps) {
@@ -84,13 +95,15 @@ export function AddTask({ open, onClose, status }: AddTaskProps) {
 
   const accentStyles = { "--accent": status?.color } as React.CSSProperties;
 
+  console.log({ state });
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
       style={accentStyles}
-      className="flex flex-col"
       size={expand ? "lg" : "md"}
+      className="flex flex-col min-h-125"
     >
       <DialogTitle
         onClose={onClose}
@@ -156,32 +169,35 @@ export function AddTask({ open, onClose, status }: AddTaskProps) {
               iconProps={{ size: 20 }}
               className="p-2 flex items-center gap-2"
             />
-            <IconButton
+            <Button
               variant="icon"
               ref={priorityRef}
-              icon={ChevronsUp}
-              iconProps={{ size: 20 }}
               onClick={togglePriorityPopover}
-              className="p-2 flex items-center gap-2"
-            />
+              className="p-2 flex items-center gap-1"
+            >
+              <ChevronsUp size={20} />
+              {state?.priority ? (
+                <span className="mr-1">
+                  {PRIORITY_OPTIONS[state.priority].name}
+                </span>
+              ) : null}
+            </Button>
           </div>
         </div>
-        <>
-          <Menu
-            style={accentStyles}
-            anchor={priorityRef}
-            open={priorityPopover}
-            placement="bottom-left"
-            options={PRIORITY_OPTIONS}
-            value={[state.priority!].filter(Boolean)}
-            onSelect={({ value }) => {
-              update({ priority: value as TSAny });
-              unsetPriorityPopover();
-            }}
-            onClose={unsetPriorityPopover}
-            className="bg-black-200 border border-accent/40"
-          />
-        </>
+        <Menu
+          options={OPTIONS}
+          style={accentStyles}
+          anchor={priorityRef}
+          open={priorityPopover}
+          placement="bottom-left"
+          value={state.priority!}
+          onSelect={({ id }) => {
+            update({ priority: id as TSAny });
+            unsetPriorityPopover();
+          }}
+          onClose={unsetPriorityPopover}
+          className="bg-black-200 border border-accent/40"
+        />
       </DialogContent>
       <DialogActions className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
