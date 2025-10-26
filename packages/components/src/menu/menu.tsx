@@ -20,11 +20,7 @@ export interface MenuProps<T> extends Omit<PopoverProps, "onSelect"> {
   anchor: React.RefObject<HTMLElement | null>;
 }
 
-export interface MenuOptionProps
-  extends React.DetailedHTMLProps<
-    React.HTMLAttributes<HTMLDivElement>,
-    HTMLDivElement
-  > {
+export interface MenuOptionProps extends React.ComponentProps<"button"> {
   option: Option;
   selected?: boolean;
   variant: PopoverProps["variant"];
@@ -33,7 +29,7 @@ export interface MenuOptionProps
 const optionVariantClasses = classVariance({
   compact: "px-2 py-1",
   normal: "px-4 py-2",
-  selected: "bg-black-200/20",
+  selected: "bg-accent/50 hover:bg-accent/50 text-[var(--text-accent)]",
 });
 
 function MenuOption(props: MenuOptionProps) {
@@ -43,17 +39,17 @@ function MenuOption(props: MenuOptionProps) {
   switch (type) {
     case "value":
       return (
-        <div
+        <button
           {...rest}
           tabIndex={0}
           className={cx(
+            "rounded-lg cursor-pointer hover:bg-accent/10 transition-all duration-200 focus-within:outline-black-200 focus-within:outline-2 text-left",
             optionVariantClasses(variant, selected ? "selected" : undefined),
-            "rounded-lg cursor-pointer hover:bg-black-100 transition-all duration-200 focus-within:outline-black-200 focus-within:outline-2",
             className,
           )}
         >
           {name}
-        </div>
+        </button>
       );
     case "heading":
       return (
@@ -71,7 +67,7 @@ function MenuOption(props: MenuOptionProps) {
       );
     case "action":
       return (
-        <div
+        <button
           {...rest}
           tabIndex={0}
           className={cx(
@@ -81,7 +77,7 @@ function MenuOption(props: MenuOptionProps) {
           )}
         >
           {name}
-        </div>
+        </button>
       );
   }
 }
@@ -193,7 +189,7 @@ export function Menu<T>(props: MenuProps<T>) {
       onClose={onClose}
       variant={variant}
       onKeyDown={keydown}
-      className={cx(className, "p-1 rounded-xl")}
+      className={cx("flex flex-col gap-0.5", className)}
     >
       {map(options, (option) => {
         const { type = "value" } = option;
