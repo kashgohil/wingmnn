@@ -41,10 +41,10 @@ export interface PopoverProps extends HTMLMotionProps<"div"> {
 const variantClasses = classVariance({
   compact: "p-1 text-sm",
   normal: "p-2",
-  "top-left": "origin-bottom mb-2",
-  "bottom-left": "origin-top mt-2",
-  "top-right": "origin-bottom mb-2",
-  "bottom-right": "origin-top mt-2",
+  "top-left": "origin-bottom-left mb-2",
+  "bottom-left": "origin-top-left mt-2",
+  "top-right": "origin-bottom-right mb-2",
+  "bottom-right": "origin-top-right mt-2",
   right: "origin-left -translate-y-1/2 ml-2",
   left: "origin-right -translate-y-1/2 mr-2",
   bottom: "origin-top -translate-x-1/2 mt-2",
@@ -98,7 +98,7 @@ export function Popover(props: PopoverProps) {
       switch (placement) {
         case "top-left":
           top = anchorRect.top - popoverRect.height;
-          left = anchorRect.left - spacing;
+          left = anchorRect.left;
           break;
         case "bottom-left":
           top = anchorRect.bottom;
