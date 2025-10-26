@@ -28,7 +28,8 @@
       "@utility/*": ["src/utils/*"],
       "@components/*": ["src/*"],
       "@hooks/*": ["src/hooks/*"],
-      "@constants": ["src/constants.ts"]
+      "@constants": ["src/constants.ts"],
+      "@/*": ["./src/*"]
     }
   }
 }
