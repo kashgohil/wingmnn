@@ -96,6 +96,9 @@ export function Menu<T>(props: MenuProps<T>) {
     onKeyDown,
     onClose,
     onSelect,
+    animate = {},
+    initial = {},
+    exit = {},
     ...rest
   } = props;
 
@@ -182,12 +185,15 @@ export function Menu<T>(props: MenuProps<T>) {
   return (
     <Popover
       {...rest}
+      exit={{ scale: 1, ...exit }}
+      initial={{ scale: 1, ...initial }}
+      animate={{ scale: 1, ...animate }}
       role="menu"
       ref={menuRef}
       onClose={onClose}
       variant={variant}
       onKeyDown={keydown}
-      className={cx(className, "p-1 rounded-xl mt-1")}
+      className={cx(className, "p-1 rounded-xl")}
     >
       {map(options, (option) => {
         const { type = "value" } = option;
