@@ -210,13 +210,13 @@ export function Popover(props: PopoverProps) {
           transition={{
             ...transition,
             duration: 0.2,
-            ease: "easeOut",
+            ease: "easeInOut",
           }}
           ref={popoverRef}
           onKeyDown={keydown}
           style={{ ...rest.style, top: position.top, left: position.left }}
           className={cx(
-            "fixed z-50 bg-white-500 rounded-xl shadow-lg",
+            "fixed z-52 bg-black-200 rounded-xl shadow-lg",
             variantClasses(placement, variant),
             className,
           )}

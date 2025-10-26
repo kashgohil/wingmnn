@@ -1,10 +1,11 @@
-import { Popover, type PopoverProps } from "@components/popover/popover";
-import type { InferredType, Option } from "@components/types";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
 import { castArray, filter, forEach, map } from "@wingmnn/utils";
 import { useFocusTrap } from "@wingmnn/utils/hooks";
+import { withStopPropagation } from "@wingmnn/utils/interactivity";
 import React, { type KeyboardEvent } from "react";
+import { Popover, type PopoverProps } from "../popover/popover";
+import type { InferredType, Option } from "../types";
 
 export interface MenuProps<T> extends Omit<PopoverProps, "onSelect"> {
   open: boolean;
@@ -95,9 +96,6 @@ export function Menu<T>(props: MenuProps<T>) {
     onKeyDown,
     onClose,
     onSelect,
-    animate = {},
-    initial = {},
-    exit = {},
     ...rest
   } = props;
 
@@ -184,9 +182,6 @@ export function Menu<T>(props: MenuProps<T>) {
   return (
     <Popover
       {...rest}
-      exit={{ scale: 1, ...exit }}
-      initial={{ scale: 1, ...initial }}
-      animate={{ scale: 1, ...animate }}
       role="menu"
       ref={menuRef}
       onClose={onClose}
@@ -204,7 +199,9 @@ export function Menu<T>(props: MenuProps<T>) {
             variant={variant}
             tabIndex={type === "value" ? 0 : -1}
             selected={selectedOptions.has(option.id)}
-            onClick={() => type === "value" && onSelect?.(option)}
+            onClick={withStopPropagation(
+              () => type === "value" && onSelect?.(option),
+            )}
             ref={
               type === "value"
                 ? (ref) => {
