@@ -3,7 +3,11 @@ import { Wingmnn } from "@icons/wingmnn";
 import { BaseRoutes } from "@navigation/routes";
 import { ProjectDialog } from "@projects/constants";
 import { ProjectActions } from "@projects/hooks/useProjectDialogs";
-import { useProject, useWorkflowStatuses } from "@projects/hooks/useProjects";
+import {
+  useProject,
+  useWorkflows,
+  useWorkflowStatuses,
+} from "@projects/hooks/useProjects";
 import { Button, IconButton, Tabs, Typography } from "@wingmnn/components";
 import {
   ChevronLeft,
@@ -14,6 +18,7 @@ import {
   Settings,
   Settings2,
 } from "@wingmnn/components/icons";
+import type { WorkflowStatus } from "@wingmnn/db";
 import { Link, usePathParams } from "@wingmnn/router";
 import { find } from "@wingmnn/utils";
 import React from "react";
@@ -41,20 +46,26 @@ export function ProjectId() {
   const [activeTab, setActiveTab] = React.useState<Tab>("kanban");
 
   const {
-    result: projectResult,
+    data: projectResult,
     error: projectError,
     isSuccess: projectSuccess,
   } = useProject(id);
 
   const {
-    result: workflowStatusesResult,
+    data: workflows,
+    error: workflowsError,
+    isSuccess: workflowsSuccess,
+  } = useWorkflows();
+
+  const {
+    data: workflowStatusesResult,
     error: workflowStatusesError,
     isSuccess: workflowStatusesSuccess,
   } = useWorkflowStatuses([projectResult?.workflowId as string], {
     enabled: !!projectResult?.workflowId,
   });
 
-  if (projectError || workflowStatusesError) {
+  if (projectError || workflowStatusesError || workflowsError) {
     return (
       <div className="h-full flex flex-col gap-8 items-center justify-center">
         <div className="animate-pulse">
@@ -72,7 +83,7 @@ export function ProjectId() {
     );
   }
 
-  if (!projectSuccess || !workflowStatusesSuccess) {
+  if (!projectSuccess || !workflowStatusesSuccess || !workflowsSuccess) {
     return (
       <div className="h-full flex flex-col gap-8 items-center justify-center">
         <div className="animate-pulse">
@@ -91,7 +102,14 @@ export function ProjectId() {
   }
 
   const project = projectResult;
-  const workflowStatuses = workflowStatusesResult[project.workflowId ?? ""];
+  const statuses = workflowStatusesResult[project.workflowId ?? ""];
+  const order = workflows.find(
+    (workflow) => workflow.id === project.workflowId,
+  )?.order;
+  const workflowStatuses = (order || []).map(
+    (statusId) =>
+      statuses?.find((status) => status.id === statusId) as WorkflowStatus,
+  );
 
   if (!workflowStatuses) {
     return (
@@ -99,7 +117,7 @@ export function ProjectId() {
         <div className="animate-pulse">
           <Wingmnn height={240} className="animate-slow-spin text-accent" />
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col text-center">
           <Typography.H2 className="text-accent">
             No workflow statuses found.
           </Typography.H2>
@@ -170,6 +188,9 @@ export function ProjectId() {
             icon={Settings}
             iconProps={{ size: 20 }}
             className="p-2 rounded-lg"
+            onClick={() =>
+              ProjectActions.openDialog(ProjectDialog.PROJECT_SETTINGS, project)
+            }
           />
         </div>
       </div>
