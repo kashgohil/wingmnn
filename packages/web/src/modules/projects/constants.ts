@@ -4,4 +4,6 @@ export enum ProjectDialog {
 
   CREATE_TASK = "CREATE_TASK",
   EDIT_TASK = "EDIT_TASK",
+
+  PROJECT_SETTINGS = "PROJECT_SETTINGS",
 }
