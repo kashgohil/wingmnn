@@ -6,7 +6,6 @@ import { projects } from "@projects";
 import { setup } from "@setup";
 import { users } from "@users";
 import { storage } from "@wingmnn/storage";
-import "dotenv/config";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { requestId } from "hono/request-id";
