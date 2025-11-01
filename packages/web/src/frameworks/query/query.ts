@@ -5,7 +5,7 @@ import { Cache } from "./cache";
 import { Poll } from "./polling";
 import { serializeKey } from "./utils";
 
-export interface QueryParams<T = TSAny> {
+interface QueryParams<T = TSAny> {
   primaryKey: string;
   secondaryKey?: string;
   params?: T;
@@ -167,8 +167,11 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
   private init = (
     params: Partial<Params<T, K, S>>,
     subscriber: () => void = noop,
+    reason: string = "initial",
   ) => {
+    const paramsKey = params.key;
     this.params = merge(SANE_DEFAULT, params) as Params<T, K, S>;
+    this.params.key = paramsKey || this.params.key;
     this.subscriber = subscriber;
 
     // If cache already has data for this key, surface it immediately as success
@@ -210,11 +213,13 @@ export class Query<T, K, S = T, MArgs extends TSAny[] = TSAny[]> {
 
   updateParams = (params: Params<T, K, S>) => {
     if (serializeKey(this.params.key) !== serializeKey(params.key)) {
-      this.init(params, this.subscriber);
+      this.init(params, this.subscriber, "key changed");
     } else if (!!params.enabled && !!this.params.enabled !== !!params.enabled) {
-      this.init(params, this.subscriber);
+      this.init(params, this.subscriber, "enabled changed");
     } else {
+      const paramsKey = params.key;
       this.params = merge(this.params, params);
+      this.params.key = paramsKey;
 
       // If status is idle but cache already has value, promote to success
       const key = serializeKey(this.params.key);
