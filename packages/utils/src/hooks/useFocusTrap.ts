@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useLayoutEffect } from "react";
 
 function getFocusableElements(element: HTMLElement): HTMLElement[] {
   return Array.from(
@@ -12,12 +12,14 @@ export function useFocusTrap(
   ref: React.RefObject<HTMLElement | null>,
   isActive: boolean,
 ) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isActive || !ref.current) return;
 
     const element = ref.current;
     const focusableElements = getFocusableElements(element);
     const firstElement = focusableElements[0];
+
+    firstElement?.focus();
 
     function handleFocus(e: FocusEvent) {
       if (!element.contains(e.target as Node)) {
