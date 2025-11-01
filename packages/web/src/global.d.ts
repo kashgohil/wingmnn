@@ -3,8 +3,8 @@ type TSAny = any;
 
 type InferredType<T, AllowedTypes> = T extends AllowedTypes ? T : never;
 
-interface BaseDetails {
-  id: string;
+interface BaseDetails<T = string> {
+  id: T;
   name: string;
   description: string;
 }
@@ -22,7 +22,7 @@ interface MapOf<T> {
 
 interface Option extends CoreOption, Metadata {}
 
-interface CoreOption extends BaseDetails {
+interface CoreOption<T = string> extends BaseDetails<T> {
   type?: "value" | "heading" | "action";
   iconCode?: string;
   colorCode?: string;
