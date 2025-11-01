@@ -1,8 +1,10 @@
+import { zValidator } from "@hono/zod-validator";
 import { users } from "@users/router";
 import { userQuery } from "@users/utils";
-import { eq, NewUser, User, usersTable } from "@wingmnn/db";
+import { eq, inArray, NewUser, User, usersTable } from "@wingmnn/db";
 import { ErrorWrapper, ResponseWrapper } from "@wingmnn/types";
 import { isEmpty, tryCatchAsync } from "@wingmnn/utils";
+import z from "zod";
 
 users.get("/get/:userID", async (c) => {
   const userID = c.req.param("userID");
@@ -99,3 +101,29 @@ users.delete("/delete/:userID", async (c) => {
 
   return c.json<ResponseWrapper<User>>({ data: user[0] });
 });
+
+users.post(
+  "/lookup",
+  zValidator("json", z.array(z.string()).min(1)),
+  async (c) => {
+    const ids = c.req.valid("json");
+
+    const { result: users, error } = await tryCatchAsync(
+      userQuery.findMany({ where: inArray(usersTable.id, ids) }),
+    );
+
+    if (error) {
+      console.log("[USER][LOOKUP] Something went wrong: ", error);
+      c.status(500);
+      return c.json<ErrorWrapper>({ message: "Internal server error" });
+    }
+
+    if (isEmpty(users)) {
+      console.log("[USER][LOOKUP] Could not find users: ", ids);
+      c.status(404);
+      return c.json<ErrorWrapper>({ message: "Could not find users" });
+    }
+
+    return c.json<ResponseWrapper<User[]>>({ data: users });
+  },
+);
