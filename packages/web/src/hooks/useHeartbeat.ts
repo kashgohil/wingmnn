@@ -1,8 +1,8 @@
 import { MINUTE, SECOND } from "@constants";
 import { QUICK_STALE } from "@frameworks/query/constants";
-import { useQuery } from "@frameworks/query/hook";
 import { HEARTBEAT_QUERY_KEY } from "@queryKeys";
 import { AuthService } from "@services/authService";
+import { useQuery } from "@tanstack/react-query";
 import { useBoolean } from "@wingmnn/utils/hooks";
 import React from "react";
 
@@ -14,13 +14,10 @@ export function useHeartbeat() {
   } = useBoolean(false);
 
   const { isLoading, isRefetching } = useQuery({
-    key: HEARTBEAT_QUERY_KEY,
+    queryKey: [HEARTBEAT_QUERY_KEY],
     queryFn: AuthService.heartbeat,
     staleTime: QUICK_STALE,
-    polling: {
-      enabled: true,
-      interval: 2 * MINUTE,
-    },
+    refetchInterval: 2 * MINUTE,
   });
 
   React.useEffect(() => {
