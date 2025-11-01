@@ -5,6 +5,7 @@ import {
   Separator,
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@wingmnn/components";
 import { Link } from "@wingmnn/router";
@@ -101,29 +102,35 @@ function Module(props: { module: ModuleConfig; isActive: boolean }) {
         } as TSAny
       }
     >
-      <Tooltip placement="right">
-        <TooltipTrigger>
-          <IconButton
-            icon={icon}
-            iconProps={{
-              size: 20,
-              className: cx(
-                "text-accent group-hover/nav-item:text-[var(--accent-text)] transition-color duration-200",
-                { "text-[var(--accent-text)]": isActive },
-              ),
-            }}
-            className={cx(
-              "group/nav-item p-2 bg-transparent focus-within:outline-accent hover:bg-accent",
-              {
-                "bg-accent": isActive,
-              },
-            )}
-          />
-        </TooltipTrigger>
-        <TooltipContent inline className="bg-accent text-[var(--accent-text)]">
-          {name}
-        </TooltipContent>
-      </Tooltip>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <IconButton
+              icon={icon}
+              iconProps={{
+                size: 20,
+                className: cx(
+                  "text-accent group-hover/nav-item:text-[var(--accent-text)] transition-color duration-200",
+                  { "text-[var(--accent-text)]": isActive },
+                ),
+              }}
+              className={cx(
+                "group/nav-item p-2 bg-transparent focus-within:outline-accent hover:bg-accent",
+                {
+                  "bg-accent": isActive,
+                },
+              )}
+            />
+          </TooltipTrigger>
+          <TooltipContent
+            inline
+            side="right"
+            className="bg-accent text-[var(--accent-text)] text-sm"
+          >
+            {name}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </Link>
   );
 }
