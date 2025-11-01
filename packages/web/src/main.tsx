@@ -1,10 +1,9 @@
-import { QueryProvider } from "@frameworks/query/provider";
 import "./index.css";
 
 import { Vitals } from "@components/vitals";
-import { QueryClient } from "@frameworks/query/context";
 import { AuthRouter } from "@routes/authRouter";
 import { ROUTES_CONFIG } from "@routes/config";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Cookie } from "@utility/browser";
 import { ToastProvider } from "@wingmnn/components";
 import { RouterProvider } from "@wingmnn/router";
@@ -21,17 +20,17 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   });
 }
 
-const queryClient = QueryClient();
+const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <QueryProvider value={queryClient}>
+    <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <RouterProvider config={ROUTES_CONFIG}>
           <AuthRouter />
         </RouterProvider>
         <Vitals />
       </ToastProvider>
-    </QueryProvider>
+    </QueryClientProvider>
   </StrictMode>,
 );
