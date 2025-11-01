@@ -6,3 +6,5 @@ export const PROJECT_WORKFLOW_KEY = { primaryKey: "PROJECT_WORKFLOW" };
 
 export const PROJECT_PRIMARY_KEY = "PROJECT";
 export const WORKFLOW_STATUS_PRIMARY_KEY = "WORKFLOW_STATUS";
+
+export const USERS_PRIMARY_KEY = "USERS";
