@@ -14,9 +14,9 @@ function Calendar({
   classNames,
   showOutsideDays = false,
   captionLayout = "label",
+  buttonVariant = "icon",
   formatters,
   components,
-  buttonVariant,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
@@ -50,14 +50,14 @@ function Calendar({
           defaultClassNames.nav,
         ),
         button_previous: cx(
-          defaultClassNames.button_previous,
-          "size-(--cell-size) flex items-center justify-center rounded-lg cursor-pointer aria-disabled:opacity-50 p-0 select-none",
           buttonVariantClasses(buttonVariant),
+          "size-(--cell-size) flex items-center justify-center rounded-lg cursor-pointer aria-disabled:opacity-50 p-0 select-none",
+          defaultClassNames.button_previous,
         ),
         button_next: cx(
-          defaultClassNames.button_next,
           buttonVariantClasses(buttonVariant),
           "size-(--cell-size) flex items-center justify-center rounded-lg cursor-pointer aria-disabled:opacity-50 p-0 select-none",
+          defaultClassNames.button_next,
         ),
         month_caption: cx(
           "flex items-center justify-center h-(--cell-size) w-full px-(--cell-size)",
@@ -82,7 +82,7 @@ function Calendar({
             : "rounded-md pl-2 pr-1 flex items-center gap-1 text-sm h-8 [&>svg]:text-muted-foreground [&>svg]:size-3.5",
           defaultClassNames.caption_label,
         ),
-        table: "w-full border-collapse",
+        table: "w-full border-collapse gap-4",
         weekdays: cx("flex", defaultClassNames.weekdays),
         weekday: cx(
           "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem] select-none",
@@ -105,13 +105,13 @@ function Calendar({
           defaultClassNames.day,
         ),
         range_start: cx(
-          "rounded-l-md bg-accent",
+          "rounded-l-md bg-accent/20",
           defaultClassNames.range_start,
         ),
         range_middle: cx("rounded-none", defaultClassNames.range_middle),
-        range_end: cx("rounded-r-md bg-accent", defaultClassNames.range_end),
+        range_end: cx("rounded-r-md bg-accent/20", defaultClassNames.range_end),
         today: cx(
-          "bg-accent/30 rounded-md data-[selected=true]:rounded-none",
+          "bg-accent/20 text-primary-foreground rounded-md",
           defaultClassNames.today,
         ),
         outside: cx(
@@ -189,6 +189,7 @@ function CalendarDayButton({
   return (
     <Button
       ref={ref}
+      variant="icon"
       size="sm"
       data-day={day.date.toLocaleDateString()}
       data-selected-single={
@@ -197,12 +198,11 @@ function CalendarDayButton({
         !modifiers.range_end &&
         !modifiers.range_middle
       }
-      variant="icon"
       data-range-start={modifiers.range_start}
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cx(
-        "p-1 data-[selected-single=true]:bg-accent data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent/10 data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
+        "p-2 data-[selected-single=true]:bg-accent data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent/20 data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-accent/10 data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-accent/20 data-[range-end=true]:text-primary-foreground flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 data-[range-end=true]:rounded-md data-[range-end=true]:rounded-r-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md data-[range-start=true]:rounded-l-md [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         className,
       )}
