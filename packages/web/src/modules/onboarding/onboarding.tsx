@@ -1,8 +1,5 @@
-import {
-  useMutation,
-  useQueryState,
-  useQueryStateWithAction,
-} from "@frameworks/query/hook";
+import { useMutation, useQueryStateWithAction } from "@frameworks/query/hook";
+import { useSetup } from "@hooks/useSetup";
 import { Modules } from "@navigation/constants";
 import { BaseRoutes } from "@navigation/routes";
 import { ME_QUERY_KEY } from "@queryKeys";
@@ -116,7 +113,7 @@ function WelcomeCard(props: { submit(): void }) {
 }
 
 function ConfirmationCard() {
-  const user = useQueryState<User>(ME_QUERY_KEY);
+  const { data: user } = useSetup();
 
   const { name, assistantName } = user || {};
 
