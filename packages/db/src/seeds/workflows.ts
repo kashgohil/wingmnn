@@ -16,8 +16,8 @@ interface WorkflowTemplate {
 
 const defaultWorkflows: WorkflowTemplate[] = [
   {
-    name: "Kanban Workflow",
-    description: "Simple Kanban workflow for general project management",
+    name: "Study",
+    description: "Basic workflow for studying",
     statuses: [
       {
         name: "Backlog",
@@ -52,7 +52,7 @@ const defaultWorkflows: WorkflowTemplate[] = [
     ],
   },
   {
-    name: "Software Development Workflow",
+    name: "Software Development",
     description: "Complete software development lifecycle workflow",
     statuses: [
       {
@@ -74,19 +74,19 @@ const defaultWorkflows: WorkflowTemplate[] = [
         color: "#3b82f6",
       },
       {
-        name: "Testing",
-        description: "Quality assurance and testing",
-        phase: "execution",
-        color: "#06b6d4",
-      },
-      {
         name: "Code Review",
         description: "Peer review and code quality check",
         phase: "feedback",
         color: "#8b5cf6",
       },
       {
-        name: "Deployment",
+        name: "QA",
+        description: "Quality assurance and testing",
+        phase: "execution",
+        color: "#06b6d4",
+      },
+      {
+        name: "Production Ready",
         description: "Deploying to production environment",
         phase: "closure",
         color: "#059669",
@@ -100,7 +100,7 @@ const defaultWorkflows: WorkflowTemplate[] = [
     ],
   },
   {
-    name: "Content Creation Workflow",
+    name: "Content Creation",
     description: "Workflow for content creation and publishing",
     statuses: [
       {
@@ -184,7 +184,7 @@ const defaultWorkflows: WorkflowTemplate[] = [
     ],
   },
   {
-    name: "Bug Triage Workflow",
+    name: "Bugs",
     description: "Workflow for handling and resolving bugs",
     statuses: [
       {
