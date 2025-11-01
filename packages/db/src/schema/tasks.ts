@@ -76,17 +76,12 @@ export const tasksTable = pgTable(
       () => usersTable.id,
       { onDelete: "set null" },
     ),
-    reporterId: varchar("reporter_id", { length: 255 }).references(
-      () => usersTable.id,
-      { onDelete: "set null" },
-    ),
-
     // Hierarchy
     parentTaskId: varchar("parent_task_id", { length: 255 }),
 
     // Dates
     startDate: timestamp("start_date").defaultNow().notNull(),
-    dueDate: timestamp("start_date"),
+    dueDate: timestamp("due_date"),
 
     // Additional fields
     tags: jsonb("tags").$type<string[]>().default([]),
