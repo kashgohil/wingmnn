@@ -34,6 +34,7 @@ export const projectsTable = pgTable("projects", {
     { onDelete: "set null" },
   ),
   key: varchar("key", { length: 255 }).notNull().default("KEY"),
+  members: jsonb("members").$type<string[]>().notNull().default([]),
   ...commonFields,
 });
 
@@ -66,6 +67,7 @@ export const projectsRelations = relations(projectsTable, ({ one, many }) => ({
     references: [workflowsTable.id],
   }),
   tasks: many(tasksTable),
+  members: many(usersTable),
 }));
 
 export const workflowsRelations = relations(workflowsTable, ({ many }) => ({
