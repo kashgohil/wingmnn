@@ -42,7 +42,7 @@ export class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="h-full w-full flex flex-col items-center justify-center gap-2 bg-black-100 rounded-lg">
+        <div className="h-full w-full flex flex-col items-center justify-center gap-2 bg-accent/10 rounded-lg">
           <Typography.H2 className="text-center font-spicy-rice text-accent">
             Hmmm. Something went wrong.
           </Typography.H2>
