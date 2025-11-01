@@ -1,6 +1,7 @@
 export * from "./src/box/box";
 export * from "./src/breadcrumbs/breadcrumbs";
 export * from "./src/button/button";
+export * from "./src/calendar/calendar";
 export * from "./src/card/card";
 export * from "./src/checkbox/checkbox";
 export * from "./src/confetti/confetti";
@@ -35,6 +36,7 @@ export * from "./src/utils/cx";
 export type * from "./src/box/box";
 export type * from "./src/breadcrumbs/breadcrumbs";
 export type * from "./src/button/button";
+export type * from "./src/calendar/calendar";
 export type * from "./src/card/card";
 export type * from "./src/checkbox/checkbox";
 export type * from "./src/confetti/confetti";
