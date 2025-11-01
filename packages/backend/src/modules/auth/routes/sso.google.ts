@@ -3,7 +3,7 @@ import { auth } from "@auth/router";
 import { clearAuthCookies } from "@auth/utils/auth";
 import { generateTokens } from "@auth/utils/jwt";
 import { userQuery } from "@users/utils";
-import { usersTable } from "@wingmnn/db";
+import { eq, or, usersTable } from "@wingmnn/db";
 import {
   getGoogleAuthUrl,
   getGoogleTokens,
@@ -12,7 +12,6 @@ import {
   storeGoogleTokens,
 } from "@wingmnn/google";
 import { tryCatchAsync } from "@wingmnn/utils";
-import { eq, or } from "drizzle-orm";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
 // Google OAuth login route

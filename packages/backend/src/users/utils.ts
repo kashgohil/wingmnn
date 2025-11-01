@@ -1,6 +1,13 @@
-import { db, Key, User, usersTable, UsersTableType, Value } from "@wingmnn/db";
+import {
+  db,
+  eq,
+  Key,
+  User,
+  usersTable,
+  UsersTableType,
+  Value,
+} from "@wingmnn/db";
 import { stripEmptyValues, tryCatchAsync } from "@wingmnn/utils";
-import { eq } from "drizzle-orm";
 
 const query = db.query.usersTable;
 

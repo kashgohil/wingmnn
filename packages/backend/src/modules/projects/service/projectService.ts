@@ -1,11 +1,12 @@
 import {
+  desc,
+  eq,
   NewProject,
   NewTaskRelation,
   projectsTable,
   taskRelationsTable,
 } from "@wingmnn/db";
 import { isEmpty, tryCatchAsync } from "@wingmnn/utils";
-import { desc, eq } from "drizzle-orm";
 import { projectsQuery, taskRelationsQuery } from "../utils";
 
 export class ProjectService {

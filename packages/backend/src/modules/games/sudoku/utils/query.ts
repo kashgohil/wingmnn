@@ -1,6 +1,13 @@
-import { db, Key, sudokuTable, SudokuTableType, Value } from "@wingmnn/db";
+import {
+  and,
+  db,
+  eq,
+  Key,
+  sudokuTable,
+  SudokuTableType,
+  Value,
+} from "@wingmnn/db";
 import { tryCatchAsync } from "@wingmnn/utils";
-import { and, eq } from "drizzle-orm";
 
 // Projects Query Utilities
 const query = db.query.sudokuTable;

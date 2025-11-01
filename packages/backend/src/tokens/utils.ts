@@ -1,6 +1,5 @@
-import { db, Key, tokensTable, TokensTableType, Value } from "@wingmnn/db";
+import { db, eq, Key, tokensTable, TokensTableType, Value } from "@wingmnn/db";
 import { tryCatchAsync } from "@wingmnn/utils";
-import { eq } from "drizzle-orm";
 
 const query = db.query.tokensTable;
 
