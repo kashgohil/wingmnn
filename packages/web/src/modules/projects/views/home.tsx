@@ -16,7 +16,7 @@ import { playClickSound } from "@wingmnn/utils/interactivity";
 
 export function Home() {
   const {
-    result: projects = [],
+    data: projects = [],
     isError: projectsError,
     isSuccess,
   } = useProjects();

@@ -1,6 +1,5 @@
-import { LONG_STALE } from "@frameworks/query/constants";
-import { useQuery, type CustomQueryParams } from "@frameworks/query/hook";
-import type { QueryParams } from "@frameworks/query/query";
+import { LONG_STALE, QUICK_STALE } from "@frameworks/query/constants";
+import type { QueryOptions, QueryParams } from "@frameworks/query/types";
 import { ProjectsService } from "@projects/services/projectsService";
 import {
   PROJECT_PRIMARY_KEY,
@@ -8,21 +7,22 @@ import {
   PROJECTS_KEY,
   WORKFLOW_STATUS_PRIMARY_KEY,
 } from "@queryKeys";
+import { useQuery } from "@tanstack/react-query";
 import { isEmpty } from "@wingmnn/utils";
 import React from "react";
 
-export function useProjects(params?: CustomQueryParams) {
+export function useProjects(options?: QueryOptions) {
   return useQuery({
-    key: PROJECTS_KEY,
     staleTime: LONG_STALE,
+    queryKey: [PROJECTS_KEY],
+    select: (res) => res.data,
     queryFn: ProjectsService.getProjects,
-    selector: (res) => res.data,
-    ...params,
+    ...options,
   });
 }
 
-export function useProject(projectId: string, params?: CustomQueryParams) {
-  const key = React.useMemo<QueryParams>(
+export function useProject(projectId: string, options?: QueryOptions) {
+  const key = React.useMemo(
     () => ({
       primaryKey: PROJECT_PRIMARY_KEY,
       secondaryKey: projectId,
@@ -30,33 +30,33 @@ export function useProject(projectId: string, params?: CustomQueryParams) {
     [projectId],
   );
 
-  const queryFn = React.useCallback(
-    (queryParams: QueryParams) =>
-      ProjectsService.getProject(queryParams.secondaryKey!),
-    [],
-  );
+  const queryFn = React.useCallback((q: QueryParams<string>) => {
+    const key = q.queryKey[0];
+    return ProjectsService.getProject(key.secondaryKey || "");
+  }, []);
 
   return useQuery({
-    key,
     queryFn,
-    selector: (res) => res.data,
-    ...params,
+    queryKey: [key],
+    staleTime: QUICK_STALE,
+    select: (res) => res.data,
+    ...options,
   });
 }
 
-export function useWorkflows(params?: CustomQueryParams) {
+export function useWorkflows(options?: QueryOptions) {
   return useQuery({
     staleTime: LONG_STALE,
-    key: PROJECT_WORKFLOW_KEY,
+    queryKey: [PROJECT_WORKFLOW_KEY],
     queryFn: ProjectsService.getWorkflows,
-    selector: (res) => res.data,
-    ...params,
+    select: (res) => res.data,
+    ...options,
   });
 }
 
 export function useWorkflowStatuses(
   workflowIds: Array<string>,
-  params?: CustomQueryParams,
+  options?: QueryOptions,
 ) {
   const statusKey = React.useMemo(() => {
     return {
@@ -65,20 +65,17 @@ export function useWorkflowStatuses(
     };
   }, [workflowIds]);
 
-  const statusQueryFn = React.useCallback(
-    (queryParams: QueryParams<Array<string>>) => {
-      const { params } = queryParams;
-      return ProjectsService.getStatusForWorkflows(params!);
-    },
-    [],
-  );
+  const statusQueryFn = React.useCallback((q: QueryParams<Array<string>>) => {
+    const key = q.queryKey[0];
+    return ProjectsService.getStatusForWorkflows(key.params!);
+  }, []);
 
   return useQuery({
-    key: statusKey,
+    queryKey: [statusKey],
     staleTime: LONG_STALE,
     queryFn: statusQueryFn,
-    selector: (res) => res.data,
+    select: (res) => res.data,
     enabled: !isEmpty(workflowIds),
-    ...params,
+    ...options,
   });
 }
