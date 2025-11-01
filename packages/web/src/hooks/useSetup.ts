@@ -1,14 +1,13 @@
 import { LONG_STALE } from "@frameworks/query/constants";
-import { useQuery } from "@frameworks/query/hook";
 import { SetupService } from "@services/setupService";
-import type { User } from "@wingmnn/db";
+import { useQuery } from "@tanstack/react-query";
 import { ME_QUERY_KEY } from "src/queryKeys";
 
 export function useSetup() {
-  return useQuery<TSAny, TSAny, User>({
+  return useQuery({
     queryFn: SetupService.me,
-    key: ME_QUERY_KEY,
+    queryKey: [ME_QUERY_KEY],
     staleTime: LONG_STALE,
-    selector: (response) => response.data,
+    select: (res) => res.data,
   });
 }
