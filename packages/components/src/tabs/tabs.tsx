@@ -151,9 +151,13 @@ export function TabComponent<T extends string>(props: TabProps<T>) {
 
   if (tooltip) {
     return (
-      <Tooltip placement={orientation === "horizontal" ? "bottom" : "right"}>
-        <TooltipTrigger>{tabContent()}</TooltipTrigger>
-        <TooltipContent>{tooltip}</TooltipContent>
+      <Tooltip>
+        <TooltipTrigger asChild>{tabContent()}</TooltipTrigger>
+        <TooltipContent
+          side={orientation === "horizontal" ? "bottom" : "right"}
+        >
+          {tooltip}
+        </TooltipContent>
       </Tooltip>
     );
   }

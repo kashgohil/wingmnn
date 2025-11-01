@@ -1,4 +1,3 @@
-import { Menu } from "@components/menu/menu";
 import { Separator } from "@components/separator/separator";
 import {
   Tooltip,
@@ -81,9 +80,9 @@ function Breadcrumb(props: { breadcrumb: Breadcrumb }) {
   if (options.length === 0) {
     return (
       <Link to={to} key={id} tabIndex={-1}>
-        <Tooltip placement="bottom">
+        <Tooltip>
           <TooltipTrigger>{name}</TooltipTrigger>
-          <TooltipContent>{description}</TooltipContent>
+          <TooltipContent side="bottom">{description}</TooltipContent>
         </Tooltip>
       </Link>
     );
@@ -95,7 +94,7 @@ function Breadcrumb(props: { breadcrumb: Breadcrumb }) {
         {name}
         <ChevronsUpDown size={24} className="p-0 pl-2" />
       </Link>
-      <Menu
+      {/*<Menu
         open={open}
         value={value}
         onClose={toggle}
@@ -104,7 +103,7 @@ function Breadcrumb(props: { breadcrumb: Breadcrumb }) {
         anchor={popoverRef}
         placement="bottom-left"
         className="bg-black-50 min-w-52"
-      />
+      />*/}
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { IconButton } from "@components/iconButton/iconButton";
 import { Input, type InputProps } from "@components/input/input";
-import { Menu } from "@components/menu/menu";
+
 import type { Option } from "@components/types";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
@@ -99,7 +99,7 @@ export function SelectWithOptions(props: SelectProps) {
         className={cx(className, variantClasses(variant))}
         onChange={(keyword: string) => setKeyword(keyword)}
       />
-      <Menu
+      {/*<Menu
         open={open}
         value={value}
         onClose={unset}
@@ -107,7 +107,7 @@ export function SelectWithOptions(props: SelectProps) {
         anchor={inputRef}
         placement="bottom-left"
         onSelect={selectHandler}
-      />
+      />*/}
     </>
   );
 }

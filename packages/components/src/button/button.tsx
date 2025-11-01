@@ -12,7 +12,7 @@ export interface ButtonProps extends React.ComponentProps<"button"> {
   asChild?: boolean;
 }
 
-const variantClasses = classVariance({
+export const buttonVariantClasses = classVariance({
   stripped: "!p-0",
   icon: "bg-transparent text-accent hover:bg-accent/10 focus-within:outline-accent",
   primary:
@@ -40,7 +40,7 @@ export function Button({
       data-slot="button"
       className={cx(
         "rounded-lg active:translate-y-0.5 transition-all cursor-pointer focus-within:outline-2 outline-offset-2 inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 aria-invalid:border-destructive",
-        variantClasses(variant, size),
+        buttonVariantClasses(variant, size),
         className,
       )}
       {...props}

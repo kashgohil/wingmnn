@@ -1,235 +1,47 @@
-import { spacing } from "@constants";
-import { classVariance } from "@utility/classVariance";
+import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { cx } from "@utility/cx";
-import {
-  AnimatePresence,
-  type HTMLMotionProps,
-  motion,
-  type TargetAndTransition,
-} from "motion/react";
-import React from "react";
-import { createPortal } from "react-dom";
+import * as React from "react";
 
-export type Placement =
-  | "top-left"
-  | "bottom-left"
-  | "top-right"
-  | "bottom-right"
-  | "left"
-  | "right"
-  | "top"
-  | "bottom";
+export type PopoverProps = React.ComponentProps<typeof PopoverPrimitive.Root>;
 
-export interface PopoverProps extends HTMLMotionProps<"div"> {
-  open: boolean;
-  onClose(): void;
-  /**
-   * true: render popover inline
-   *
-   * false: render popover as a portal
-   */
-  inline?: boolean;
-  anchor: React.RefObject<HTMLElement | null>;
-  placement?: Placement;
-  variant?: "compact" | "normal";
-  root?: "popover-root" | "tooltip-root";
-  initial?: TargetAndTransition;
-  exit?: TargetAndTransition;
-  animate?: TargetAndTransition;
+function Popover({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+  return <PopoverPrimitive.Root data-slot="popover" {...props} />;
 }
 
-const variantClasses = classVariance({
-  compact: "p-1 text-sm",
-  normal: "p-2",
-  "top-left": "origin-bottom-left mb-2",
-  "bottom-left": "origin-top-left mt-2",
-  "top-right": "origin-bottom-right mb-2",
-  "bottom-right": "origin-top-right mt-2",
-  right: "origin-left -translate-y-1/2 ml-2",
-  left: "origin-right -translate-y-1/2 mr-2",
-  bottom: "origin-top -translate-x-1/2 mt-2",
-  top: "origin-bottom -translate-x-1/2 mb-2",
-});
-
-const animateVariance = {
-  top: { translateY: 10 },
-  bottom: { translateY: -10 },
-  left: { translateX: 10 },
-  right: { translateX: -10 },
-  "top-left": { translateY: 10 },
-  "top-right": { translateY: 10 },
-  "bottom-left": { translateY: -10 },
-  "bottom-right": { translateY: -10 },
-};
-
-export function Popover(props: PopoverProps) {
-  const {
-    anchor,
-    children,
-    placement = "bottom",
-    onClose,
-    open,
-    inline,
-    onKeyDown,
-    exit = {},
-    initial = {},
-    animate = {},
-    transition = {},
-    variant = "normal",
-    className,
-    root = "popover-root",
-    ...rest
-  } = props;
-
-  const [position, setPosition] = React.useState({ top: 0, left: 0 });
-
-  const popoverRef = React.useRef<HTMLDivElement>(null);
-
-  React.useLayoutEffect(() => {
-    const updatePosition = () => {
-      if (!anchor.current || !popoverRef.current) return;
-
-      const anchorRect = anchor.current.getBoundingClientRect();
-      const popoverRect = popoverRef.current.getBoundingClientRect();
-
-      let top = 0;
-      let left = 0;
-
-      switch (placement) {
-        case "top-left":
-          top = anchorRect.top - popoverRect.height;
-          left = anchorRect.left;
-          break;
-        case "bottom-left":
-          top = anchorRect.bottom;
-          left = anchorRect.left - spacing;
-          break;
-        case "top-right":
-          top = anchorRect.top - popoverRect.height;
-          left = anchorRect.right - popoverRect.width;
-          break;
-        case "bottom-right":
-          top = anchorRect.bottom;
-          left = anchorRect.right - popoverRect.width;
-          break;
-        case "top":
-          top = anchorRect.top - popoverRect.height;
-          left = anchorRect.left + anchorRect.width / 2;
-          break;
-        case "bottom":
-          top = anchorRect.bottom;
-          left = anchorRect.left + anchorRect.width / 2;
-          break;
-        case "left":
-          top = anchorRect.top + (anchorRect.height - popoverRect.height) / 2;
-          left = anchorRect.left - popoverRect.width;
-          break;
-        case "right":
-          top = anchorRect.top + anchorRect.height / 2;
-          left = anchorRect.right;
-          break;
-      }
-
-      // Add window scroll offset
-      top += window.scrollY;
-      left += window.scrollX;
-
-      setPosition({ top, left });
-    };
-
-    if (open) {
-      updatePosition();
-      window.addEventListener("resize", updatePosition);
-      window.addEventListener("scroll", updatePosition);
-    }
-
-    return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition);
-    };
-  }, [open, anchor, placement]);
-
-  // Handle clicks outside
-  React.useEffect(() => {
-    if (!open) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(event.target as Node) &&
-        anchor.current &&
-        !anchor.current.contains(event.target as Node)
-      ) {
-        onClose?.();
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open, anchor, onClose]);
-
-  const keydown = React.useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (onKeyDown) {
-        onKeyDown(e);
-      } else if (e.key === "Escape") {
-        onClose();
-      }
-    },
-    [onClose, onKeyDown],
-  );
-
-  const rootEl = document.getElementById(root);
-
-  if (!rootEl) return null;
-
-  const content = (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          {...rest}
-          exit={{
-            opacity: 0,
-            scale: 0.2,
-            ...animateVariance[placement],
-            ...exit,
-          }}
-          initial={{
-            opacity: 0,
-            scale: 0.2,
-            ...animateVariance[placement],
-            ...initial,
-          }}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            translateY: 0,
-            translateX: 0,
-            ...animate,
-          }}
-          transition={{
-            ...transition,
-            duration: 0.2,
-            ease: "easeInOut",
-          }}
-          ref={popoverRef}
-          onKeyDown={keydown}
-          style={{ ...rest.style, top: position.top, left: position.left }}
-          className={cx(
-            "fixed z-52 bg-black-200 rounded-xl shadow-lg",
-            variantClasses(placement, variant),
-            className,
-          )}
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-
-  if (!inline) {
-    return createPortal(content, rootEl);
-  }
-
-  return content;
+function PopoverTrigger({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
 }
+
+function PopoverContent({
+  className,
+  align = "center",
+  sideOffset = 4,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  return (
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Content
+        data-slot="popover-content"
+        align={align}
+        sideOffset={sideOffset}
+        className={cx(
+          "bg-black-200 text-[var(--text-accent)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border border-accent/80 p-4 shadow-md outline-hidden",
+          className,
+        )}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
+  );
+}
+
+function PopoverAnchor({
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
+  return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
+}
+
+export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };

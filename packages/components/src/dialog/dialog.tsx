@@ -1,44 +1,9 @@
 import { IconButton } from "@components/iconButton/iconButton";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { classVariance } from "@utility/classVariance";
 import { cx } from "@utility/cx";
-import { useFocusTrap } from "@wingmnn/utils/hooks";
-import { escape } from "@wingmnn/utils/interactivity";
 import { X } from "lucide-react";
-import {
-  AnimatePresence,
-  type HTMLMotionProps,
-  motion,
-  type TargetAndTransition,
-} from "motion/react";
-import React, { type MouseEvent } from "react";
-import { createPortal } from "react-dom";
-
-export interface DialogProps extends HTMLMotionProps<"div"> {
-  open: boolean;
-  size?: "sm" | "md" | "lg" | "xl";
-  onClose(): void;
-  initial?: TargetAndTransition;
-  exit?: TargetAndTransition;
-  animate?: TargetAndTransition;
-}
-
-export interface DialogTitleProps
-  extends React.DetailedHTMLProps<
-    React.HTMLAttributes<HTMLDivElement>,
-    HTMLDivElement
-  > {
-  onClose?(): void;
-}
-
-export type DialogContentProps = React.DetailedHTMLProps<
-  React.HTMLAttributes<HTMLDivElement>,
-  HTMLDivElement
->;
-
-type DialogActionsProps = React.DetailedHTMLProps<
-  React.HTMLAttributes<HTMLDivElement>,
-  HTMLDivElement
->;
+import * as React from "react";
 
 const dialogVariants = classVariance({
   sm: "25%",
@@ -54,134 +19,149 @@ const dialogHeightVariants = classVariance({
   xl: "90%",
 });
 
-export function Dialog(props: DialogProps) {
-  const {
-    open,
-    size = "md",
-    children,
-    onClose,
-    className,
-    ref,
-    initial = {},
-    animate = {},
-    exit = {},
-    ...rest
-  } = props;
-
-  const dialogRef = React.useRef<HTMLDivElement>(null);
-  const dialogRoot = document.getElementById("dialog-root");
-
-  React.useImperativeHandle(ref, () => dialogRef.current!);
-
-  const clickAwayListener = React.useCallback(
-    (e: MouseEvent<HTMLDivElement>) => {
-      if (!dialogRef.current?.contains(e.target as HTMLElement)) {
-        onClose();
-      }
-    },
-    [onClose],
-  );
-
-  useFocusTrap(dialogRef, open);
-
-  if (!dialogRoot) return null;
-
-  return createPortal(
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          onClick={clickAwayListener}
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-black-700/70 backdrop-blur-sm z-51 h-full w-full fixed top-0 left-0 flex items-center justify-center"
-        >
-          <motion.div
-            {...rest}
-            initial={{
-              opacity: 0,
-              scale: 0.9,
-              maxHeight: dialogHeightVariants(size),
-              maxWidth: dialogVariants(size),
-              ...initial,
-            }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              maxHeight: dialogHeightVariants(size),
-              maxWidth: dialogVariants(size),
-              ...animate,
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0.9,
-              maxHeight: dialogHeightVariants(size),
-              maxWidth: dialogVariants(size),
-              ...exit,
-            }}
-            role="dialog"
-            ref={dialogRef}
-            onKeyDown={escape(onClose)}
-            className={cx(
-              "rounded-lg h-full bg-black-200 w-full z-1 border border-accent/40",
-              className,
-            )}
-          >
-            {children}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
-    dialogRoot,
-  );
+function Dialog({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
 
-export function DialogTitle(props: DialogTitleProps) {
-  const { className, children, onClose, ...rest } = props;
+function DialogTrigger({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
+  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
+}
 
+function DialogPortal({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
+}
+
+function DialogClose({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Close>) {
+  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
+}
+
+function DialogOverlay({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
   return (
-    <div
-      {...rest}
+    <DialogPrimitive.Overlay
+      data-slot="dialog-overlay"
       className={cx(
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
         className,
-        "flex items-center justify-between px-5 py-4 text-xl",
       )}
-    >
-      {children}
-      {onClose ? (
-        <IconButton
-          icon={X}
-          size="sm"
-          shape="circle"
-          onClick={onClose}
-          variant="secondary"
-          iconProps={{ size: 16 }}
-          className="p-2 text-accent"
-        />
-      ) : null}
-    </div>
+      {...props}
+    />
   );
 }
 
-export function DialogContent(props: DialogContentProps) {
-  const { children, className, ...rest } = props;
-
+function DialogContent({
+  className,
+  children,
+  style,
+  size = "md",
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  size?: "sm" | "md" | "lg" | "xl";
+}) {
   return (
-    <div {...rest} className={cx(className, "px-5 py-4")}>
-      {children}
-    </div>
+    <DialogPortal data-slot="dialog-portal">
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        data-slot="dialog-content"
+        className={cx(
+          "bg-black-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-accent/40 p-4 px-6 shadow-lg duration-200 sm:max-w-lg",
+          className,
+        )}
+        style={{
+          minHeight: dialogHeightVariants(size),
+          minWidth: dialogVariants(size),
+          ...style,
+        }}
+        {...props}
+      >
+        {children}
+      </DialogPrimitive.Content>
+    </DialogPortal>
   );
 }
 
-export function DialogActions(props: DialogActionsProps) {
-  const { className, children, ...rest } = props;
-
+function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      {...rest}
-      className={cx("px-5 w-full py-4 flex items-center", className)}
-    >
-      {children}
-    </div>
+      data-slot="dialog-header"
+      className={cx("flex flex-col gap-2 text-center sm:text-left", className)}
+      {...props}
+    />
   );
 }
+
+function DialogActions({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-footer"
+      className={cx("flex gap-2", className)}
+      {...props}
+    />
+  );
+}
+
+function DialogTitle({
+  className,
+  children,
+  onClose,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Title> & { onClose?(): void }) {
+  return (
+    <DialogPrimitive.Title
+      data-slot="dialog-title"
+      className={cx("text-lg leading-none font-semibold", className)}
+      {...props}
+    >
+      {children}
+      <DialogPrimitive.Close asChild>
+        {onClose ? (
+          <IconButton
+            icon={X}
+            size="sm"
+            shape="circle"
+            onClick={onClose}
+            variant="secondary"
+            iconProps={{ size: 16 }}
+            className="p-2 text-accent"
+          />
+        ) : null}
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Title>
+  );
+}
+
+function DialogDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      data-slot="dialog-description"
+      className={cx("text-muted-foreground text-sm", className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  Dialog,
+  DialogActions,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+};

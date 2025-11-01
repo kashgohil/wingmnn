@@ -1,97 +1,61 @@
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { cx } from "@utility/cx";
-import { useBoolean } from "@wingmnn/utils/hooks";
-import React from "react";
-import { Popover, type Placement, type PopoverProps } from "../popover/popover";
+import * as React from "react";
 
-// Re-export for better IntelliSense
-export type TooltipContentProps = Omit<
-  PopoverProps,
-  "open" | "anchor" | "onClose" | "placement"
->;
-
-export type TooltipTriggerProps = React.DetailedHTMLProps<
-  React.HTMLAttributes<HTMLDivElement>,
-  HTMLDivElement
->;
-
-export interface TooltipProps {
-  children: React.ReactNode;
-  placement?: Placement;
-  className?: string;
-  style?: React.CSSProperties;
-}
-
-const TooltipContext = React.createContext<{
-  open: boolean;
-  toggle: () => void;
-  placement?: Placement;
-  ref?: React.RefObject<HTMLDivElement | null>;
-}>({
-  open: false,
-  toggle: () => {},
-  placement: "right",
-  ref: undefined,
-});
-
-export function Tooltip(props: TooltipProps) {
-  const { children } = props;
-
-  const ref = React.useRef<HTMLDivElement>(null);
-  const { value: open, toggle } = useBoolean(false);
-
+function TooltipProvider({
+  delayDuration = 0,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
   return (
-    <TooltipContext.Provider
-      value={{ open, toggle, placement: props.placement, ref }}
-    >
-      {children}
-    </TooltipContext.Provider>
+    <TooltipPrimitive.Provider
+      data-slot="tooltip-provider"
+      delayDuration={delayDuration}
+      {...props}
+    />
   );
 }
 
-export function TooltipTrigger(props: TooltipTriggerProps) {
-  const { className, ...rest } = props;
-  const { toggle, ref } = React.useContext(TooltipContext);
-
+function Tooltip({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
   return (
-    <div
-      {...rest}
-      ref={ref}
-      className={cx("cursor-pointer", className)}
-      onMouseEnter={toggle}
-      onMouseLeave={toggle}
-    >
-      {props.children}
-    </div>
+    <TooltipProvider>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+    </TooltipProvider>
   );
 }
 
-export function TooltipContent(props: TooltipContentProps) {
-  const { children, className, transition, ...rest } = props;
+function TooltipTrigger({
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
+}
 
-  const {
-    open,
-    toggle,
-    ref,
-    placement: contextPlacement = "right",
-  } = React.useContext(TooltipContext);
-
-  if (!ref?.current) return null;
-
-  return (
-    <Popover
-      {...rest}
-      open={open}
-      anchor={ref}
-      onClose={toggle}
-      root="tooltip-root"
-      placement={contextPlacement}
-      transition={{ delay: 0.5, ...transition }}
+function TooltipContent({
+  className,
+  inline = false,
+  sideOffset = 4,
+  children,
+  ...props
+}: React.ComponentProps<typeof TooltipPrimitive.Content> & {
+  inline?: boolean;
+}) {
+  const content = (
+    <TooltipPrimitive.Content
+      data-slot="tooltip-content"
+      sideOffset={sideOffset}
       className={cx(
-        "bg-accent text-[var(--accent-text)] text-xs rounded-lg whitespace-nowrap z-[52]",
+        "bg-accent text-primary animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance",
         className,
       )}
+      {...props}
     >
       {children}
-    </Popover>
+    </TooltipPrimitive.Content>
   );
+
+  if (inline) return content;
+  return <TooltipPrimitive.Portal>{content}</TooltipPrimitive.Portal>;
 }
+
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
