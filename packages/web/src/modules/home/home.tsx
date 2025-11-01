@@ -1,9 +1,7 @@
-import { useQueryState } from "@frameworks/query/hook";
-import { ME_QUERY_KEY } from "@queryKeys";
-import type { User } from "@wingmnn/db";
+import { useSetup } from "@hooks/useSetup";
 
 export function Home() {
-  const user = useQueryState<User>(ME_QUERY_KEY);
+  const { data: user } = useSetup();
 
   return (
     <div className="flex flex-col h-full items-center justify-center">
