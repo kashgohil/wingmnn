@@ -1,5 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, Mail, ShieldCheck } from "lucide-react";
+import {
+	ArrowRight,
+	Calendar,
+	DollarSign,
+	FileText,
+	Folder,
+	FolderKanban,
+	Heart,
+	Inbox,
+	MessageSquare,
+	PartyPopper,
+	Rss,
+	ShieldCheck,
+} from "lucide-react";
 import { useId } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -12,46 +25,62 @@ const modules = [
 		name: "Mails",
 		description: "Unified inbox, priority sorting, follow-up nudges.",
 		colorVar: "--module-mail",
+		icon: Inbox,
 	},
 	{
 		name: "Notes",
 		description: "Lightweight docs with AI summaries and backlinks.",
 		colorVar: "--module-notes",
+		icon: FileText,
 	},
 	{
 		name: "Finance",
 		description: "Cashflow, invoices, and approvals in one stream.",
 		colorVar: "--module-finance",
+		icon: DollarSign,
 	},
 	{
 		name: "Feeds",
 		description: "Digest company activity and curated industry intel.",
 		colorVar: "--module-feeds",
+		icon: Rss,
 	},
 	{
 		name: "Messages",
 		description: "Secure DMs plus async voice & video drops.",
 		colorVar: "--module-messages",
+		icon: MessageSquare,
+	},
+	{
+		name: "Calendar",
+		description:
+			"Schedule meetings, track deadlines, and sync team availability.",
+		colorVar: "--module-calendar",
+		icon: Calendar,
 	},
 	{
 		name: "Wellness",
 		description: "Micro-check-ins, focus playlists, burnout alerts.",
 		colorVar: "--module-wellness",
+		icon: Heart,
 	},
 	{
 		name: "Projects",
 		description: "Roadmaps, tasks, and rituals tied to outcomes.",
 		colorVar: "--module-projects",
+		icon: FolderKanban,
 	},
 	{
 		name: "Files",
 		description: "Versioned handoffs with smart organization.",
 		colorVar: "--module-files",
+		icon: Folder,
 	},
 	{
 		name: "Fun",
 		description: "Team rituals, async games, surprise celebrations.",
 		colorVar: "--module-fun",
+		icon: PartyPopper,
 	},
 ];
 
@@ -60,8 +89,10 @@ function App() {
 		<div className="min-h-screen bg-background text-foreground">
 			<div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 py-16">
 				<Hero />
-				<Modules />
-				<AuthPanel />
+				<div className="grid gap-10 lg:grid-cols-2">
+					<Modules />
+					<AuthPanel />
+				</div>
 			</div>
 		</div>
 	);
@@ -108,28 +139,31 @@ function Modules() {
 	return (
 		<section className="rounded-3xl border border-border bg-card p-6 shadow-sm md:p-10">
 			<div className="mb-8 flex flex-col gap-2">
-				<p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-					modules
-				</p>
 				<h2 className="text-2xl font-semibold text-foreground">
-					Every workspace beat, ready in pastel focus.
+					Every workspace beat, ready for you.
 				</h2>
 			</div>
 			<div className="grid gap-4 md:grid-cols-2">
-				{modules.map((module) => (
-					<div
-						key={module.name}
-						className="rounded-2xl border border-transparent p-5 transition hover:translate-y-0.5"
-						style={{ backgroundColor: `var(${module.colorVar})` }}
-					>
-						<p className="text-sm font-semibold uppercase text-foreground">
-							{module.name}
-						</p>
-						<p className="mt-2 text-sm text-foreground opacity-80">
-							{module.description}
-						</p>
-					</div>
-				))}
+				{modules.map((module) => {
+					const Icon = module.icon;
+					return (
+						<div
+							key={module.name}
+							className="rounded-2xl border border-transparent p-5 transition hover:translate-y-0.5"
+							style={{ backgroundColor: `var(${module.colorVar})` }}
+						>
+							<div className="mb-3 flex items-center gap-2">
+								<Icon className="h-5 w-5 text-foreground" />
+								<p className="text-sm font-semibold uppercase text-foreground">
+									{module.name}
+								</p>
+							</div>
+							<p className="text-sm text-foreground opacity-80">
+								{module.description}
+							</p>
+						</div>
+					);
+				})}
 			</div>
 		</section>
 	);
@@ -137,23 +171,23 @@ function Modules() {
 
 function AuthPanel() {
 	return (
-		<section className="grid gap-10 rounded-3xl border border-border bg-card p-6 shadow-sm md:grid-cols-2 md:p-10">
+		<section className="flex flex-col gap-10 rounded-3xl border border-border bg-card p-6 shadow-sm md:p-10">
 			<div className="space-y-4">
-				<p className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground">
-					<Mail className="h-4 w-4" />
-					login
-				</p>
 				<h3 className="text-2xl font-semibold text-foreground">Jump back in</h3>
 				<LoginForm />
 			</div>
+			<div className="relative flex items-center gap-4">
+				<div className="flex-1 border-t border-border" />
+				<span className="text-sm font-medium text-muted-foreground">OR</span>
+				<div className="flex-1 border-t border-border" />
+			</div>
 			<div className="space-y-4">
-				<p className="text-sm font-medium text-muted-foreground">new here?</p>
 				<h3 className="text-2xl font-semibold text-foreground">
 					Create your Wingmnn
 				</h3>
 				<SignupForm />
 				<p className="text-xs text-muted-foreground">
-					By continuing you agree to our Terms and confirm you’re ready for tidy
+					By continuing you agree to our Terms and confirm you're ready for tidy
 					ops.
 				</p>
 			</div>

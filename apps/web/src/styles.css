@@ -57,10 +57,11 @@ code {
 	--module-finance: #d7f3e3;
 	--module-feeds: #dbeafe;
 	--module-messages: #fce7f3;
-	--module-wellness: #e0f2f1;
+	--module-calendar: #e0f7fa;
+	--module-wellness: #fff4e6;
 	--module-projects: #ede9fe;
-	--module-files: #f3e8ff;
-	--module-fun: #ffe4e6;
+	--module-files: #f0f9ff;
+	--module-fun: #fef2f2;
 }
 
 .dark {
