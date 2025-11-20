@@ -88,8 +88,8 @@ const modules = [
 function App() {
 	return (
 		<div className="min-h-screen bg-background text-foreground">
-			<FloatingHeader />
-			<div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 py-16">
+			<div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 pt-6 pb-16">
+				<FloatingHeader />
 				<Hero />
 				<div className="grid gap-10 lg:grid-cols-2">
 					<Modules />
@@ -155,12 +155,12 @@ function Modules() {
 							style={{ backgroundColor: `var(${module.colorVar})` }}
 						>
 							<div className="mb-3 flex items-center gap-2">
-								<Icon className="h-5 w-5 text-foreground" />
-								<p className="text-sm font-semibold uppercase text-foreground">
+								<Icon className="h-5 w-5 text-foreground dark:text-foreground" />
+								<p className="text-sm font-semibold uppercase text-foreground dark:text-foreground">
 									{module.name}
 								</p>
 							</div>
-							<p className="text-sm text-foreground opacity-80">
+							<p className="text-sm text-foreground opacity-80 dark:opacity-90">
 								{module.description}
 							</p>
 						</div>

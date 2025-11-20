@@ -97,6 +97,16 @@ code {
 	--sidebar-accent-foreground: #1f1f27;
 	--sidebar-border: #2b2c3a;
 	--sidebar-ring: #4a5fc1;
+	--module-mail: #78350f;
+	--module-notes: #7c2d12;
+	--module-finance: #14532d;
+	--module-feeds: #1e3a8a;
+	--module-messages: #9f1239;
+	--module-calendar: #164e63;
+	--module-wellness: #92400e;
+	--module-projects: #581c87;
+	--module-files: #0c4a6e;
+	--module-fun: #991b1b;
 }
 
 @theme inline {
