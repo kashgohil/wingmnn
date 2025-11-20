@@ -181,7 +181,7 @@ export const oauthService = new OAuthService();
  * Initialize OAuth service with configured providers
  * This should be called during application startup
  */
-export function initializeOAuthProviders(config: {
+export async function initializeOAuthProviders(config: {
   google?: {
     clientId: string;
     clientSecret: string;
@@ -189,16 +189,15 @@ export function initializeOAuthProviders(config: {
   // Future providers can be added here
   // github?: { clientId: string; clientSecret: string };
   // microsoft?: { clientId: string; clientSecret: string };
-}): void {
+}): Promise<void> {
   // Import providers dynamically to avoid circular dependencies
   if (config.google) {
-    import("./google-oauth.provider").then(({ GoogleOAuthProvider }) => {
-      const googleProvider = new GoogleOAuthProvider(
-        config.google!.clientId,
-        config.google!.clientSecret
-      );
-      oauthService.registerProvider("google", googleProvider);
-    });
+    const { GoogleOAuthProvider } = await import("./google-oauth.provider");
+    const googleProvider = new GoogleOAuthProvider(
+      config.google.clientId,
+      config.google.clientSecret
+    );
+    oauthService.registerProvider("google", googleProvider);
   }
 
   // Future providers can be initialized here
