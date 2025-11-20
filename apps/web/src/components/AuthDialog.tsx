@@ -47,7 +47,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "login" }: AuthDi
 
 					<div className="relative flex items-center gap-4">
 						<div className="flex-1 border-t border-border" />
-						<span className="text-sm font-medium text-muted-foreground">OR</span>
+						<span className="text-sm font-semibold text-foreground/80">OR</span>
 						<div className="flex-1 border-t border-border" />
 					</div>
 
@@ -55,7 +55,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "login" }: AuthDi
 						<button
 							type="button"
 							onClick={() => setMode(mode === "login" ? "signup" : "login")}
-							className="text-sm text-primary hover:underline"
+							className="text-sm font-semibold text-primary hover:underline"
 						>
 							{mode === "login"
 								? "Don't have an account? Sign up"
@@ -64,7 +64,7 @@ export function AuthDialog({ open, onOpenChange, initialMode = "login" }: AuthDi
 					</div>
 
 					{mode === "signup" && (
-						<p className="text-xs text-center text-muted-foreground">
+						<p className="text-xs text-center font-medium text-foreground/70">
 							By continuing you agree to our Terms and confirm you're ready for
 							tidy ops.
 						</p>
