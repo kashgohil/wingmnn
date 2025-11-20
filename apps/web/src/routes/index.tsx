@@ -14,6 +14,7 @@ import {
 	ShieldCheck,
 } from "lucide-react";
 import { useId } from "react";
+import { FloatingHeader } from "../components/FloatingHeader";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -87,6 +88,7 @@ const modules = [
 function App() {
 	return (
 		<div className="min-h-screen bg-background text-foreground">
+			<FloatingHeader />
 			<div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 py-16">
 				<Hero />
 				<div className="grid gap-10 lg:grid-cols-2">
@@ -106,16 +108,16 @@ function Hero() {
 				Human-centered ops stack
 			</div>
 			<div className="space-y-4">
-				<h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+				<h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl text-center">
 					Wingmnn keeps every part of your team rhythm tidy, from mails to fun.
 				</h1>
-				<p className="text-lg text-muted-foreground md:max-w-3xl">
+				<p className="text-lg mx-auto text-center text-muted-foreground md:max-w-3xl">
 					Ship faster rituals with one login. Wingmnn blends comms, docs, money,
 					wellness, and play so you gain clarity without juggling tabs or
 					tooling fluff.
 				</p>
 			</div>
-			<div className="flex flex-wrap items-center justify-center gap-4 md:justify-start">
+			<div className="flex flex-wrap items-center justify-center gap-4 ">
 				<Button
 					className="flex items-center gap-2 px-6 py-5 text-base"
 					type="button"
