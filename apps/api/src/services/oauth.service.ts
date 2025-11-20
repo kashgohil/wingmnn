@@ -176,3 +176,30 @@ export class OAuthService {
 
 // Export a singleton instance
 export const oauthService = new OAuthService();
+
+/**
+ * Initialize OAuth service with configured providers
+ * This should be called during application startup
+ */
+export function initializeOAuthProviders(config: {
+  google?: {
+    clientId: string;
+    clientSecret: string;
+  };
+  // Future providers can be added here
+  // github?: { clientId: string; clientSecret: string };
+  // microsoft?: { clientId: string; clientSecret: string };
+}): void {
+  // Import providers dynamically to avoid circular dependencies
+  if (config.google) {
+    import("./google-oauth.provider").then(({ GoogleOAuthProvider }) => {
+      const googleProvider = new GoogleOAuthProvider(
+        config.google!.clientId,
+        config.google!.clientSecret
+      );
+      oauthService.registerProvider("google", googleProvider);
+    });
+  }
+
+  // Future providers can be initialized here
+}
