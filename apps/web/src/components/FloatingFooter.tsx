@@ -5,7 +5,7 @@ export function FloatingFooter() {
 	const currentYear = new Date().getFullYear();
 
 	const handleLinkClick = () => {
-		window.scrollTo({ top: 0, behavior: "smooth" });
+		window.scrollTo({ top: 0, behavior: "instant" });
 	};
 
 	const footerLinks = {

@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Mail, MessageSquare, Send } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
-import { Mail, MessageSquare, Send } from "lucide-react";
+import { Textarea } from "../components/ui/textarea";
 
 export const Route = createFileRoute("/contact")({
 	component: ContactPage,
@@ -30,15 +30,15 @@ function ContactPage() {
 
 			<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 pt-6 pb-24">
 				<FloatingHeader />
-				
+
 				<div className="space-y-12">
 					<div className="text-center space-y-4">
 						<h1 className="text-5xl md:text-7xl font-bold tracking-tight">
 							<span className="text-primary">Contact</span> Us
 						</h1>
 						<p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-							Have a question? We'd love to hear from you. Send us a message and we'll respond as
-							soon as possible.
+							Have a question? We'd love to hear from you. Send us a message and
+							we'll respond as soon as possible.
 						</p>
 					</div>
 
@@ -53,13 +53,17 @@ function ContactPage() {
 										<Mail className="h-6 w-6 text-foreground" />
 									</div>
 									<div>
-										<h3 className="text-lg font-bold font-mono uppercase">Email</h3>
-										<p className="text-sm text-muted-foreground">General inquiries</p>
+										<h3 className="text-lg font-bold font-mono uppercase">
+											Email
+										</h3>
+										<p className="text-sm text-muted-foreground">
+											General inquiries
+										</p>
 									</div>
 								</div>
 								<a
 									href="mailto:hello@wingmnn.com"
-									className="text-primary hover:underline"
+									className="text-primary font-semibold hover:underline"
 								>
 									hello@wingmnn.com
 								</a>
@@ -74,13 +78,17 @@ function ContactPage() {
 										<MessageSquare className="h-6 w-6 text-foreground" />
 									</div>
 									<div>
-										<h3 className="text-lg font-bold font-mono uppercase">Support</h3>
-										<p className="text-sm text-muted-foreground">Technical support</p>
+										<h3 className="text-lg font-bold font-mono uppercase">
+											Support
+										</h3>
+										<p className="text-sm text-muted-foreground">
+											Technical support
+										</p>
 									</div>
 								</div>
 								<a
 									href="mailto:support@wingmnn.com"
-									className="text-primary hover:underline"
+									className="text-primary font-semibold hover:underline"
 								>
 									support@wingmnn.com
 								</a>
@@ -94,15 +102,27 @@ function ContactPage() {
 							<form className="space-y-6">
 								<div>
 									<Label htmlFor="name">Name</Label>
-									<Input id="name" type="text" placeholder="Your name" />
+									<Input
+										id="name"
+										type="text"
+										placeholder="Your name"
+									/>
 								</div>
 								<div>
 									<Label htmlFor="email">Email</Label>
-									<Input id="email" type="email" placeholder="your@email.com" />
+									<Input
+										id="email"
+										type="email"
+										placeholder="your@email.com"
+									/>
 								</div>
 								<div>
 									<Label htmlFor="subject">Subject</Label>
-									<Input id="subject" type="text" placeholder="What's this about?" />
+									<Input
+										id="subject"
+										type="text"
+										placeholder="What's this about?"
+									/>
 								</div>
 								<div>
 									<Label htmlFor="message">Message</Label>
@@ -112,7 +132,10 @@ function ContactPage() {
 										rows={6}
 									/>
 								</div>
-								<Button type="submit" className="w-full gap-2">
+								<Button
+									type="submit"
+									className="w-full gap-2"
+								>
 									<Send className="h-4 w-4" />
 									Send Message
 								</Button>
@@ -125,4 +148,3 @@ function ContactPage() {
 		</div>
 	);
 }
-
