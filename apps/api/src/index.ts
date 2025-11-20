@@ -240,6 +240,136 @@ const app = new Elysia()
       };
     }
   })
+  // GET /auth/sessions - List user's active sessions
+  .get("/auth/sessions", async ({ authenticated, userId, set }) => {
+    try {
+      // Check if user is authenticated
+      if (!authenticated || !userId) {
+        set.status = 401;
+        return {
+          error: "UNAUTHORIZED",
+          message: "Authentication required",
+        };
+      }
+
+      // Get all active sessions for the user
+      const sessions = await sessionService.getUserSessions(userId);
+
+      // Format sessions for response (exclude sensitive data)
+      const formattedSessions = sessions.map((session) => ({
+        id: session.id,
+        createdAt: session.createdAt,
+        lastActivityAt: session.lastActivityAt,
+        expiresAt: session.expiresAt,
+        ipAddress: session.ipAddress,
+        userAgent: session.userAgent,
+      }));
+
+      return {
+        sessions: formattedSessions,
+      };
+    } catch (error) {
+      // Internal server error
+      set.status = 500;
+      return {
+        error: "INTERNAL_ERROR",
+        message: "An unexpected error occurred",
+      };
+    }
+  })
+  // DELETE /auth/sessions/:id - Revoke a specific session
+  .delete(
+    "/auth/sessions/:id",
+    async ({
+      authenticated,
+      userId,
+      sessionId: currentSessionId,
+      params,
+      set,
+    }) => {
+      try {
+        // Check if user is authenticated
+        if (!authenticated || !userId) {
+          set.status = 401;
+          return {
+            error: "UNAUTHORIZED",
+            message: "Authentication required",
+          };
+        }
+
+        const { id: targetSessionId } = params;
+
+        // Get the target session to verify ownership
+        const targetSession = await sessionService.getSession(targetSessionId);
+
+        if (!targetSession) {
+          set.status = 404;
+          return {
+            error: "SESSION_NOT_FOUND",
+            message: "Session not found",
+          };
+        }
+
+        // Verify that the session belongs to the authenticated user
+        if (targetSession.userId !== userId) {
+          set.status = 403;
+          return {
+            error: "FORBIDDEN",
+            message: "Cannot revoke sessions belonging to other users",
+          };
+        }
+
+        // Revoke the session
+        await sessionService.revokeSession(targetSessionId);
+
+        return {
+          message: "Session revoked successfully",
+        };
+      } catch (error) {
+        // Internal server error
+        set.status = 500;
+        return {
+          error: "INTERNAL_ERROR",
+          message: "An unexpected error occurred",
+        };
+      }
+    },
+    {
+      params: t.Object({
+        id: t.String(),
+      }),
+    }
+  )
+  // DELETE /auth/sessions - Revoke all other sessions (except current)
+  .delete(
+    "/auth/sessions",
+    async ({ authenticated, userId, sessionId, set }) => {
+      try {
+        // Check if user is authenticated
+        if (!authenticated || !userId || !sessionId) {
+          set.status = 401;
+          return {
+            error: "UNAUTHORIZED",
+            message: "Authentication required",
+          };
+        }
+
+        // Revoke all sessions except the current one
+        await sessionService.revokeAllUserSessions(userId, sessionId);
+
+        return {
+          message: "All other sessions revoked successfully",
+        };
+      } catch (error) {
+        // Internal server error
+        set.status = 500;
+        return {
+          error: "INTERNAL_ERROR",
+          message: "An unexpected error occurred",
+        };
+      }
+    }
+  )
   // GET /auth/:provider - Initiate OAuth flow
   .get(
     "/auth/:provider",

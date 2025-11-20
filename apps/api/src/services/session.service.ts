@@ -182,20 +182,7 @@ export class SessionService {
     exceptSessionId?: string
   ): Promise<void> {
     if (exceptSessionId) {
-      // Revoke all sessions except the specified one
-      await db
-        .update(sessions)
-        .set({ isRevoked: true })
-        .where(
-          and(
-            eq(sessions.userId, userId)
-            // Use SQL to exclude the session
-            // Note: Drizzle doesn't have a direct "not equal" operator in the same way
-            // We'll use a workaround with raw SQL or multiple conditions
-          )
-        );
-
-      // Workaround: Get all sessions and update individually
+      // Get all sessions and update individually, excluding the specified one
       const userSessions = await db
         .select()
         .from(sessions)

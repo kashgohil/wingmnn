@@ -259,6 +259,364 @@ describe("Authentication API Endpoints", () => {
     });
   });
 
+  describe("GET /auth/sessions", () => {
+    let accessToken: string;
+    let refreshTokenCookie: string;
+    let userId: string;
+
+    beforeEach(async () => {
+      // Register and login to get tokens
+      await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+          name: testName,
+        }),
+      });
+
+      const loginResponse = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+        }),
+      });
+
+      const loginData = await loginResponse.json();
+      accessToken = loginData.accessToken;
+      userId = loginData.user.id;
+
+      // Extract refresh token cookie
+      const cookies = loginResponse.headers.get("set-cookie");
+      if (cookies) {
+        const match = cookies.match(/refresh_token=([^;]+)/);
+        if (match) {
+          refreshTokenCookie = `refresh_token=${match[1]}`;
+        }
+      }
+    });
+
+    it("should list all active sessions for authenticated user", async () => {
+      const response = await fetch(`${API_URL}/auth/sessions`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Cookie: refreshTokenCookie,
+        },
+      });
+
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data).toHaveProperty("sessions");
+      expect(Array.isArray(data.sessions)).toBe(true);
+      expect(data.sessions.length).toBeGreaterThan(0);
+
+      // Verify session structure
+      const session = data.sessions[0];
+      expect(session).toHaveProperty("id");
+      expect(session).toHaveProperty("createdAt");
+      expect(session).toHaveProperty("lastActivityAt");
+      expect(session).toHaveProperty("expiresAt");
+      expect(session).toHaveProperty("ipAddress");
+      expect(session).toHaveProperty("userAgent");
+
+      // Verify sensitive data is not exposed
+      expect(session).not.toHaveProperty("refreshTokenHash");
+      expect(session).not.toHaveProperty("accessTokenJti");
+    });
+
+    it("should reject unauthenticated requests", async () => {
+      const response = await fetch(`${API_URL}/auth/sessions`, {
+        method: "GET",
+      });
+
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe("DELETE /auth/sessions/:id", () => {
+    let accessToken: string;
+    let refreshTokenCookie: string;
+    let sessionId: string;
+    let secondAccessToken: string;
+    let secondRefreshTokenCookie: string;
+    let secondSessionId: string;
+
+    beforeEach(async () => {
+      // Register user
+      await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+          name: testName,
+        }),
+      });
+
+      // Create first session
+      const loginResponse1 = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+        }),
+      });
+
+      const loginData1 = await loginResponse1.json();
+      accessToken = loginData1.accessToken;
+
+      const cookies1 = loginResponse1.headers.get("set-cookie");
+      if (cookies1) {
+        const match = cookies1.match(/refresh_token=([^;]+)/);
+        if (match) {
+          refreshTokenCookie = `refresh_token=${match[1]}`;
+        }
+      }
+
+      // Extract session ID from the JWT access token
+      const tokenParts = accessToken.split(".");
+      const payload = JSON.parse(
+        Buffer.from(tokenParts[1], "base64url").toString()
+      );
+      sessionId = payload.sessionId;
+
+      // Create second session
+      const loginResponse2 = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+        }),
+      });
+
+      const loginData2 = await loginResponse2.json();
+      secondAccessToken = loginData2.accessToken;
+
+      const cookies2 = loginResponse2.headers.get("set-cookie");
+      if (cookies2) {
+        const match = cookies2.match(/refresh_token=([^;]+)/);
+        if (match) {
+          secondRefreshTokenCookie = `refresh_token=${match[1]}`;
+        }
+      }
+
+      // Get second session ID
+      const sessionsResponse2 = await fetch(`${API_URL}/auth/sessions`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${secondAccessToken}`,
+          Cookie: secondRefreshTokenCookie,
+        },
+      });
+      const sessionsData2 = await sessionsResponse2.json();
+      secondSessionId = sessionsData2.sessions.find(
+        (s: any) => s.id !== sessionId
+      )?.id;
+    });
+
+    it("should revoke a specific session", async () => {
+      // Revoke the first session using the second session's credentials
+      const response = await fetch(`${API_URL}/auth/sessions/${sessionId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${secondAccessToken}`,
+          Cookie: secondRefreshTokenCookie,
+        },
+      });
+
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.message).toBe("Session revoked successfully");
+
+      // Verify the first session is revoked by trying to use it
+      const testResponse = await fetch(`${API_URL}/auth/sessions`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Cookie: refreshTokenCookie,
+        },
+      });
+
+      expect(testResponse.status).toBe(401);
+    });
+
+    it("should return 404 for non-existent session", async () => {
+      const response = await fetch(
+        `${API_URL}/auth/sessions/non-existent-session-id`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Cookie: refreshTokenCookie,
+          },
+        }
+      );
+
+      expect(response.status).toBe(404);
+
+      const data = await response.json();
+      expect(data.error).toBe("SESSION_NOT_FOUND");
+    });
+
+    it("should reject unauthenticated requests", async () => {
+      const response = await fetch(`${API_URL}/auth/sessions/${sessionId}`, {
+        method: "DELETE",
+      });
+
+      expect(response.status).toBe(401);
+    });
+  });
+
+  describe("DELETE /auth/sessions", () => {
+    let accessToken: string;
+    let refreshTokenCookie: string;
+    let sessionId: string;
+    let secondAccessToken: string;
+    let secondRefreshTokenCookie: string;
+
+    beforeEach(async () => {
+      // Register user
+      await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+          name: testName,
+        }),
+      });
+
+      // Create first session
+      const loginResponse1 = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+        }),
+      });
+
+      const loginData1 = await loginResponse1.json();
+      accessToken = loginData1.accessToken;
+
+      const cookies1 = loginResponse1.headers.get("set-cookie");
+      if (cookies1) {
+        const match = cookies1.match(/refresh_token=([^;]+)/);
+        if (match) {
+          refreshTokenCookie = `refresh_token=${match[1]}`;
+        }
+      }
+
+      // Get session ID
+      const sessionsResponse = await fetch(`${API_URL}/auth/sessions`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Cookie: refreshTokenCookie,
+        },
+      });
+      const sessionsData = await sessionsResponse.json();
+      sessionId = sessionsData.sessions[0].id;
+
+      // Create second session
+      const loginResponse2 = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: testEmail,
+          password: testPassword,
+        }),
+      });
+
+      const loginData2 = await loginResponse2.json();
+      secondAccessToken = loginData2.accessToken;
+
+      const cookies2 = loginResponse2.headers.get("set-cookie");
+      if (cookies2) {
+        const match = cookies2.match(/refresh_token=([^;]+)/);
+        if (match) {
+          secondRefreshTokenCookie = `refresh_token=${match[1]}`;
+        }
+      }
+    });
+
+    it("should revoke all other sessions except current", async () => {
+      // Revoke all other sessions using the second session
+      const response = await fetch(`${API_URL}/auth/sessions`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${secondAccessToken}`,
+          Cookie: secondRefreshTokenCookie,
+        },
+      });
+
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.message).toBe("All other sessions revoked successfully");
+
+      // Wait a moment for the revocation to propagate
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Verify the first session is revoked
+      const testResponse1 = await fetch(`${API_URL}/auth/sessions`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Cookie: refreshTokenCookie,
+        },
+      });
+
+      expect(testResponse1.status).toBe(401);
+
+      // Verify the second session (current) is still active
+      const testResponse2 = await fetch(`${API_URL}/auth/sessions`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${secondAccessToken}`,
+          Cookie: secondRefreshTokenCookie,
+        },
+      });
+
+      expect(testResponse2.status).toBe(200);
+
+      const sessionsData = await testResponse2.json();
+      expect(sessionsData.sessions.length).toBe(1);
+    });
+
+    it("should reject unauthenticated requests", async () => {
+      const response = await fetch(`${API_URL}/auth/sessions`, {
+        method: "DELETE",
+      });
+
+      expect(response.status).toBe(401);
+    });
+  });
+
   describe("GET /auth/:provider/callback", () => {
     let mockProvider: OAuthProviderImplementation;
     let testOAuthEmail: string;
