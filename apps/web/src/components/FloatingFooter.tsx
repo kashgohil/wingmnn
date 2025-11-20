@@ -119,7 +119,7 @@ export function FloatingFooter() {
 									<li key={link.label}>
 										<a
 											href={link.href}
-											className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
+											className="text-sm text-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
 										>
 											<span
 												className="w-1 h-1 opacity-0 group-hover/link:opacity-100 transition-opacity"
@@ -154,7 +154,7 @@ export function FloatingFooter() {
 									<li key={link.label}>
 										<a
 											href={link.href}
-											className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
+											className="text-sm text-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
 										>
 											<span
 												className="w-1 h-1 opacity-0 group-hover/link:opacity-100 transition-opacity"
@@ -189,7 +189,7 @@ export function FloatingFooter() {
 									<li key={link.label}>
 										<a
 											href={link.href}
-											className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
+											className="text-sm text-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
 										>
 											<span
 												className="w-1 h-1 opacity-0 group-hover/link:opacity-100 transition-opacity"
@@ -224,7 +224,7 @@ export function FloatingFooter() {
 									<li key={link.label}>
 										<a
 											href={link.href}
-											className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
+											className="text-sm text-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
 										>
 											<span
 												className="w-1 h-1 opacity-0 group-hover/link:opacity-100 transition-opacity"

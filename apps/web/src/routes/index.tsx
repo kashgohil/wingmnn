@@ -204,7 +204,7 @@ function App() {
 				<Hero />
 				<Features />
 				<Modules />
-				<Stats />
+				<Testimonials />
 			</div>
 			<FloatingFooter />
 		</div>
@@ -430,32 +430,102 @@ function ModuleSection({
 	);
 }
 
-function Stats() {
-	const stats = [
-		{ value: "10K+", label: "Active Teams", color: "var(--primary)" },
-		{ value: "99.9%", label: "Uptime", color: "var(--accent)" },
-		{ value: "50M+", label: "Messages Sent", color: "var(--chart-3)" },
-		{ value: "24/7", label: "Support", color: "var(--chart-4)" },
+function Testimonials() {
+	const testimonials = [
+		{
+			name: "Sarah Chen",
+			role: "CEO, TechFlow",
+			quote:
+				"Wingmnn transformed how our team works. Everything we need is in one place, and the interface is so intuitive that our onboarding time dropped by 60%.",
+			avatar: "SC",
+		},
+		{
+			name: "Marcus Rodriguez",
+			role: "Product Lead, DesignCo",
+			quote:
+				"The unified inbox alone saved me 2 hours every day. Plus, the wellness check-ins actually helped us catch burnout early. Game changer.",
+			avatar: "MR",
+		},
+		{
+			name: "Alex Kim",
+			role: "Founder, StartupHub",
+			quote:
+				"We tried every tool under the sun. Wingmnn is the first one that actually reduced our tool sprawl instead of adding to it. Finally, clarity.",
+			avatar: "AK",
+		},
+		{
+			name: "Jordan Taylor",
+			role: "Operations Manager, ScaleUp",
+			quote:
+				"The retro aesthetic is refreshing, but what really sold us was how seamlessly everything connects. Our team velocity increased by 40%.",
+			avatar: "JT",
+		},
+		{
+			name: "Riley Patel",
+			role: "CTO, InnovateLab",
+			quote:
+				"Best decision we made this year. The async communication features and project tracking in one place? That's the future of work.",
+			avatar: "RP",
+		},
+		{
+			name: "Casey Morgan",
+			role: "Head of People, GrowthCo",
+			quote:
+				"Wingmnn's wellness module caught issues we didn't even know we had. The team loves it, and our retention improved significantly.",
+			avatar: "CM",
+		},
 	];
 
 	return (
-		<section className="grid grid-cols-2 md:grid-cols-4 gap-6">
-			{stats.map((stat) => (
-				<div
-					key={stat.label}
-					className="text-center p-6 retro-border bg-card/80 backdrop-blur-sm rounded-none hover:shadow-lg transition-all duration-300"
-				>
+		<section className="space-y-12">
+			<div className="text-center mb-12">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+					What teams are saying
+				</h2>
+				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					Join thousands of teams who've streamlined their workflow with Wingmnn
+				</p>
+			</div>
+
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{testimonials.map((testimonial, idx) => (
 					<div
-						className="text-3xl md:text-4xl font-bold mb-2 font-mono"
-						style={{ color: stat.color }}
+						key={idx}
+						className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none flex flex-col gap-4 hover:shadow-lg transition-all duration-300"
 					>
-						{stat.value}
+						<div className="flex items-start gap-4">
+							<div
+								className="w-12 h-12 rounded-none retro-border flex items-center justify-center shrink-0 font-bold text-foreground"
+								style={{
+									backgroundColor: `var(--module-${
+										[
+											"mail",
+											"notes",
+											"finance",
+											"feeds",
+											"messages",
+											"calendar",
+										][idx % 6]
+									})`,
+								}}
+							>
+								{testimonial.avatar}
+							</div>
+							<div className="flex-1">
+								<h4 className="font-semibold text-foreground mb-1">
+									{testimonial.name}
+								</h4>
+								<p className="text-sm text-muted-foreground font-mono">
+									{testimonial.role}
+								</p>
+							</div>
+						</div>
+						<p className="text-foreground leading-relaxed flex-1">
+							"{testimonial.quote}"
+						</p>
 					</div>
-					<div className="text-sm text-muted-foreground font-mono uppercase tracking-wider">
-						{stat.label}
-					</div>
-				</div>
-			))}
+				))}
+			</div>
 		</section>
 	);
 }
