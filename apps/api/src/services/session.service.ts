@@ -52,12 +52,15 @@ export class SessionService {
       now.getTime() + this.SESSION_EXPIRATION_DAYS * 24 * 60 * 60 * 1000
     );
 
+    // Generate a unique session ID
+    const sessionId = crypto.randomUUID();
     // Generate a unique JTI for the access token
     const accessTokenJti = crypto.randomUUID();
 
     const result = await db
       .insert(sessions)
       .values({
+        id: sessionId,
         userId,
         refreshTokenHash,
         accessTokenJti,
