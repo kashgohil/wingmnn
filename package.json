@@ -1,6 +1,10 @@
 {
   "name": "wingmnn",
   "module": "index.ts",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "devDependencies": {
     "@types/bun": "latest"
   },
