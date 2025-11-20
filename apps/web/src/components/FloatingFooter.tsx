@@ -1,28 +1,33 @@
+import { Link } from "@tanstack/react-router";
 import { Github, Linkedin, Mail, Twitter } from "lucide-react";
 
 export function FloatingFooter() {
 	const currentYear = new Date().getFullYear();
 
+	const handleLinkClick = () => {
+		window.scrollTo({ top: 0, behavior: "smooth" });
+	};
+
 	const footerLinks = {
 		product: [
-			{ label: "Features", href: "#features" },
-			{ label: "Pricing", href: "#pricing" },
-			{ label: "Roadmap", href: "#roadmap" },
+			{ label: "Features", href: "/features" },
+			{ label: "Pricing", href: "/pricing" },
+			{ label: "Roadmap", href: "/roadmap" },
 		],
 		company: [
-			{ label: "About", href: "#about" },
-			{ label: "Blog", href: "#blog" },
-			{ label: "Careers", href: "#careers" },
+			{ label: "About", href: "/about" },
+			{ label: "Blog", href: "/blog" },
+			{ label: "Careers", href: "/careers" },
 		],
 		legal: [
-			{ label: "Privacy", href: "#privacy" },
-			{ label: "Terms", href: "#terms" },
-			{ label: "Security", href: "#security" },
+			{ label: "Privacy", href: "/privacy" },
+			{ label: "Terms", href: "/terms" },
+			{ label: "Security", href: "/security" },
 		],
 		support: [
-			{ label: "Help Center", href: "#help" },
-			{ label: "Contact", href: "#contact" },
-			{ label: "Status", href: "#status" },
+			{ label: "Help Center", href: "/help" },
+			{ label: "Contact", href: "/contact" },
+			{ label: "Status", href: "/status" },
 		],
 	};
 
@@ -117,8 +122,9 @@ export function FloatingFooter() {
 							<ul className="space-y-2">
 								{footerLinks.product.map((link) => (
 									<li key={link.label}>
-										<a
-											href={link.href}
+										<Link
+											to={link.href}
+											onClick={handleLinkClick}
 											className="text-sm text-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
 										>
 											<span
@@ -126,7 +132,7 @@ export function FloatingFooter() {
 												style={{ backgroundColor: sectionColors[0] }}
 											/>
 											{link.label}
-										</a>
+										</Link>
 									</li>
 								))}
 							</ul>
@@ -152,8 +158,9 @@ export function FloatingFooter() {
 							<ul className="space-y-2">
 								{footerLinks.company.map((link) => (
 									<li key={link.label}>
-										<a
-											href={link.href}
+										<Link
+											to={link.href}
+											onClick={handleLinkClick}
 											className="text-sm text-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
 										>
 											<span
@@ -161,7 +168,7 @@ export function FloatingFooter() {
 												style={{ backgroundColor: sectionColors[1] }}
 											/>
 											{link.label}
-										</a>
+										</Link>
 									</li>
 								))}
 							</ul>
@@ -187,8 +194,9 @@ export function FloatingFooter() {
 							<ul className="space-y-2">
 								{footerLinks.legal.map((link) => (
 									<li key={link.label}>
-										<a
-											href={link.href}
+										<Link
+											to={link.href}
+											onClick={handleLinkClick}
 											className="text-sm text-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
 										>
 											<span
@@ -196,7 +204,7 @@ export function FloatingFooter() {
 												style={{ backgroundColor: sectionColors[2] }}
 											/>
 											{link.label}
-										</a>
+										</Link>
 									</li>
 								))}
 							</ul>
@@ -222,8 +230,9 @@ export function FloatingFooter() {
 							<ul className="space-y-2">
 								{footerLinks.support.map((link) => (
 									<li key={link.label}>
-										<a
-											href={link.href}
+										<Link
+											to={link.href}
+											onClick={handleLinkClick}
 											className="text-sm text-foreground hover:text-foreground transition-colors flex items-center gap-2 group/link"
 										>
 											<span
@@ -231,7 +240,7 @@ export function FloatingFooter() {
 												style={{ backgroundColor: sectionColors[3] }}
 											/>
 											{link.label}
-										</a>
+										</Link>
 									</li>
 								))}
 							</ul>

@@ -76,7 +76,7 @@ export function FloatingHeader() {
 
 	return (
 		<>
-			<header className="sticky top-4 z-50 mx-auto w-full max-w-6xl bg-card/80 backdrop-blur-sm retro-border rounded-none overflow-hidden">
+			<header className="sticky top-0 z-50 w-full bg-card/80 backdrop-blur-sm retro-border rounded-none overflow-hidden">
 				{/* Retro background pattern overlay */}
 				<div className="absolute inset-0 opacity-5 pointer-events-none">
 					<div
@@ -136,7 +136,7 @@ export function FloatingHeader() {
 					))}
 				</div>
 
-				<div className="relative flex items-center justify-between pl-9 pr-9 pt-5 pb-5">
+				<div className="relative flex items-center justify-between pl-9 pr-9 pt-5 pb-5 w-full max-w-7xl mx-auto">
 					{/* Logo with retro styling */}
 					<Link
 						to="/"
