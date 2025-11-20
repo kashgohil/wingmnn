@@ -58,12 +58,12 @@ code {
 	--module-notes: #ffd1dc;
 	--module-finance: #c4f0c4;
 	--module-feeds: #b8e6ff;
-	--module-messages: #ffd1dc;
-	--module-calendar: #b8e6ff;
-	--module-wellness: #ffe5f1;
+	--module-messages: #ffb8a3;
+	--module-calendar: #a8e0d0;
+	--module-wellness: #ffd4a3;
 	--module-projects: #e0d4ff;
-	--module-files: #b8e6ff;
-	--module-fun: #ffd1dc;
+	--module-files: #b8d4f0;
+	--module-fun: #ffa8d4;
 }
 
 .dark {
@@ -103,12 +103,12 @@ code {
 	--module-notes: #d977a6;
 	--module-finance: #7fb3a3;
 	--module-feeds: #5b9bd5;
-	--module-messages: #d977a6;
-	--module-calendar: #5b9bd5;
-	--module-wellness: #d977a6;
+	--module-messages: #d98a6b;
+	--module-calendar: #6ba3a3;
+	--module-wellness: #c9a574;
 	--module-projects: #a78bfa;
-	--module-files: #5b9bd5;
-	--module-fun: #d977a6;
+	--module-files: #6b9bc5;
+	--module-fun: #e68fb8;
 }
 
 @theme inline {

@@ -16,6 +16,7 @@ import {
 	TrendingUp,
 	Zap,
 } from "lucide-react";
+import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 import { Button } from "../components/ui/button";
 
@@ -205,6 +206,7 @@ function App() {
 				<Modules />
 				<Stats />
 			</div>
+			<FloatingFooter />
 		</div>
 	);
 }
@@ -367,46 +369,36 @@ function ModuleSection({
 	index: number;
 }) {
 	const Icon = module.icon;
-	const isEven = index % 2 === 0;
 	const moduleColor = `var(${module.colorVar})`;
+	const isEven = index % 2 === 0;
 
 	return (
-		<div className="relative overflow-hidden">
-			{/* Background with subtle gradient */}
+		<div className="relative overflow-hidden retro-border">
 			<div
-				className="absolute inset-0 opacity-10"
-				style={{ backgroundColor: moduleColor }}
-			/>
-			<div className="relative retro-border bg-card/90 backdrop-blur-sm p-8 md:p-12">
+				className={`flex flex-col ${
+					isEven ? "md:flex-row" : "md:flex-row-reverse"
+				}`}
+			>
+				{/* Icon and Module Name Section with Module Color Background */}
 				<div
-					className={`flex flex-col ${
-						isEven ? "md:flex-row" : "md:flex-row-reverse"
-					} gap-12 items-center`}
+					className="flex flex-col items-center justify-center p-8 md:p-12 gap-6 min-h-[300px] md:min-h-auto md:w-80"
+					style={{ backgroundColor: moduleColor }}
 				>
-					{/* Icon Section */}
-					<div className="shrink-0">
-						<div
-							className="relative w-32 h-32 flex items-center justify-center retro-border rounded-none"
-							style={{
-								backgroundColor: moduleColor,
-								boxShadow: `0 10px 40px ${moduleColor}40`,
-							}}
-						>
+					<div className="flex flex-col items-center gap-6">
+						<div className="relative w-32 h-32 flex items-center justify-center retro-border rounded-none bg-card/20">
 							<Icon className="h-16 w-16 text-foreground" />
-							<div
-								className="absolute -inset-4 opacity-20 blur-xl"
-								style={{ backgroundColor: moduleColor }}
-							/>
 						</div>
+						<h3 className="text-3xl md:text-4xl font-bold text-foreground font-mono uppercase tracking-wider text-center">
+							{module.name}
+						</h3>
 					</div>
+				</div>
 
-					{/* Content Section */}
-					<div className="flex-1 space-y-6">
+				{/* Module Information Section */}
+				<div className="flex-1 bg-card/90 backdrop-blur-sm p-8 md:p-12">
+					<div className="space-y-6">
 						<div>
-							<h3 className="text-3xl md:text-4xl font-bold text-foreground mb-3 font-mono uppercase tracking-wider">
-								{module.name}
-							</h3>
-							<p className="text-lg text-muted-foreground font-medium mb-4">
+							<p className="text-lg text-muted-foreground font-semibold mb-4">
 								{module.description}
 							</p>
 							<p className="text-base text-foreground leading-relaxed">
