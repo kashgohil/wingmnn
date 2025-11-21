@@ -64,7 +64,7 @@ function PricingPage() {
 										Popular
 									</div>
 								)}
-								<div className="space-y-6">
+								<div className="space-y-6 flex flex-col justify-between h-full">
 									<div>
 										<h3 className="text-2xl font-bold font-mono uppercase mb-2">
 											{plan.name}
@@ -186,10 +186,122 @@ function ModulePicker() {
 		[moduleOptions, selectedModules],
 	);
 
-	const totalPrice = selectedModules.reduce(
+	const baseTotal = selectedModules.reduce(
 		(sum, slug) => sum + (modulePriceMap[slug] ?? 0),
 		0,
 	);
+
+	const DISCOUNT_SCALE = 400;
+	const MAX_DISCOUNT = 0.2;
+	const QUARTER_UNIT = 0.25;
+
+	const roundToQuarter = (value: number) =>
+		Number((Math.round(value / QUARTER_UNIT) * QUARTER_UNIT).toFixed(2));
+
+	const pricedSelections = useMemo(() => {
+		if (selectedDetails.length === 0) {
+			return [];
+		}
+
+		const withRaw = selectedDetails.map((module) => {
+			const basePrice = module.price;
+			const othersTotal = Math.max(baseTotal - basePrice, 0);
+			const rawDiscountRate = Math.min(
+				MAX_DISCOUNT,
+				Math.max(0, othersTotal / DISCOUNT_SCALE),
+			);
+			const rawDiscountedPrice = basePrice - basePrice * rawDiscountRate;
+
+			return {
+				...module,
+				discountRate: rawDiscountRate,
+				discountedPrice: rawDiscountedPrice,
+			};
+		});
+
+		const quantized = withRaw.map((module) => {
+			const quantizedPrice = Math.min(
+				module.price,
+				Math.max(0, roundToQuarter(module.discountedPrice)),
+			);
+
+			return {
+				...module,
+				discountedPrice: quantizedPrice,
+			};
+		});
+
+		const adjustToWholeTotal = (items: typeof quantized) => {
+			let total = items.reduce(
+				(sum, module) => sum + module.discountedPrice,
+				0,
+			);
+			let targetTotal = Math.round(total);
+			targetTotal = Math.min(targetTotal, baseTotal);
+			targetTotal = Math.max(0, targetTotal);
+			let delta = Number((total - targetTotal).toFixed(2));
+
+			if (Math.abs(delta) < QUARTER_UNIT / 2) {
+				return items;
+			}
+
+			const adjustable = [...items].sort(
+				(a, b) => b.discountedPrice - a.discountedPrice,
+			);
+
+			let guard = 0;
+			while (Math.abs(delta) >= QUARTER_UNIT / 2 && guard < 500) {
+				let changed = false;
+				for (const module of adjustable) {
+					if (delta > 0 && module.discountedPrice - QUARTER_UNIT >= 0) {
+						module.discountedPrice = Number(
+							(module.discountedPrice - QUARTER_UNIT).toFixed(2),
+						);
+						delta = Number((delta - QUARTER_UNIT).toFixed(2));
+						changed = true;
+					} else if (
+						delta < 0 &&
+						module.discountedPrice + QUARTER_UNIT <= module.price
+					) {
+						module.discountedPrice = Number(
+							(module.discountedPrice + QUARTER_UNIT).toFixed(2),
+						);
+						delta = Number((delta + QUARTER_UNIT).toFixed(2));
+						changed = true;
+					}
+
+					if (Math.abs(delta) < QUARTER_UNIT / 2) {
+						break;
+					}
+				}
+
+				if (!changed) {
+					break;
+				}
+
+				guard += 1;
+			}
+
+			return items;
+		};
+
+		const adjusted = adjustToWholeTotal(quantized);
+
+		return adjusted.map((module) => ({
+			...module,
+			discountAmount: Number(
+				(module.price - module.discountedPrice).toFixed(2),
+			),
+		}));
+	}, [baseTotal, selectedDetails]);
+
+	const discountedTotal = pricedSelections.reduce(
+		(sum, module) => sum + module.discountedPrice,
+		0,
+	);
+
+	const normalizedTotal = Math.round(discountedTotal);
+	const totalSavings = Math.max(baseTotal - normalizedTotal, 0);
 
 	const formatter = useMemo(
 		() =>
@@ -200,6 +312,24 @@ function ModulePicker() {
 			}),
 		[],
 	);
+
+	const preciseFormatter = useMemo(
+		() =>
+			new Intl.NumberFormat("en-US", {
+				style: "currency",
+				currency: "USD",
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2,
+			}),
+		[],
+	);
+
+	const formatPrice = (value: number, forcePrecise = false) => {
+		const hasCents = Math.abs(value - Math.round(value)) > 0.0001;
+		return forcePrecise || hasCents
+			? preciseFormatter.format(value)
+			: formatter.format(value);
+	};
 
 	const toggleModule = (slug: string) => {
 		setSelectedModules((prev) =>
@@ -276,29 +406,45 @@ function ModulePicker() {
 						<p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
 							Custom package
 						</p>
-						<p className="text-4xl font-bold">{formatter.format(totalPrice)}</p>
+						<p className="text-4xl font-bold">{formatPrice(normalizedTotal)}</p>
 						<p className="text-sm text-muted-foreground">
 							Per user / month • {selectedModules.length} modules
 						</p>
+						{totalSavings > 0 && (
+							<p className="text-xs text-emerald-500 font-mono">
+								Saves {formatPrice(totalSavings, true)} every month
+							</p>
+						)}
 					</div>
 
 					<ul className="space-y-3">
-						{selectedDetails.length === 0 ? (
+						{pricedSelections.length === 0 ? (
 							<li className="text-sm text-muted-foreground">
 								Choose modules to see them here.
 							</li>
 						) : (
-							selectedDetails.map((module) => (
-								<li
-									key={module.slug}
-									className="flex items-center justify-between text-sm"
-								>
-									<span>{module.name}</span>
-									<span className="font-mono">
-										{formatter.format(module.price)}
-									</span>
-								</li>
-							))
+							pricedSelections.map((module) => {
+								const hasDiscount =
+									module.price - module.discountedPrice > 0.001;
+								return (
+									<li
+										key={module.slug}
+										className="flex items-start justify-between text-sm gap-3"
+									>
+										<span>{module.name}</span>
+										<div className="text-right">
+											{hasDiscount && (
+												<p className="font-mono text-xs text-muted-foreground line-through">
+													{formatPrice(module.price)}
+												</p>
+											)}
+											<p className="font-mono">
+												{formatPrice(module.discountedPrice, !hasDiscount)}
+											</p>
+										</div>
+									</li>
+								);
+							})
 						)}
 					</ul>
 
