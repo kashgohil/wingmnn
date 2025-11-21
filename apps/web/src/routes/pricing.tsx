@@ -1,4 +1,5 @@
 import { generateMetadata } from "@/lib/metadata";
+import { pricingPlans } from "@/lib/site-data";
 import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -18,54 +19,6 @@ export const Route = createFileRoute("/pricing")({
 });
 
 function PricingPage() {
-	const plans = [
-		{
-			name: "Starter",
-			price: "$9",
-			period: "per user/month",
-			description: "Perfect for small teams getting started",
-			features: [
-				"Up to 10 team members",
-				"All core modules",
-				"5GB storage per user",
-				"Email support",
-				"Basic integrations",
-			],
-			color: "var(--module-mail)",
-		},
-		{
-			name: "Professional",
-			price: "$29",
-			period: "per user/month",
-			description: "For growing teams that need more",
-			features: [
-				"Unlimited team members",
-				"All modules + advanced features",
-				"50GB storage per user",
-				"Priority support",
-				"Advanced integrations",
-				"Custom workflows",
-			],
-			color: "var(--module-projects)",
-			popular: true,
-		},
-		{
-			name: "Enterprise",
-			price: "Custom",
-			period: "contact us",
-			description: "For organizations with specific needs",
-			features: [
-				"Everything in Professional",
-				"Unlimited storage",
-				"Dedicated support",
-				"Custom integrations",
-				"SLA guarantee",
-				"On-premise deployment",
-			],
-			color: "var(--module-finance)",
-		},
-	];
-
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
 			{/* Soft retro background pattern */}
@@ -97,14 +50,14 @@ function PricingPage() {
 					</div>
 
 					<div className="grid md:grid-cols-3 gap-6">
-						{plans.map((plan) => (
+						{pricingPlans.map((plan) => (
 							<div
 								key={plan.name}
 								className={`relative retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none ${
-									plan.popular ? "ring-2 ring-primary" : ""
+									plan.highlight ? "ring-2 ring-primary" : ""
 								}`}
 							>
-								{plan.popular && (
+								{plan.highlight && (
 									<div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-sm font-mono uppercase">
 										Popular
 									</div>
@@ -146,7 +99,7 @@ function PricingPage() {
 									</ul>
 									<Button
 										className="w-full"
-										variant={plan.popular ? "default" : "outline"}
+										variant={plan.highlight ? "default" : "outline"}
 									>
 										{plan.price === "Custom"
 											? "Contact Sales"

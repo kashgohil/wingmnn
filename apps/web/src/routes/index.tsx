@@ -1,4 +1,5 @@
 import { generateMetadata } from "@/lib/metadata";
+import { pricingPlans, spotlightIntegrations } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -21,7 +22,6 @@ import {
 	Play,
 	Rss,
 	ShieldCheck,
-	Sparkles,
 	TrendingUp,
 	Users,
 	Zap,
@@ -987,21 +987,6 @@ function UseCases() {
 }
 
 function IntegrationShowcase() {
-	const integrations = [
-		{
-			name: "Google Calendar",
-			icon: Calendar,
-			color: "var(--module-calendar)",
-		},
-		{ name: "Slack", icon: MessageSquare, color: "var(--module-messages)" },
-		{ name: "GitHub", icon: Code, color: "var(--module-files)" },
-		{ name: "Notion", icon: FileText, color: "var(--module-notes)" },
-		{ name: "Stripe", icon: DollarSign, color: "var(--module-finance)" },
-		{ name: "Figma", icon: Sparkles, color: "var(--module-feeds)" },
-		{ name: "Linear", icon: FolderKanban, color: "var(--module-projects)" },
-		{ name: "Gmail", icon: Mail, color: "var(--module-mail)" },
-	];
-
 	return (
 		<section className="space-y-12">
 			<div className="text-center mb-12">
@@ -1013,7 +998,7 @@ function IntegrationShowcase() {
 				</p>
 			</div>
 			<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
-				{integrations.map((integration, idx) => {
+				{spotlightIntegrations.map((integration, idx) => {
 					const Icon = integration.icon;
 					return (
 						<div
@@ -1136,30 +1121,6 @@ function CaseStudies() {
 }
 
 function PricingPreview() {
-	const plans = [
-		{
-			name: "Starter",
-			price: "$9",
-			period: "per user/month",
-			highlight: false,
-			color: "var(--module-mail)",
-		},
-		{
-			name: "Professional",
-			price: "$29",
-			period: "per user/month",
-			highlight: true,
-			color: "var(--module-projects)",
-		},
-		{
-			name: "Enterprise",
-			price: "Custom",
-			period: "contact us",
-			highlight: false,
-			color: "var(--module-finance)",
-		},
-	];
-
 	return (
 		<section className="space-y-12">
 			<div className="text-center mb-12">
@@ -1172,7 +1133,7 @@ function PricingPreview() {
 				</p>
 			</div>
 			<div className="grid md:grid-cols-3 gap-6">
-				{plans.map((plan, idx) => (
+				{pricingPlans.map((plan, idx) => (
 					<div
 						key={idx}
 						className={cn(
