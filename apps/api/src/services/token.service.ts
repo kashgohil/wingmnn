@@ -4,6 +4,7 @@ import { config } from "../config";
 
 // Import everything from the db package using workspace alias
 import { db, eq, sessions, usedRefreshTokens } from "@wingmnn/db";
+import { AuthError, AuthErrorCode } from "./auth.service";
 
 // Token payload interfaces
 export interface TokenPayload {

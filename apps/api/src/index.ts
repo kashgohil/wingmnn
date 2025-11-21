@@ -1245,3 +1245,6 @@ Handle OAuth provider callback after user authorization.
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
 );
+
+// Export the app type for use in frontend (via @wingmnn/types package)
+export type App = typeof app;
