@@ -89,7 +89,7 @@ export function FloatingFooter() {
 	return (
 		<footer className="w-full bg-card/80 backdrop-blur-sm border-t-2 border-border rounded-none relative overflow-hidden">
 			{/* Retro background pattern overlay */}
-			<div className="absolute inset-0 opacity-5 pointer-events-none">
+			<div className="absolute inset-0 opacity-40 pointer-events-none">
 				<div
 					className="absolute inset-0"
 					style={{

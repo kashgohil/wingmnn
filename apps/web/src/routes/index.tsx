@@ -226,7 +226,7 @@ function App() {
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
 			{/* Soft retro background pattern */}
-			<div className="fixed inset-0 -z-10 overflow-hidden opacity-5">
+			<div className="absolute inset-0 z-0 overflow-hidden opacity-40">
 				<div
 					className="absolute inset-0"
 					style={{
@@ -245,7 +245,7 @@ function App() {
 				<div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-accent rounded-full blur-[120px] opacity-10 animate-pulse delay-1000" />
 			</div>
 
-			<div className="relative mx-auto flex max-w-7xl flex-col gap-24 px-6 pt-6 pb-24">
+			<div className="relative mx-auto flex max-w-7xl flex-col gap-24 px-6 pt-36 sm:pt-6 pb-24">
 				<FloatingHeader />
 				<Hero />
 				<Features />

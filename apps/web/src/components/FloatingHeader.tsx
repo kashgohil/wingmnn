@@ -76,9 +76,9 @@ export function FloatingHeader() {
 
 	return (
 		<>
-			<header className="sticky top-0 z-50 w-full bg-card/80 backdrop-blur-sm retro-border rounded-none overflow-hidden">
+			<header className="fixed sm:sticky top-0 left-0 z-50 w-full bg-card/80 backdrop-blur-sm sm:retro-border rounded-none overflow-hidden">
 				{/* Retro background pattern overlay */}
-				<div className="absolute inset-0 opacity-5 pointer-events-none">
+				<div className="absolute inset-0 opacity-40 pointer-events-none">
 					<div
 						className="absolute inset-0"
 						style={{
@@ -90,10 +90,9 @@ export function FloatingHeader() {
 						}}
 					/>
 				</div>
-
 				{/* Color accent bars on all four borders */}
 				{/* Top border */}
-				<div className="absolute top-0 left-0 right-0 flex h-1">
+				<div className="hidden sm:flex absolute top-0 left-0 right-0 h-1">
 					{topColors.map((color, idx) => (
 						<div
 							key={`top-${idx}`}
@@ -104,7 +103,7 @@ export function FloatingHeader() {
 				</div>
 
 				{/* Right border */}
-				<div className="absolute top-0 right-0 bottom-0 flex flex-col w-1">
+				<div className="hidden sm:flex absolute top-0 right-0 bottom-0 flex-col w-1">
 					{rightColors.map((color, idx) => (
 						<div
 							key={`right-${idx}`}
@@ -126,7 +125,7 @@ export function FloatingHeader() {
 				</div>
 
 				{/* Left border */}
-				<div className="absolute top-0 left-0 bottom-0 flex flex-col w-1">
+				<div className="hidden sm:flex absolute top-0 left-0 bottom-0 flex-col w-1">
 					{leftColors.map((color, idx) => (
 						<div
 							key={`left-${idx}`}
@@ -136,7 +135,7 @@ export function FloatingHeader() {
 					))}
 				</div>
 
-				<div className="relative flex items-center justify-between pl-9 pr-9 pt-5 pb-5 w-full max-w-7xl mx-auto">
+				<div className="relative flex items-center justify-between w-full px-4 py-4 md:px-9 md:py-5 md:max-w-7xl md:mx-auto">
 					{/* Logo with retro styling */}
 					<Link
 						to="/"
@@ -157,15 +156,38 @@ export function FloatingHeader() {
 					<div className="flex items-center gap-2">
 						<Button
 							variant="outline"
+							size="icon"
+							onClick={() => {
+								setAuthMode("login");
+								setAuthDialogOpen(true);
+							}}
+							className="md:hidden"
+							aria-label="Log in"
+						>
+							<LogIn className="h-4 w-4" />
+						</Button>
+						<Button
+							variant="outline"
 							size="sm"
 							onClick={() => {
 								setAuthMode("login");
 								setAuthDialogOpen(true);
 							}}
-							className="gap-2"
+							className="hidden md:inline-flex gap-2"
 						>
 							<LogIn className="h-4 w-4" />
 							Log in
+						</Button>
+						<Button
+							size="icon"
+							onClick={() => {
+								setAuthMode("signup");
+								setAuthDialogOpen(true);
+							}}
+							className="md:hidden"
+							aria-label="Sign up"
+						>
+							<UserPlus className="h-4 w-4" />
 						</Button>
 						<Button
 							size="sm"
@@ -173,7 +195,7 @@ export function FloatingHeader() {
 								setAuthMode("signup");
 								setAuthDialogOpen(true);
 							}}
-							className="gap-2"
+							className="hidden md:inline-flex gap-2"
 						>
 							<UserPlus className="h-4 w-4" />
 							Sign up
