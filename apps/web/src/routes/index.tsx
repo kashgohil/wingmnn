@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	ArrowRight,
@@ -34,6 +35,7 @@ const modules = [
 			"Smart follow-up reminders",
 			"Quick actions and templates",
 			"Seamless integration with calendar",
+			"Email analytics and insights",
 		],
 		colorVar: "--module-mail",
 		icon: Inbox,
@@ -49,6 +51,7 @@ const modules = [
 			"Automatic backlink discovery",
 			"Real-time collaboration",
 			"Version history and snapshots",
+			"Tag and folder organization",
 		],
 		colorVar: "--module-notes",
 		icon: FileText,
@@ -64,6 +67,7 @@ const modules = [
 			"Approval workflows",
 			"Automated categorization",
 			"Cashflow forecasting",
+			"Multi-currency support",
 		],
 		colorVar: "--module-finance",
 		icon: DollarSign,
@@ -79,6 +83,7 @@ const modules = [
 			"Customizable filters",
 			"Smart prioritization",
 			"Read-it-later functionality",
+			"Share and bookmark articles",
 		],
 		colorVar: "--module-feeds",
 		icon: Rss,
@@ -94,6 +99,7 @@ const modules = [
 			"Threaded conversations",
 			"Message search and archives",
 			"Reaction and reply features",
+			"File and media sharing",
 		],
 		colorVar: "--module-messages",
 		icon: MessageSquare,
@@ -110,6 +116,7 @@ const modules = [
 			"Deadline and milestone tracking",
 			"External calendar integration",
 			"Automated reminders",
+			"Recurring event management",
 		],
 		colorVar: "--module-calendar",
 		icon: Calendar,
@@ -125,6 +132,7 @@ const modules = [
 			"Burnout detection alerts",
 			"Wellness insights and trends",
 			"Team wellness dashboard",
+			"Personal wellness goals",
 		],
 		colorVar: "--module-wellness",
 		icon: Heart,
@@ -140,6 +148,7 @@ const modules = [
 			"Outcome-based planning",
 			"Team rituals and standups",
 			"Progress analytics",
+			"Resource allocation and capacity planning",
 		],
 		colorVar: "--module-projects",
 		icon: FolderKanban,
@@ -155,6 +164,7 @@ const modules = [
 			"Seamless handoffs",
 			"Full-text search",
 			"Access control and permissions",
+			"Cloud storage integration",
 		],
 		colorVar: "--module-files",
 		icon: Folder,
@@ -170,6 +180,7 @@ const modules = [
 			"Team rituals and traditions",
 			"Virtual water cooler",
 			"Team achievements and badges",
+			"Custom team challenges",
 		],
 		colorVar: "--module-fun",
 		icon: PartyPopper,
@@ -203,6 +214,7 @@ function App() {
 				<FloatingHeader />
 				<Hero />
 				<Features />
+				<ClientLogos />
 				<Modules />
 				<Testimonials />
 			</div>
@@ -334,6 +346,99 @@ function Features() {
 	);
 }
 
+function ClientLogos() {
+	const clients = [
+		"Stripe",
+		"Vercel",
+		"Linear",
+		"Notion",
+		"Figma",
+		"GitHub",
+		"Vercel",
+		"Supabase",
+		"Railway",
+		"PlanetScale",
+		"Tailwind",
+		"Cloudflare",
+		"Netlify",
+		"Turbo",
+		"Prisma",
+	];
+
+	const moduleColors = [
+		"--module-mail",
+		"--module-notes",
+		"--module-finance",
+		"--module-feeds",
+		"--module-messages",
+		"--module-calendar",
+		"--module-wellness",
+		"--module-projects",
+		"--module-files",
+		"--module-fun",
+	];
+
+	return (
+		<section className="py-12 overflow-hidden">
+			<div className="text-center mb-8">
+				<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground">
+					Trusted by innovative teams
+				</p>
+			</div>
+			<div className="relative">
+				{/* Gradient overlays for fade effect */}
+				<div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+				<div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
+				{/* Scrolling marquee */}
+				<div className="flex overflow-hidden">
+					<div className="flex animate-scroll gap-12">
+						{clients.map((client, idx) => {
+							const moduleColor = moduleColors[idx % moduleColors.length];
+							return (
+								<div
+									key={`${client}-${idx}`}
+									className="shrink-0 flex items-center justify-center px-8 py-4 bg-card/60 backdrop-blur-sm rounded-none min-w-[200px]"
+									style={{
+										border: `3px solid var(${moduleColor})`,
+										boxShadow: `inset -2px -2px 0 rgba(0, 0, 0, 0.15),
+											inset 2px 2px 0 rgba(255, 255, 255, 0.9), 
+											0 2px 4px rgba(0, 0, 0, 0.15)`,
+									}}
+								>
+									<span className="text-lg font-bold font-mono text-foreground whitespace-nowrap">
+										{client}
+									</span>
+								</div>
+							);
+						})}
+						{/* Duplicate for seamless loop */}
+						{clients.map((client, idx) => {
+							const moduleColor = moduleColors[idx % moduleColors.length];
+							return (
+								<div
+									key={`${client}-dup-${idx}`}
+									className="shrink-0 flex items-center justify-center px-8 py-4 bg-card/60 backdrop-blur-sm rounded-none min-w-[200px]"
+									style={{
+										border: `3px solid var(${moduleColor})`,
+										boxShadow: `inset -2px -2px 0 rgba(0, 0, 0, 0.15),
+											inset 2px 2px 0 rgba(255, 255, 255, 0.9), 
+											0 2px 4px rgba(0, 0, 0, 0.15)`,
+									}}
+								>
+									<span className="text-lg font-bold font-mono text-foreground whitespace-nowrap">
+										{client}
+									</span>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			</div>
+		</section>
+	);
+}
+
 function Modules() {
 	return (
 		<section className="space-y-16">
@@ -373,55 +478,86 @@ function ModuleSection({
 	const isEven = index % 2 === 0;
 
 	return (
-		<div className="relative overflow-hidden retro-border">
+		// <div className="relative group">
+		// 	<div
+		// 		className="absolute -left-2 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity"
+		// 		style={{ backgroundColor: moduleColor }}
+		// 	/>
+		// 	<div className="retro-border rounded-none p-4 bg-card/50 hover:bg-card/70 transition-all">
+		// 		<div className="flex items-center gap-2 mb-4">
+		// 			<div
+		// 				className="w-3 h-3 shrink-0"
+		// 				style={{ backgroundColor: moduleColor }}
+		// 			/>
+		// 			<h4 className="text-sm font-bold font-mono uppercase tracking-wider text-foreground">
+		// 				{module.name}
+		// 			</h4>
+		// 		</div>
+		// 	</div>
+		// </div>
+
+		<div className="relative group">
 			<div
-				className={`flex flex-col ${
-					isEven ? "md:flex-row" : "md:flex-row-reverse"
-				}`}
-			>
-				{/* Icon and Module Name Section with Module Color Background */}
+				className={cn(
+					"absolute top-0 bottom-0 w-2 opacity-0 group-hover:opacity-100 transition-opacity",
+					isEven ? "-left-4" : "-right-4",
+				)}
+				style={{ backgroundColor: moduleColor }}
+			/>
+			<div className="relative retro-border group">
 				<div
-					className="flex flex-col items-center justify-center p-8 md:p-12 gap-6 min-h-[300px] md:min-h-auto md:w-80"
+					className="-left-2 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity"
 					style={{ backgroundColor: moduleColor }}
+				/>
+				<div
+					className={`flex flex-col ${
+						isEven ? "md:flex-row" : "md:flex-row-reverse"
+					}`}
 				>
-					<div className="flex flex-col items-center gap-6">
-						<div className="relative w-32 h-32 flex items-center justify-center retro-border rounded-none bg-card/20">
-							<Icon className="h-16 w-16 text-foreground" />
+					{/* Icon and Module Name Section with Module Color Background */}
+					<div
+						className="flex flex-col items-center justify-center p-8 md:p-12 gap-6 min-h-[300px] md:min-h-auto md:w-80"
+						style={{ backgroundColor: moduleColor }}
+					>
+						<div className="flex flex-col items-center gap-6">
+							<div className="relative w-32 h-32 flex items-center justify-center retro-border rounded-none bg-card/20">
+								<Icon className="h-16 w-16 text-foreground" />
+							</div>
+							<h3 className="text-3xl md:text-4xl font-bold text-foreground font-mono uppercase tracking-wider text-center">
+								{module.name}
+							</h3>
 						</div>
-						<h3 className="text-3xl md:text-4xl font-bold text-foreground font-mono uppercase tracking-wider text-center">
-							{module.name}
-						</h3>
 					</div>
-				</div>
 
-				{/* Module Information Section */}
-				<div className="flex-1 bg-card/90 backdrop-blur-sm p-8 md:p-12">
-					<div className="space-y-6">
-						<div>
-							<p className="text-lg text-muted-foreground font-semibold mb-4">
-								{module.description}
-							</p>
-							<p className="text-base text-foreground leading-relaxed">
-								{module.detailedDescription}
-							</p>
-						</div>
+					{/* Module Information Section */}
+					<div className="flex-1 bg-card/90 backdrop-blur-sm p-8 md:p-12">
+						<div className="space-y-6">
+							<div>
+								<p className="text-lg text-muted-foreground font-semibold mb-4">
+									{module.description}
+								</p>
+								<p className="text-base text-foreground leading-relaxed">
+									{module.detailedDescription}
+								</p>
+							</div>
 
-						{/* Features Grid */}
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4">
-							{module.features.map((feature, idx) => (
-								<div
-									key={idx}
-									className="flex items-center gap-3 p-3 retro-border bg-card/50 rounded-none"
-								>
+							{/* Features Grid */}
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4">
+								{module.features.map((feature, idx) => (
 									<div
-										className="w-2 h-2 shrink-0"
-										style={{ backgroundColor: moduleColor }}
-									/>
-									<span className="text-sm text-foreground font-mono">
-										{feature}
-									</span>
-								</div>
-							))}
+										key={idx}
+										className="flex items-center gap-3 p-3 retro-border bg-card/50 rounded-none"
+									>
+										<div
+											className="w-2 h-2 shrink-0"
+											style={{ backgroundColor: moduleColor }}
+										/>
+										<span className="text-sm text-foreground font-mono">
+											{feature}
+										</span>
+									</div>
+								))}
+							</div>
 						</div>
 					</div>
 				</div>

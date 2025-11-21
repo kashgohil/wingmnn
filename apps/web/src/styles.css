@@ -244,6 +244,15 @@ code {
 		}
 	}
 
+	@keyframes scroll {
+		0% {
+			transform: translateX(0);
+		}
+		100% {
+			transform: translateX(-50%);
+		}
+	}
+
 	.animate-float {
 		animation: float 6s ease-in-out infinite;
 	}
@@ -262,6 +271,10 @@ code {
 
 	.animate-soft-pulse {
 		animation: soft-pulse 3s ease-in-out infinite;
+	}
+
+	.animate-scroll {
+		animation: scroll 60s linear infinite;
 	}
 
 	.delay-1000 {
