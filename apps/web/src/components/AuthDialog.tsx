@@ -11,6 +11,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { GoogleIcon } from "./icons/GoogleIcon";
 
 interface AuthDialogProps {
 	open: boolean;
@@ -104,9 +105,26 @@ function LoginForm() {
 					required
 				/>
 			</div>
-			<Button className="w-full py-5 text-base" type="submit">
-				Log in
-			</Button>
+			<div className="space-y-3">
+				<Button className="w-full py-5 text-base" type="submit">
+					Log in
+				</Button>
+				<Button
+					variant="outline"
+					className="w-full py-5 text-base"
+					type="button"
+					asChild
+				>
+					<a
+						href="/auth/google"
+						className="flex items-center justify-center gap-3"
+						aria-label="Continue with Google"
+					>
+						<GoogleIcon className="h-5 w-5" />
+						<span>Continue with Google</span>
+					</a>
+				</Button>
+			</div>
 		</form>
 	);
 }
