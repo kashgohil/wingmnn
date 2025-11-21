@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail, MessageSquare, Send } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -9,6 +10,14 @@ import { Textarea } from "../components/ui/textarea";
 
 export const Route = createFileRoute("/contact")({
 	component: ContactPage,
+	head: () =>
+		generateMetadata({
+			title: "Contact",
+			description:
+				"Have a question? We'd love to hear from you. Send us a message and we'll respond as soon as possible. Get in touch with our team.",
+			path: "/contact",
+			keywords: ["contact", "support", "help", "get in touch"],
+		}),
 });
 
 function ContactPage() {

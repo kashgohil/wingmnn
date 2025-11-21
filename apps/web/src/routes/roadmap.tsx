@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { CheckCircle2, Circle, Clock } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -5,6 +6,14 @@ import { FloatingHeader } from "../components/FloatingHeader";
 
 export const Route = createFileRoute("/roadmap")({
 	component: RoadmapPage,
+	head: () =>
+		generateMetadata({
+			title: "Roadmap",
+			description:
+				"See what's coming next for Wingmnn. Track our progress on new features, improvements, and updates. Your feedback shapes our roadmap.",
+			path: "/roadmap",
+			keywords: ["roadmap", "updates", "features", "product development"],
+		}),
 });
 
 function RoadmapPage() {

@@ -1,9 +1,18 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 
 export const Route = createFileRoute("/privacy")({
 	component: PrivacyPage,
+	head: () =>
+		generateMetadata({
+			title: "Privacy Policy",
+			description:
+				"Read Wingmnn's privacy policy to understand how we collect, use, and protect your personal information. Your privacy is important to us.",
+			path: "/privacy",
+			keywords: ["privacy policy", "data privacy", "GDPR", "user rights"],
+		}),
 });
 
 function PrivacyPage() {

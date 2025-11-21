@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { Heart, Target, Users, Zap } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -5,6 +6,14 @@ import { FloatingHeader } from "../components/FloatingHeader";
 
 export const Route = createFileRoute("/about")({
 	component: AboutPage,
+	head: () =>
+		generateMetadata({
+			title: "About",
+			description:
+				"Learn about Wingmnn's mission to build the operating system for modern teams. We're building a unified platform that brings clarity to chaos.",
+			path: "/about",
+			keywords: ["about us", "company mission", "team values"],
+		}),
 });
 
 function AboutPage() {

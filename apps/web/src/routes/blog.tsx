@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { Calendar } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -5,6 +6,14 @@ import { FloatingHeader } from "../components/FloatingHeader";
 
 export const Route = createFileRoute("/blog")({
 	component: BlogPage,
+	head: () =>
+		generateMetadata({
+			title: "Blog",
+			description:
+				"Stories, insights, and updates from the Wingmnn team. Learn about product updates, team culture, and the future of work.",
+			path: "/blog",
+			keywords: ["blog", "news", "updates", "insights", "product updates"],
+		}),
 });
 
 function BlogPage() {

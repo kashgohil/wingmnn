@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -6,6 +7,14 @@ import { Button } from "../components/ui/button";
 
 export const Route = createFileRoute("/pricing")({
 	component: PricingPage,
+	head: () =>
+		generateMetadata({
+			title: "Pricing",
+			description:
+				"Choose the plan that fits your team. All plans include a 14-day free trial. From Starter to Enterprise, find the perfect fit for your organization.",
+			path: "/pricing",
+			keywords: ["pricing", "plans", "subscription", "enterprise"],
+		}),
 });
 
 function PricingPage() {

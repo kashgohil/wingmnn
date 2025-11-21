@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { Briefcase, MapPin } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -6,6 +7,14 @@ import { Button } from "../components/ui/button";
 
 export const Route = createFileRoute("/careers")({
 	component: CareersPage,
+	head: () =>
+		generateMetadata({
+			title: "Careers",
+			description:
+				"Join us in building the future of team collaboration. We're looking for people who care about craft and impact. Fully remote positions available.",
+			path: "/careers",
+			keywords: ["careers", "jobs", "hiring", "remote work", "open positions"],
+		}),
 });
 
 function CareersPage() {

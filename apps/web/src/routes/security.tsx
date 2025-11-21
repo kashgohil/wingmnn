@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { Eye, Lock, Server, ShieldCheck } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -5,6 +6,20 @@ import { FloatingHeader } from "../components/FloatingHeader";
 
 export const Route = createFileRoute("/security")({
 	component: SecurityPage,
+	head: () =>
+		generateMetadata({
+			title: "Security",
+			description:
+				"Enterprise-grade security with end-to-end encryption. Learn how we protect your data with industry-leading security practices and compliance standards.",
+			path: "/security",
+			keywords: [
+				"security",
+				"encryption",
+				"data protection",
+				"privacy",
+				"compliance",
+			],
+		}),
 });
 
 function SecurityPage() {

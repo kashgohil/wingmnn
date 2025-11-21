@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { cn } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -21,7 +22,17 @@ import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 import { Button } from "../components/ui/button";
 
-export const Route = createFileRoute("/")({ component: App });
+export const Route = createFileRoute("/")({
+	component: App,
+	head: () =>
+		generateMetadata({
+			title: "Wingmnn - Human-centered ops stack",
+			description:
+				"Ship faster rituals with one login. Wingmnn blends comms, docs, money, wellness, and play so you gain clarity without juggling tabs or tooling fluff.",
+			path: "/",
+			keywords: ["team productivity", "unified inbox", "project management"],
+		}),
+});
 
 const modules = [
 	{
@@ -478,24 +489,6 @@ function ModuleSection({
 	const isEven = index % 2 === 0;
 
 	return (
-		// <div className="relative group">
-		// 	<div
-		// 		className="absolute -left-2 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity"
-		// 		style={{ backgroundColor: moduleColor }}
-		// 	/>
-		// 	<div className="retro-border rounded-none p-4 bg-card/50 hover:bg-card/70 transition-all">
-		// 		<div className="flex items-center gap-2 mb-4">
-		// 			<div
-		// 				className="w-3 h-3 shrink-0"
-		// 				style={{ backgroundColor: moduleColor }}
-		// 			/>
-		// 			<h4 className="text-sm font-bold font-mono uppercase tracking-wider text-foreground">
-		// 				{module.name}
-		// 			</h4>
-		// 		</div>
-		// 	</div>
-		// </div>
-
 		<div className="relative group">
 			<div
 				className={cn(

@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { Book, FileText, MessageCircle, Video } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -5,6 +6,14 @@ import { FloatingHeader } from "../components/FloatingHeader";
 
 export const Route = createFileRoute("/help")({
 	component: HelpPage,
+	head: () =>
+		generateMetadata({
+			title: "Help",
+			description:
+				"Get help with Wingmnn. Find documentation, tutorials, FAQs, and support resources to help you get the most out of the platform.",
+			path: "/help",
+			keywords: ["help", "documentation", "support", "tutorials", "FAQ"],
+		}),
 });
 
 function HelpPage() {

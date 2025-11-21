@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -5,6 +6,20 @@ import { FloatingHeader } from "../components/FloatingHeader";
 
 export const Route = createFileRoute("/status")({
 	component: StatusPage,
+	head: () =>
+		generateMetadata({
+			title: "Status",
+			description:
+				"Real-time status and uptime information for Wingmnn services. Check system health, recent incidents, and service availability.",
+			path: "/status",
+			keywords: [
+				"status",
+				"uptime",
+				"system health",
+				"incidents",
+				"availability",
+			],
+		}),
 });
 
 function StatusPage() {

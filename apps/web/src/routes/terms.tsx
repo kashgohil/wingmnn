@@ -1,9 +1,18 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 
 export const Route = createFileRoute("/terms")({
 	component: TermsPage,
+	head: () =>
+		generateMetadata({
+			title: "Terms of Service",
+			description:
+				"Read Wingmnn's terms of service to understand the rules and guidelines for using our platform. Updated regularly to reflect our commitment to transparency.",
+			path: "/terms",
+			keywords: ["terms of service", "terms and conditions", "user agreement"],
+		}),
 });
 
 function TermsPage() {

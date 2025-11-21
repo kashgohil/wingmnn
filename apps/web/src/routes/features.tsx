@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { ShieldCheck, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
@@ -5,6 +6,14 @@ import { FloatingHeader } from "../components/FloatingHeader";
 
 export const Route = createFileRoute("/features")({
 	component: FeaturesPage,
+	head: () =>
+		generateMetadata({
+			title: "Features",
+			description:
+				"Everything you need to streamline your team's workflow, all in one place. Lightning fast, secure by default, and built to scale with you.",
+			path: "/features",
+			keywords: ["features", "productivity", "security", "scalability"],
+		}),
 });
 
 function FeaturesPage() {
