@@ -3,18 +3,25 @@ import { cn } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import {
 	ArrowRight,
+	Book,
 	Calendar,
+	Check,
 	ChevronDown,
+	Code,
 	DollarSign,
 	FileText,
 	Folder,
 	FolderKanban,
 	Heart,
 	Inbox,
+	Link as LinkIcon,
+	Mail,
 	MessageSquare,
 	PartyPopper,
+	Play,
 	Rss,
 	ShieldCheck,
+	Sparkles,
 	TrendingUp,
 	Users,
 	Zap,
@@ -23,6 +30,7 @@ import * as React from "react";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 
 export const Route = createFileRoute("/")({
 	component: App,
@@ -233,9 +241,18 @@ function App() {
 				<Features />
 				<ClientLogos />
 				<Stats />
+				<VideoDemo />
+				<UseCases />
 				<Modules />
+				<IntegrationShowcase />
 				<Testimonials />
+				<CaseStudies />
+				<PricingPreview />
+				<ComparisonTable />
+				<SocialProofBadges />
 				<FAQ />
+				<NewsletterSignup />
+				<ResourceLinks />
 				<FinalCTA />
 			</div>
 			<FloatingFooter />
@@ -286,24 +303,6 @@ function Hero() {
 				>
 					See platform tour
 				</Button>
-			</div>
-
-			{/* Hero visual */}
-			<div className="relative mt-8 mx-auto w-full max-w-4xl">
-				<div className="relative retro-border bg-card/80 p-8 backdrop-blur-sm overflow-hidden rounded-none">
-					<div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5" />
-					<div className="relative grid grid-cols-3 gap-4">
-						{[1, 2, 3].map((i) => (
-							<div
-								key={i}
-								className="h-48 retro-border bg-card/60 backdrop-blur-sm rounded-none animate-pulse"
-								style={{
-									animationDelay: `${i * 200}ms`,
-								}}
-							/>
-						))}
-					</div>
-				</div>
 			</div>
 		</section>
 	);
@@ -801,6 +800,600 @@ function FAQ() {
 						)}
 					</div>
 				))}
+			</div>
+		</section>
+	);
+}
+
+function VideoDemo() {
+	return (
+		<section className="space-y-12">
+			<div className="text-center mb-12">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+					See Wingmnn in action
+				</h2>
+				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					Watch how teams use Wingmnn to streamline their workflow
+				</p>
+			</div>
+			<div className="relative retro-border bg-card/80 backdrop-blur-sm rounded-none overflow-hidden">
+				<div className="aspect-video bg-card/60 flex items-center justify-center">
+					<div className="text-center space-y-4">
+						<div className="inline-flex items-center justify-center w-20 h-20 rounded-full retro-border bg-primary/20">
+							<Play className="h-10 w-10 text-primary ml-1" />
+						</div>
+						<p className="text-muted-foreground font-mono">
+							Video demo coming soon
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+	);
+}
+
+function UseCases() {
+	const useCases = [
+		{
+			title: "For Remote Teams",
+			description:
+				"Keep distributed teams aligned with async communication, shared calendars, and unified project tracking.",
+			icon: Users,
+			color: "var(--module-messages)",
+		},
+		{
+			title: "For Agencies",
+			description:
+				"Manage multiple clients, track billable hours, send invoices, and keep all client communication in one place.",
+			icon: FolderKanban,
+			color: "var(--module-finance)",
+		},
+		{
+			title: "For Startups",
+			description:
+				"Scale from 2 to 200 without tool sprawl. One platform that grows with you from day one to IPO.",
+			icon: TrendingUp,
+			color: "var(--module-projects)",
+		},
+		{
+			title: "For Enterprises",
+			description:
+				"Enterprise-grade security, compliance, and customization. Deploy on-premise or in the cloud.",
+			icon: ShieldCheck,
+			color: "var(--module-notes)",
+		},
+	];
+
+	return (
+		<section className="space-y-12">
+			<div className="text-center mb-12">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+					Built for every team
+				</h2>
+				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					Whether you're a startup or enterprise, Wingmnn adapts to your needs
+				</p>
+			</div>
+			<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+				{useCases.map((useCase, idx) => {
+					const Icon = useCase.icon;
+					return (
+						<div
+							key={idx}
+							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none hover:shadow-lg transition-all duration-300"
+						>
+							<div
+								className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4"
+								style={{ backgroundColor: useCase.color }}
+							>
+								<Icon className="h-6 w-6 text-foreground" />
+							</div>
+							<h3 className="text-xl font-bold font-mono uppercase mb-2">
+								{useCase.title}
+							</h3>
+							<p className="text-muted-foreground">{useCase.description}</p>
+						</div>
+					);
+				})}
+			</div>
+		</section>
+	);
+}
+
+function IntegrationShowcase() {
+	const integrations = [
+		{
+			name: "Google Calendar",
+			icon: Calendar,
+			color: "var(--module-calendar)",
+		},
+		{ name: "Slack", icon: MessageSquare, color: "var(--module-messages)" },
+		{ name: "GitHub", icon: Code, color: "var(--module-files)" },
+		{ name: "Notion", icon: FileText, color: "var(--module-notes)" },
+		{ name: "Stripe", icon: DollarSign, color: "var(--module-finance)" },
+		{ name: "Figma", icon: Sparkles, color: "var(--module-feeds)" },
+		{ name: "Linear", icon: FolderKanban, color: "var(--module-projects)" },
+		{ name: "Gmail", icon: Mail, color: "var(--module-mail)" },
+	];
+
+	return (
+		<section className="space-y-12">
+			<div className="text-center mb-12">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+					Integrates with your favorite tools
+				</h2>
+				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					Connect Wingmnn with the tools you already use and love
+				</p>
+			</div>
+			<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
+				{integrations.map((integration, idx) => {
+					const Icon = integration.icon;
+					return (
+						<div
+							key={idx}
+							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none flex flex-col items-center justify-center gap-3 hover:shadow-lg transition-all duration-300"
+						>
+							<div
+								className="w-12 h-12 rounded-none retro-border flex items-center justify-center"
+								style={{ backgroundColor: integration.color }}
+							>
+								<Icon className="h-6 w-6 text-foreground" />
+							</div>
+							<span className="text-xs font-mono text-center text-foreground">
+								{integration.name}
+							</span>
+						</div>
+					);
+				})}
+			</div>
+			<div className="text-center">
+				<Button
+					variant="outline"
+					type="button"
+				>
+					View All Integrations
+					<LinkIcon className="h-4 w-4 ml-2" />
+				</Button>
+			</div>
+		</section>
+	);
+}
+
+function CaseStudies() {
+	const caseStudies = [
+		{
+			company: "TechFlow",
+			industry: "SaaS",
+			teamSize: "50 employees",
+			results: [
+				"60% reduction in onboarding time",
+				"2 hours saved per day per employee",
+				"40% increase in team velocity",
+			],
+			color: "var(--module-mail)",
+		},
+		{
+			company: "DesignCo",
+			industry: "Design Agency",
+			teamSize: "25 employees",
+			results: [
+				"Unified client communication",
+				"50% faster project delivery",
+				"100% client satisfaction",
+			],
+			color: "var(--module-projects)",
+		},
+		{
+			company: "StartupHub",
+			industry: "Startup",
+			teamSize: "10 employees",
+			results: [
+				"Reduced tool costs by 70%",
+				"Zero context switching",
+				"3x faster decision making",
+			],
+			color: "var(--module-feeds)",
+		},
+	];
+
+	return (
+		<section className="space-y-12">
+			<div className="text-center mb-12">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+					Real results from real teams
+				</h2>
+				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					See how teams like yours transformed their workflow with Wingmnn
+				</p>
+			</div>
+			<div className="grid md:grid-cols-3 gap-6">
+				{caseStudies.map((study, idx) => (
+					<div
+						key={idx}
+						className="retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none"
+					>
+						<div className="mb-6">
+							<div
+								className="w-3 h-3 shrink-0 mb-2"
+								style={{ backgroundColor: study.color }}
+							/>
+							<h3 className="text-2xl font-bold font-mono uppercase mb-2">
+								{study.company}
+							</h3>
+							<p className="text-sm text-muted-foreground font-mono">
+								{study.industry} • {study.teamSize}
+							</p>
+						</div>
+						<ul className="space-y-3">
+							{study.results.map((result, i) => (
+								<li
+									key={i}
+									className="flex items-start gap-3 text-sm text-foreground"
+								>
+									<Check className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+									<span>{result}</span>
+								</li>
+							))}
+						</ul>
+					</div>
+				))}
+			</div>
+		</section>
+	);
+}
+
+function PricingPreview() {
+	const plans = [
+		{
+			name: "Starter",
+			price: "$9",
+			period: "per user/month",
+			highlight: false,
+			color: "var(--module-mail)",
+		},
+		{
+			name: "Professional",
+			price: "$29",
+			period: "per user/month",
+			highlight: true,
+			color: "var(--module-projects)",
+		},
+		{
+			name: "Enterprise",
+			price: "Custom",
+			period: "contact us",
+			highlight: false,
+			color: "var(--module-finance)",
+		},
+	];
+
+	return (
+		<section className="space-y-12">
+			<div className="text-center mb-12">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+					Simple, transparent pricing
+				</h2>
+				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					Choose the plan that fits your team. All plans include a 14-day free
+					trial.
+				</p>
+			</div>
+			<div className="grid md:grid-cols-3 gap-6">
+				{plans.map((plan, idx) => (
+					<div
+						key={idx}
+						className={cn(
+							"retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none",
+							plan.highlight && "ring-2 ring-primary",
+						)}
+					>
+						{plan.highlight && (
+							<div className="text-center mb-4">
+								<span className="inline-block px-3 py-1 bg-primary text-primary-foreground text-xs font-mono uppercase">
+									Popular
+								</span>
+							</div>
+						)}
+						<div className="text-center mb-6">
+							<h3 className="text-xl font-bold font-mono uppercase mb-2">
+								{plan.name}
+							</h3>
+							<div className="flex items-baseline justify-center gap-2">
+								<span className="text-4xl font-bold">{plan.price}</span>
+								{plan.price !== "Custom" && (
+									<span className="text-sm text-muted-foreground">
+										{plan.period}
+									</span>
+								)}
+							</div>
+						</div>
+						<Button
+							className="w-full"
+							variant={plan.highlight ? "default" : "outline"}
+							type="button"
+						>
+							{plan.price === "Custom" ? "Contact Sales" : "Start Free Trial"}
+						</Button>
+					</div>
+				))}
+			</div>
+			<div className="text-center">
+				<Button
+					variant="outline"
+					type="button"
+				>
+					View Full Pricing
+					<ArrowRight className="h-4 w-4 ml-2" />
+				</Button>
+			</div>
+		</section>
+	);
+}
+
+function ComparisonTable() {
+	const features = [
+		{
+			feature: "Unified Platform",
+			wingmnn: true,
+			competitor1: false,
+			competitor2: false,
+		},
+		{
+			feature: "Email Management",
+			wingmnn: true,
+			competitor1: true,
+			competitor2: false,
+		},
+		{
+			feature: "Project Tracking",
+			wingmnn: true,
+			competitor1: false,
+			competitor2: true,
+		},
+		{
+			feature: "Team Wellness",
+			wingmnn: true,
+			competitor1: false,
+			competitor2: false,
+		},
+		{
+			feature: "Finance Module",
+			wingmnn: true,
+			competitor1: false,
+			competitor2: false,
+		},
+		{
+			feature: "End-to-End Encryption",
+			wingmnn: true,
+			competitor1: true,
+			competitor2: true,
+		},
+		{
+			feature: "Custom Integrations",
+			wingmnn: true,
+			competitor1: true,
+			competitor2: true,
+		},
+		{
+			feature: "On-Premise Option",
+			wingmnn: true,
+			competitor1: false,
+			competitor2: false,
+		},
+	];
+
+	return (
+		<section className="space-y-12">
+			<div className="text-center mb-12">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+					Wingmnn vs. the competition
+				</h2>
+				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					See how Wingmnn compares to other productivity platforms
+				</p>
+			</div>
+			<div className="retro-border bg-card/80 backdrop-blur-sm rounded-none overflow-hidden">
+				<div className="overflow-x-auto">
+					<table className="w-full">
+						<thead>
+							<tr className="border-b border-border">
+								<th className="text-left p-4 font-mono uppercase text-foreground">
+									Feature
+								</th>
+								<th className="text-center p-4 font-mono uppercase text-foreground">
+									Wingmnn
+								</th>
+								<th className="text-center p-4 font-mono uppercase text-muted-foreground">
+									Competitor A
+								</th>
+								<th className="text-center p-4 font-mono uppercase text-muted-foreground">
+									Competitor B
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							{features.map((row, idx) => (
+								<tr
+									key={idx}
+									className="border-b border-border/50 hover:bg-card/50"
+								>
+									<td className="p-4 text-foreground">{row.feature}</td>
+									<td className="p-4 text-center">
+										{row.wingmnn ? (
+											<Check className="h-5 w-5 text-primary mx-auto" />
+										) : (
+											<span className="text-muted-foreground">—</span>
+										)}
+									</td>
+									<td className="p-4 text-center">
+										{row.competitor1 ? (
+											<Check className="h-5 w-5 text-muted-foreground mx-auto" />
+										) : (
+											<span className="text-muted-foreground">—</span>
+										)}
+									</td>
+									<td className="p-4 text-center">
+										{row.competitor2 ? (
+											<Check className="h-5 w-5 text-muted-foreground mx-auto" />
+										) : (
+											<span className="text-muted-foreground">—</span>
+										)}
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</section>
+	);
+}
+
+function SocialProofBadges() {
+	const badges = [
+		{
+			name: "SOC 2 Certified",
+			icon: ShieldCheck,
+			color: "var(--module-notes)",
+		},
+		{ name: "GDPR Compliant", icon: ShieldCheck, color: "var(--module-feeds)" },
+		{ name: "ISO 27001", icon: ShieldCheck, color: "var(--module-finance)" },
+		{ name: "99.9% Uptime SLA", icon: Zap, color: "var(--module-mail)" },
+	];
+
+	return (
+		<section className="py-12">
+			<div className="text-center mb-8">
+				<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground">
+					Trusted & Certified
+				</p>
+			</div>
+			<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+				{badges.map((badge, idx) => {
+					const Icon = badge.icon;
+					return (
+						<div
+							key={idx}
+							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none text-center"
+						>
+							<div
+								className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4"
+								style={{ backgroundColor: badge.color }}
+							>
+								<Icon className="h-6 w-6 text-foreground" />
+							</div>
+							<p className="text-sm font-mono text-foreground">{badge.name}</p>
+						</div>
+					);
+				})}
+			</div>
+		</section>
+	);
+}
+
+function NewsletterSignup() {
+	const [email, setEmail] = React.useState("");
+
+	return (
+		<section className="py-16">
+			<div className="retro-border bg-card/80 backdrop-blur-sm p-12 md:p-16 rounded-none">
+				<div className="max-w-2xl mx-auto text-center space-y-6">
+					<Mail className="h-12 w-12 text-primary mx-auto" />
+					<h2 className="text-3xl md:text-4xl font-bold text-foreground">
+						Stay in the loop
+					</h2>
+					<p className="text-lg text-muted-foreground">
+						Get product updates, tips, and insights delivered to your inbox
+					</p>
+					<form
+						className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+						onSubmit={(e) => {
+							e.preventDefault();
+							// Handle newsletter signup
+							console.log("Newsletter signup:", email);
+						}}
+					>
+						<Input
+							type="email"
+							placeholder="Enter your email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							className="flex-1"
+							required
+						/>
+						<Button
+							type="submit"
+							size="lg"
+						>
+							Subscribe
+						</Button>
+					</form>
+					<p className="text-xs text-muted-foreground font-mono">
+						No spam. Unsubscribe anytime.
+					</p>
+				</div>
+			</div>
+		</section>
+	);
+}
+
+function ResourceLinks() {
+	const resources = [
+		{
+			name: "Documentation",
+			icon: Book,
+			href: "/help",
+			color: "var(--module-notes)",
+		},
+		{
+			name: "Blog",
+			icon: FileText,
+			href: "/blog",
+			color: "var(--module-feeds)",
+		},
+		{
+			name: "API Docs",
+			icon: Code,
+			href: "/api-docs",
+			color: "var(--module-files)",
+		},
+		{
+			name: "Status",
+			icon: ShieldCheck,
+			href: "/status",
+			color: "var(--module-mail)",
+		},
+	];
+
+	return (
+		<section className="py-12">
+			<div className="text-center mb-8">
+				<h2 className="text-3xl font-bold mb-4 text-foreground">
+					Resources & Support
+				</h2>
+			</div>
+			<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+				{resources.map((resource, idx) => {
+					const Icon = resource.icon;
+					return (
+						<a
+							key={idx}
+							href={resource.href}
+							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none hover:shadow-lg transition-all duration-300 text-center group"
+						>
+							<div
+								className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4 group-hover:scale-110 transition-transform"
+								style={{ backgroundColor: resource.color }}
+							>
+								<Icon className="h-6 w-6 text-foreground" />
+							</div>
+							<p className="font-mono text-foreground font-semibold">
+								{resource.name}
+							</p>
+						</a>
+					);
+				})}
 			</div>
 		</section>
 	);
