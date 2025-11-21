@@ -1,9 +1,11 @@
 import { cookie } from "@elysiajs/cookie";
+import { cors } from "@elysiajs/cors";
 import { jwt } from "@elysiajs/jwt";
 import { Elysia, t } from "elysia";
 import { config, isProduction } from "./config";
 import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
+import { rateLimit } from "./middleware/rate-limit";
 import { AuthError, AuthErrorCode, authService } from "./services/auth.service";
 import { initializeOAuthProviders } from "./services/oauth.service";
 import { sessionService } from "./services/session.service";
@@ -68,6 +70,32 @@ function validateOAuthState(state: string): boolean {
 }
 
 const app = new Elysia()
+  .use(
+    cors({
+      origin: isProduction
+        ? process.env.ALLOWED_ORIGINS?.split(",").map((o) => o.trim()) || []
+        : true, // Allow all origins in development
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "X-CSRF-Token", // CSRF protection
+        "X-Forwarded-For", // IP forwarding (proxy support)
+        "X-Real-IP", // Alternative IP header
+        "User-Agent", // Client identification
+      ],
+      exposeHeaders: [
+        "X-Access-Token", // New access token after refresh
+        "X-RateLimit-Limit", // Rate limit maximum
+        "X-RateLimit-Remaining", // Rate limit remaining
+        "X-RateLimit-Reset", // Rate limit reset time
+        "Retry-After", // Retry after rate limit
+      ],
+      maxAge: 86400, // 24 hours
+    })
+  )
   .use(
     jwt({
       name: "jwt",
@@ -212,6 +240,11 @@ const app = new Elysia()
       body: t.Object({
         email: t.String({ minLength: 1 }),
         password: t.String({ minLength: 1 }),
+      }),
+      beforeHandle: rateLimit({
+        max: config.LOGIN_RATE_LIMIT,
+        window: config.LOGIN_RATE_WINDOW,
+        endpoint: "login",
       }),
     }
   )
