@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Github, Linkedin, Mail, Twitter } from "lucide-react";
+import { Copyright, Github, Linkedin, Mail, Twitter } from "lucide-react";
 
 export function FloatingFooter() {
 	const currentYear = new Date().getFullYear();
@@ -269,7 +269,9 @@ export function FloatingFooter() {
 					{/* Copyright with retro styling */}
 					<div className="text-sm text-muted-foreground font-mono">
 						<p className="flex items-center gap-2">
-							<span className="text-primary">©</span>
+							<span className="text-primary">
+								<Copyright className="h-4 w-4" />
+							</span>
 							<span>{currentYear}</span>
 							<span className="text-primary font-bold">WINGMNN</span>
 							<span>All rights reserved.</span>

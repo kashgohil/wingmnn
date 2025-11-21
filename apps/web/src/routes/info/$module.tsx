@@ -37,6 +37,9 @@ export const Route = createFileRoute("/info/$module")({
 				description: "The requested module could not be found.",
 			});
 		}
+		const featureKeywords = module.features.map((feature) =>
+			typeof feature === "string" ? feature : feature.title,
+		);
 		return generateMetadata({
 			title: `${module.name} Module`,
 			description: module.detailedDescription,
@@ -45,7 +48,7 @@ export const Route = createFileRoute("/info/$module")({
 				module.name.toLowerCase(),
 				"module",
 				"feature",
-				...module.features,
+				...featureKeywords,
 			],
 		});
 	},
@@ -146,10 +149,9 @@ function ModulePage() {
 					</h2>
 					<div className="space-y-6">
 						<div
-							className="retro-border rounded-none p-12 bg-card/80 backdrop-blur-sm relative overflow-hidden"
+							className="retro-border rounded-none p-12 bg-card/80 backdrop-blur-sm relative overflow-hidden opacity-50"
 							style={{
 								backgroundColor: `var(${module.colorVar})`,
-								opacity: 0.1,
 							}}
 						>
 							<div className="relative aspect-video bg-background retro-border rounded-none flex items-center justify-center">
@@ -218,29 +220,46 @@ function ModulePage() {
 					<h2 className="text-3xl md:text-5xl font-bold font-mono uppercase tracking-wider">
 						Key Features
 					</h2>
-					<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{module.features.map((feature: string, idx: number) => (
-							<div
-								key={idx}
-								className="group relative retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none hover:shadow-lg transition-all duration-300"
-							>
+					<div className="grid md:grid-cols-2 gap-6">
+						{module.features.map((feature, idx: number) => {
+							const featureTitle =
+								typeof feature === "string" ? feature : feature.title;
+							const featureDesc =
+								typeof feature === "string" ? "" : feature.description;
+							return (
 								<div
-									className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
-									style={{
-										background: `linear-gradient(to bottom right, var(${module.colorVar})/10, transparent)`,
-									}}
-								/>
-								<div className="relative flex items-start gap-4">
+									key={idx}
+									className="group relative retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none hover:shadow-lg transition-all duration-300"
+								>
 									<div
-										className="p-2 rounded-none retro-border shrink-0"
-										style={{ backgroundColor: `var(${module.colorVar})` }}
-									>
-										<Check className="h-5 w-5" />
+										className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+										style={{
+											background: `linear-gradient(to bottom right, var(${module.colorVar})/10, transparent)`,
+										}}
+									/>
+									<div className="relative space-y-3">
+										<div className="flex items-start gap-4">
+											<div
+												className="p-2 rounded-none retro-border shrink-0"
+												style={{ backgroundColor: `var(${module.colorVar})` }}
+											>
+												<Check className="h-5 w-5" />
+											</div>
+											<div className="flex-1">
+												<h3 className="font-semibold text-foreground mb-2 font-mono uppercase tracking-wider">
+													{featureTitle}
+												</h3>
+												{featureDesc && (
+													<p className="text-muted-foreground leading-relaxed text-sm">
+														{featureDesc}
+													</p>
+												)}
+											</div>
+										</div>
 									</div>
-									<p className="text-foreground leading-relaxed">{feature}</p>
 								</div>
-							</div>
-						))}
+							);
+						})}
 					</div>
 				</section>
 
@@ -250,23 +269,38 @@ function ModulePage() {
 						<h2 className="text-3xl md:text-5xl font-bold font-mono uppercase tracking-wider">
 							Use Cases
 						</h2>
-						<div className="grid md:grid-cols-2 gap-6">
-							{module.useCases.map((useCase: string, idx: number) => (
-								<div
-									key={idx}
-									className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none"
-								>
-									<div className="flex items-start gap-4">
-										<div
-											className="p-2 rounded-none retro-border shrink-0"
-											style={{ backgroundColor: `var(${module.colorVar})` }}
-										>
-											<Zap className="h-5 w-5" />
+						<div className="grid md:grid-cols-1 gap-6">
+							{module.useCases.map((useCase, idx: number) => {
+								const useCaseTitle =
+									typeof useCase === "string" ? useCase : useCase.title;
+								const useCaseDesc =
+									typeof useCase === "string" ? "" : useCase.description;
+								return (
+									<div
+										key={idx}
+										className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none"
+									>
+										<div className="flex items-start gap-4">
+											<div
+												className="p-2 rounded-none retro-border shrink-0"
+												style={{ backgroundColor: `var(${module.colorVar})` }}
+											>
+												<Zap className="h-5 w-5" />
+											</div>
+											<div className="flex-1 space-y-2">
+												<h3 className="font-semibold text-foreground font-mono uppercase tracking-wider">
+													{useCaseTitle}
+												</h3>
+												{useCaseDesc && (
+													<p className="text-muted-foreground leading-relaxed">
+														{useCaseDesc}
+													</p>
+												)}
+											</div>
 										</div>
-										<p className="text-foreground leading-relaxed">{useCase}</p>
 									</div>
-								</div>
-							))}
+								);
+							})}
 						</div>
 					</section>
 				)}
@@ -277,25 +311,38 @@ function ModulePage() {
 						<h2 className="text-3xl md:text-5xl font-bold font-mono uppercase tracking-wider">
 							Benefits
 						</h2>
-						<div className="grid md:grid-cols-2 gap-6">
-							{module.benefits.map((benefit: string, idx: number) => (
-								<div
-									key={idx}
-									className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none"
-								>
-									<div className="flex items-start gap-4">
-										<div
-											className="p-2 rounded-none retro-border shrink-0"
-											style={{ backgroundColor: `var(${module.colorVar})` }}
-										>
-											<TrendingUp className="h-5 w-5" />
+						<div className="grid md:grid-cols-1 gap-6">
+							{module.benefits.map((benefit, idx: number) => {
+								const benefitTitle =
+									typeof benefit === "string" ? benefit : benefit.title;
+								const benefitDesc =
+									typeof benefit === "string" ? "" : benefit.description;
+								return (
+									<div
+										key={idx}
+										className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none"
+									>
+										<div className="flex items-start gap-4">
+											<div
+												className="p-2 rounded-none retro-border shrink-0"
+												style={{ backgroundColor: `var(${module.colorVar})` }}
+											>
+												<TrendingUp className="h-5 w-5" />
+											</div>
+											<div className="flex-1 space-y-2">
+												<h3 className="text-foreground leading-relaxed font-semibold font-mono uppercase tracking-wider">
+													{benefitTitle}
+												</h3>
+												{benefitDesc && (
+													<p className="text-muted-foreground leading-relaxed">
+														{benefitDesc}
+													</p>
+												)}
+											</div>
 										</div>
-										<p className="text-foreground leading-relaxed font-semibold">
-											{benefit}
-										</p>
 									</div>
-								</div>
-							))}
+								);
+							})}
 						</div>
 					</section>
 				)}
@@ -327,65 +374,97 @@ function ModulePage() {
 					<h2 className="text-3xl md:text-5xl font-bold font-mono uppercase tracking-wider">
 						How It Works
 					</h2>
-					<div className="grid md:grid-cols-3 gap-8">
-						<div className="space-y-4 retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none">
-							<div
-								className="p-4 retro-border rounded-none inline-flex"
-								style={{ backgroundColor: `var(${module.colorVar})` }}
-							>
-								<Sparkles className="h-8 w-8" />
+					{module.workflowSteps ? (
+						<div className="grid md:grid-cols-3 gap-8">
+							{module.workflowSteps.map((step, idx: number) => {
+								const IconComponent =
+									step.icon === "Sparkles"
+										? Sparkles
+										: step.icon === "Zap"
+										? Zap
+										: TrendingUp;
+								return (
+									<div
+										key={idx}
+										className="space-y-4 retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none"
+									>
+										<div
+											className="p-4 retro-border rounded-none inline-flex"
+											style={{ backgroundColor: `var(${module.colorVar})` }}
+										>
+											<IconComponent className="h-8 w-8" />
+										</div>
+										<h3 className="text-xl font-bold font-mono uppercase tracking-wider">
+											{step.title}
+										</h3>
+										<p className="text-muted-foreground leading-relaxed">
+											{step.description}
+										</p>
+									</div>
+								);
+							})}
+						</div>
+					) : (
+						<div className="grid md:grid-cols-3 gap-8">
+							<div className="space-y-4 retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none">
+								<div
+									className="p-4 retro-border rounded-none inline-flex"
+									style={{ backgroundColor: `var(${module.colorVar})` }}
+								>
+									<Sparkles className="h-8 w-8" />
+								</div>
+								<h3 className="text-xl font-bold font-mono uppercase tracking-wider">
+									Get Started
+								</h3>
+								<p className="text-muted-foreground">
+									Enable the {module.name} module in your workspace settings. It
+									takes just a few clicks to get up and running.
+								</p>
+								<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<Clock className="h-4 w-4" />
+									<span>2 minutes setup</span>
+								</div>
 							</div>
-							<h3 className="text-xl font-bold font-mono uppercase tracking-wider">
-								Get Started
-							</h3>
-							<p className="text-muted-foreground">
-								Enable the {module.name} module in your workspace settings. It
-								takes just a few clicks to get up and running.
-							</p>
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
-								<Clock className="h-4 w-4" />
-								<span>2 minutes setup</span>
+							<div className="space-y-4 retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none">
+								<div
+									className="p-4 retro-border rounded-none inline-flex"
+									style={{ backgroundColor: `var(${module.colorVar})` }}
+								>
+									<Zap className="h-8 w-8" />
+								</div>
+								<h3 className="text-xl font-bold font-mono uppercase tracking-wider">
+									Configure
+								</h3>
+								<p className="text-muted-foreground">
+									Customize settings, connect integrations, and set up workflows
+									that match your team's needs.
+								</p>
+								<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<LinkIcon className="h-4 w-4" />
+									<span>Connect integrations</span>
+								</div>
+							</div>
+							<div className="space-y-4 retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none">
+								<div
+									className="p-4 retro-border rounded-none inline-flex"
+									style={{ backgroundColor: `var(${module.colorVar})` }}
+								>
+									<TrendingUp className="h-8 w-8" />
+								</div>
+								<h3 className="text-xl font-bold font-mono uppercase tracking-wider">
+									Scale
+								</h3>
+								<p className="text-muted-foreground">
+									Watch your team's productivity grow as you leverage all the
+									features and benefits of the {module.name} module.
+								</p>
+								<div className="flex items-center gap-2 text-sm text-muted-foreground">
+									<BarChart3 className="h-4 w-4" />
+									<span>Track progress</span>
+								</div>
 							</div>
 						</div>
-						<div className="space-y-4 retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none">
-							<div
-								className="p-4 retro-border rounded-none inline-flex"
-								style={{ backgroundColor: `var(${module.colorVar})` }}
-							>
-								<Zap className="h-8 w-8" />
-							</div>
-							<h3 className="text-xl font-bold font-mono uppercase tracking-wider">
-								Configure
-							</h3>
-							<p className="text-muted-foreground">
-								Customize settings, connect integrations, and set up workflows
-								that match your team's needs.
-							</p>
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
-								<LinkIcon className="h-4 w-4" />
-								<span>Connect integrations</span>
-							</div>
-						</div>
-						<div className="space-y-4 retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none">
-							<div
-								className="p-4 retro-border rounded-none inline-flex"
-								style={{ backgroundColor: `var(${module.colorVar})` }}
-							>
-								<TrendingUp className="h-8 w-8" />
-							</div>
-							<h3 className="text-xl font-bold font-mono uppercase tracking-wider">
-								Scale
-							</h3>
-							<p className="text-muted-foreground">
-								Watch your team's productivity grow as you leverage all the
-								features and benefits of the {module.name} module.
-							</p>
-							<div className="flex items-center gap-2 text-sm text-muted-foreground">
-								<BarChart3 className="h-4 w-4" />
-								<span>Track progress</span>
-							</div>
-						</div>
-					</div>
+					)}
 
 					{/* Workflow Diagram */}
 					<div className="retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none mt-12">

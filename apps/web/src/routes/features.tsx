@@ -1,5 +1,6 @@
 import { generateMetadata } from "@/lib/metadata";
-import { createFileRoute } from "@tanstack/react-router";
+import { modules } from "@/lib/modules";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShieldCheck, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
@@ -79,7 +80,7 @@ function FeaturesPage() {
 					</div>
 
 					<div className="grid md:grid-cols-2 gap-6">
-						{features.map((feature, idx) => {
+						{features.map((feature) => {
 							const Icon = feature.icon;
 							return (
 								<div
@@ -105,6 +106,78 @@ function FeaturesPage() {
 							);
 						})}
 					</div>
+
+					<section className="space-y-8">
+						<div className="text-center space-y-3">
+							<h2 className="text-4xl md:text-5xl font-bold text-foreground">
+								Explore the Wingmnn modules
+							</h2>
+							<p className="text-muted-foreground max-w-2xl mx-auto">
+								Every module is a deep, dedicated workspace. Jump in to see what
+								it can unlock for your team.
+							</p>
+						</div>
+						<div className="grid gap-6 md:grid-cols-2">
+							{modules.map((module) => {
+								const Icon = module.icon;
+								const featurePreview = module.features
+									.slice(0, 3)
+									.map((feature) =>
+										typeof feature === "string" ? feature : feature.title,
+									);
+
+								return (
+									<Link
+										key={module.slug}
+										to="/info/$module"
+										params={{ module: module.slug }}
+										className="group block retro-border bg-card/80 backdrop-blur-sm p-6 md:p-8 rounded-none hover:shadow-lg transition-all duration-300"
+									>
+										<div className="flex flex-col gap-6">
+											<div className="flex items-center gap-4">
+												<div
+													className="p-4 retro-border rounded-none"
+													style={{ backgroundColor: `var(${module.colorVar})` }}
+												>
+													<Icon className="h-6 w-6 text-foreground" />
+												</div>
+												<div>
+													<p className="text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground">
+														Module
+													</p>
+													<h3 className="text-2xl font-bold font-mono uppercase tracking-wider">
+														{module.name}
+													</h3>
+												</div>
+											</div>
+											<p className="text-muted-foreground leading-relaxed">
+												{module.description}
+											</p>
+											<div className="space-y-2">
+												{featurePreview.map((feature) => (
+													<div
+														key={feature}
+														className="flex items-center gap-3 text-sm text-foreground"
+													>
+														<span
+															className="inline-block w-2 h-2 rounded-full"
+															style={{
+																backgroundColor: `var(${module.colorVar})`,
+															}}
+														/>
+														<span>{feature}</span>
+													</div>
+												))}
+											</div>
+											<p className="text-sm font-mono uppercase tracking-[0.4em] text-primary group-hover:tracking-[0.6em] transition-all">
+												View details ↗
+											</p>
+										</div>
+									</Link>
+								);
+							})}
+						</div>
+					</section>
 				</div>
 			</div>
 			<FloatingFooter />

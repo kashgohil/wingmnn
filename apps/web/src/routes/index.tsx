@@ -828,6 +828,34 @@ function FAQ() {
 }
 
 function VideoDemo() {
+	const moduleColors = [
+		"var(--module-mail)",
+		"var(--module-notes)",
+		"var(--module-finance)",
+		"var(--module-feeds)",
+		"var(--module-messages)",
+		"var(--module-calendar)",
+		"var(--module-wellness)",
+		"var(--module-projects)",
+		"var(--module-files)",
+		"var(--module-fun)",
+	];
+
+	const shuffle = <T,>(array: T[]): T[] => {
+		const shuffled = [...array];
+		for (let i = shuffled.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+		}
+		return shuffled;
+	};
+
+	const topColors = shuffle(moduleColors);
+	const bottomColors = shuffle(moduleColors);
+	const sideColors = shuffle(moduleColors).slice(0, 2);
+	const leftColors = shuffle(sideColors);
+	const rightColors = shuffle(sideColors);
+
 	return (
 		<section className="space-y-12">
 			<div className="text-center mb-12">
@@ -839,6 +867,42 @@ function VideoDemo() {
 				</p>
 			</div>
 			<div className="relative retro-border bg-card/80 backdrop-blur-sm rounded-none overflow-hidden">
+				<div className="absolute top-0 left-0 right-0 flex h-1">
+					{topColors.map((color, idx) => (
+						<div
+							key={`video-top-${idx}`}
+							className="flex-1"
+							style={{ backgroundColor: color }}
+						/>
+					))}
+				</div>
+				<div className="absolute bottom-0 left-0 right-0 flex h-1">
+					{bottomColors.map((color, idx) => (
+						<div
+							key={`video-bottom-${idx}`}
+							className="flex-1"
+							style={{ backgroundColor: color }}
+						/>
+					))}
+				</div>
+				<div className="absolute top-0 left-0 bottom-0 flex flex-col w-1">
+					{leftColors.map((color, idx) => (
+						<div
+							key={`video-left-${idx}`}
+							className="flex-1"
+							style={{ backgroundColor: color }}
+						/>
+					))}
+				</div>
+				<div className="absolute top-0 right-0 bottom-0 flex flex-col w-1">
+					{rightColors.map((color, idx) => (
+						<div
+							key={`video-right-${idx}`}
+							className="flex-1"
+							style={{ backgroundColor: color }}
+						/>
+					))}
+				</div>
 				<div className="aspect-video bg-card/60 flex items-center justify-center">
 					<div className="text-center space-y-4">
 						<div className="inline-flex items-center justify-center w-20 h-20 rounded-full retro-border bg-primary/20">
@@ -973,9 +1037,15 @@ function IntegrationShowcase() {
 				<Button
 					variant="outline"
 					type="button"
+					asChild
 				>
-					View All Integrations
-					<LinkIcon className="h-4 w-4 ml-2" />
+					<Link
+						to="/integrations"
+						className="inline-flex items-center gap-2"
+					>
+						View All Integrations
+						<LinkIcon className="h-4 w-4 ml-2" />
+					</Link>
 				</Button>
 			</div>
 		</section>
@@ -1144,9 +1214,12 @@ function PricingPreview() {
 				<Button
 					variant="outline"
 					type="button"
+					asChild
 				>
-					View Full Pricing
-					<ArrowRight className="h-4 w-4 ml-2" />
+					<Link to="/pricing">
+						View Full Pricing
+						<ArrowRight className="h-4 w-4 ml-2" />
+					</Link>
 				</Button>
 			</div>
 		</section>
