@@ -132,7 +132,11 @@ export class TokenService {
       const payload = (await this.jwt!.verify(token)) as TokenPayload | false;
 
       if (!payload) {
-        throw new Error("Invalid token");
+        throw new AuthError(
+          AuthErrorCode.INVALID_TOKEN,
+          "Invalid access token",
+          401
+        );
       }
 
       // Check if token is expired
@@ -147,6 +151,11 @@ export class TokenService {
 
       return payload;
     } catch (error) {
+      // If it's already an AuthError, rethrow it
+      if (error instanceof AuthError) {
+        throw error;
+      }
+
       // If verification fails, try to decode without verification to get session info
       // This helps with expired tokens
       try {
@@ -165,10 +174,14 @@ export class TokenService {
           }
         }
       } catch {
-        // If decoding fails, throw the original error
+        // If decoding fails, throw invalid token error
       }
 
-      throw new Error("Invalid token");
+      throw new AuthError(
+        AuthErrorCode.INVALID_TOKEN,
+        "Invalid access token",
+        401
+      );
     }
   }
 
@@ -211,17 +224,29 @@ export class TokenService {
     const session = result[0];
 
     if (!session) {
-      throw new Error("Invalid refresh token");
+      throw new AuthError(
+        AuthErrorCode.INVALID_TOKEN,
+        "Invalid refresh token",
+        401
+      );
     }
 
     // Check if session is revoked
     if (session.isRevoked) {
-      throw new Error("Session revoked");
+      throw new AuthError(
+        AuthErrorCode.SESSION_REVOKED,
+        "Session has been revoked",
+        401
+      );
     }
 
     // Check if session is expired
     if (session.expiresAt < new Date()) {
-      throw new Error("Session expired");
+      throw new AuthError(
+        AuthErrorCode.SESSION_EXPIRED,
+        "Session has expired",
+        401
+      );
     }
 
     return session;
@@ -246,7 +271,11 @@ export class TokenService {
     if (usedToken) {
       // Token reuse detected - revoke the entire session
       await this.revokeSession(usedToken.sessionId);
-      throw new Error("Token reuse detected - session revoked");
+      throw new AuthError(
+        AuthErrorCode.TOKEN_REUSE_DETECTED,
+        "Token reuse detected - session has been revoked for security",
+        401
+      );
     }
 
     // Validate the refresh token and get session
