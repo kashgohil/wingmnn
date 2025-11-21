@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
 	ArrowRight,
 	Calendar,
+	ChevronDown,
 	DollarSign,
 	FileText,
 	Folder,
@@ -15,8 +16,10 @@ import {
 	Rss,
 	ShieldCheck,
 	TrendingUp,
+	Users,
 	Zap,
 } from "lucide-react";
+import * as React from "react";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 import { Button } from "../components/ui/button";
@@ -229,8 +232,11 @@ function App() {
 				<Hero />
 				<Features />
 				<ClientLogos />
+				<Stats />
 				<Modules />
 				<Testimonials />
+				<FAQ />
+				<FinalCTA />
 			</div>
 			<FloatingFooter />
 		</div>
@@ -560,6 +566,64 @@ function ModuleSection({
 	);
 }
 
+function Stats() {
+	const stats = [
+		{
+			value: "10K+",
+			label: "Active Teams",
+			icon: Users,
+			color: "var(--module-projects)",
+		},
+		{
+			value: "2M+",
+			label: "Emails Processed",
+			icon: Inbox,
+			color: "var(--module-mail)",
+		},
+		{
+			value: "50K+",
+			label: "Tasks Completed",
+			icon: FolderKanban,
+			color: "var(--module-feeds)",
+		},
+		{
+			value: "99.9%",
+			label: "Uptime",
+			icon: ShieldCheck,
+			color: "var(--module-notes)",
+		},
+	];
+
+	return (
+		<section className="py-12">
+			<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+				{stats.map((stat, idx) => {
+					const Icon = stat.icon;
+					return (
+						<div
+							key={idx}
+							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none text-center"
+						>
+							<div
+								className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4"
+								style={{ backgroundColor: stat.color }}
+							>
+								<Icon className="h-6 w-6 text-foreground" />
+							</div>
+							<div className="text-4xl font-bold font-mono mb-2 text-foreground">
+								{stat.value}
+							</div>
+							<div className="text-sm text-muted-foreground font-mono uppercase tracking-wider">
+								{stat.label}
+							</div>
+						</div>
+					);
+				})}
+			</div>
+		</section>
+	);
+}
+
 function Testimonials() {
 	const testimonials = [
 		{
@@ -655,6 +719,125 @@ function Testimonials() {
 						</p>
 					</div>
 				))}
+			</div>
+		</section>
+	);
+}
+
+function FAQ() {
+	const [openIndex, setOpenIndex] = React.useState<number | null>(0);
+
+	const faqs = [
+		{
+			question: "How does Wingmnn differ from other productivity tools?",
+			answer:
+				"Wingmnn is a unified platform that brings all your team's essential tools together in one place. Instead of juggling multiple apps and tabs, everything—from email to projects, finance to wellness—is beautifully integrated. We focus on reducing tool sprawl, not adding to it.",
+		},
+		{
+			question: "Can I integrate Wingmnn with my existing tools?",
+			answer:
+				"Yes! Wingmnn integrates with popular tools like Google Calendar, Slack, GitHub, and more. Our goal is to be the central hub that connects all your workflows, so you can keep using the tools you love while gaining the clarity of a unified platform.",
+		},
+		{
+			question: "Is my data secure?",
+			answer:
+				"Absolutely. We use enterprise-grade security with end-to-end encryption. Your data is protected at every layer, and we're compliant with industry standards including SOC 2, GDPR, and more. Security isn't a feature—it's our foundation.",
+		},
+		{
+			question: "What's included in the free trial?",
+			answer:
+				"Our 14-day free trial includes full access to all modules and features. No credit card required. You can invite your entire team and explore everything Wingmnn has to offer. If you love it, choose a plan that fits your team size.",
+		},
+		{
+			question: "How quickly can my team get started?",
+			answer:
+				"Most teams are up and running in under 10 minutes. Our onboarding is designed to be intuitive, and we provide templates and guides to help you get started quickly. Plus, our support team is always available to help.",
+		},
+		{
+			question: "Can I customize Wingmnn for my team's needs?",
+			answer:
+				"Yes! Wingmnn is highly customizable. You can configure workflows, set up custom integrations, create team rituals, and tailor the experience to match how your team works. Enterprise plans include even more customization options.",
+		},
+	];
+
+	return (
+		<section className="space-y-12">
+			<div className="text-center mb-12">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+					Frequently asked questions
+				</h2>
+				<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+					Everything you need to know about Wingmnn
+				</p>
+			</div>
+
+			<div className="max-w-3xl mx-auto space-y-4">
+				{faqs.map((faq, idx) => (
+					<div
+						key={idx}
+						className="retro-border bg-card/80 backdrop-blur-sm rounded-none overflow-hidden"
+					>
+						<button
+							type="button"
+							onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
+							className="w-full flex items-center justify-between p-6 text-left hover:bg-card/50 transition-colors"
+						>
+							<span className="text-lg font-semibold font-mono text-foreground pr-8">
+								{faq.question}
+							</span>
+							<ChevronDown
+								className={cn(
+									"h-5 w-5 shrink-0 text-muted-foreground transition-transform",
+									openIndex === idx && "rotate-180",
+								)}
+							/>
+						</button>
+						{openIndex === idx && (
+							<div className="px-6 pb-6">
+								<p className="text-muted-foreground leading-relaxed">
+									{faq.answer}
+								</p>
+							</div>
+						)}
+					</div>
+				))}
+			</div>
+		</section>
+	);
+}
+
+function FinalCTA() {
+	return (
+		<section className="py-16">
+			<div className="retro-border bg-card/80 backdrop-blur-sm p-12 md:p-16 rounded-none text-center">
+				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+					Ready to streamline your team?
+				</h2>
+				<p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+					Join thousands of teams who've transformed their workflow with
+					Wingmnn. Start your free 14-day trial today.
+				</p>
+				<div className="flex flex-wrap items-center justify-center gap-4">
+					<Button
+						className="flex items-center gap-2"
+						type="button"
+						size="lg"
+					>
+						Start Free Trial
+						<ArrowRight className="h-4 w-4" />
+					</Button>
+					<Button
+						className=""
+						type="button"
+						variant="outline"
+						size="lg"
+					>
+						Schedule a Demo
+					</Button>
+				</div>
+				<p className="text-sm text-muted-foreground mt-6 font-mono">
+					No credit card required • Cancel anytime
+				</p>
 			</div>
 		</section>
 	);
