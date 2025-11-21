@@ -356,7 +356,7 @@ function Features() {
 							key={feature.title}
 							className="group relative retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none hover:shadow-lg transition-all duration-300"
 						>
-							<div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+							<div className="absolute inset-0 bg-linear-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 							<div className="relative">
 								<div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-none retro-border bg-primary/10 text-primary">
 									<Icon className="h-6 w-6" />
@@ -415,8 +415,8 @@ function ClientLogos() {
 			</div>
 			<div className="relative">
 				{/* Gradient overlays for fade effect */}
-				<div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-				<div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+				<div className="absolute left-0 top-0 bottom-0 w-32 bg-linear-to-r from-background to-transparent z-10 pointer-events-none" />
+				<div className="absolute right-0 top-0 bottom-0 w-32 bg-linear-to-l from-background to-transparent z-10 pointer-events-none" />
 
 				{/* Scrolling marquee */}
 				<div className="flex overflow-hidden">
@@ -1132,42 +1132,44 @@ function PricingPreview() {
 					trial.
 				</p>
 			</div>
-			<div className="grid md:grid-cols-3 gap-6">
+			<div className="grid md:grid-cols-4 gap-6">
 				{pricingPlans.map((plan, idx) => (
 					<div
 						key={idx}
-						className={cn(
-							"retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none",
-							plan.highlight && "ring-2 ring-primary",
-						)}
+						className="relative"
 					>
 						{plan.highlight && (
-							<div className="text-center mb-4">
-								<span className="inline-block px-3 py-1 bg-primary text-primary-foreground text-xs font-mono uppercase">
-									Popular
-								</span>
-							</div>
+							<span className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 z-1 px-3 py-1 bg-primary text-primary-foreground text-xs font-mono uppercase">
+								Popular
+							</span>
 						)}
-						<div className="text-center mb-6">
-							<h3 className="text-xl font-bold font-mono uppercase mb-2">
-								{plan.name}
-							</h3>
-							<div className="flex items-baseline justify-center gap-2">
-								<span className="text-4xl font-bold">{plan.price}</span>
-								{plan.price !== "Custom" && (
-									<span className="text-sm text-muted-foreground">
-										{plan.period}
-									</span>
-								)}
-							</div>
-						</div>
-						<Button
-							className="w-full"
-							variant={plan.highlight ? "default" : "outline"}
-							type="button"
+						<div
+							className={cn(
+								"retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none",
+								plan.highlight && "ring-2 ring-primary",
+							)}
 						>
-							{plan.price === "Custom" ? "Contact Sales" : "Start Free Trial"}
-						</Button>
+							<div className="text-center mb-6">
+								<h3 className="text-xl font-bold font-mono uppercase mb-2">
+									{plan.name}
+								</h3>
+								<div className="flex items-baseline justify-center gap-2">
+									<span className="text-4xl font-bold">{plan.price}</span>
+									{plan.price !== "Custom" && (
+										<span className="text-sm text-muted-foreground">
+											{plan.period}
+										</span>
+									)}
+								</div>
+							</div>
+							<Button
+								className="w-full"
+								variant={plan.highlight ? "default" : "outline"}
+								type="button"
+							>
+								{plan.price === "Custom" ? "Contact Sales" : "Start Free Trial"}
+							</Button>
+						</div>
 					</div>
 				))}
 			</div>

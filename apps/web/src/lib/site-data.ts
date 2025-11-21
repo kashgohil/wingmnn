@@ -28,46 +28,44 @@ export interface PricingPlan {
 
 export const pricingPlans: PricingPlan[] = [
 	{
-		name: "Starter",
-		price: "$9",
+		name: "Launch",
+		price: "$29",
 		period: "per user/month",
-		description: "Perfect for small teams getting started",
+		description: "All the essentials to unify work across a lean team.",
 		features: [
-			"Up to 10 team members",
-			"All core modules",
-			"5GB storage per user",
-			"Email support",
-			"Basic integrations",
+			"Up to 25 teammates",
+			"Pick 4 core modules",
+			"AI summaries & follow-ups",
+			"Shared automations",
+			"Email + chat support",
 		],
 		color: "var(--module-mail)",
 	},
 	{
-		name: "Professional",
-		price: "$29",
+		name: "Scale",
+		price: "$59",
 		period: "per user/month",
-		description: "For growing teams that need more",
+		description: "Growing teams that need deeper visibility and rituals.",
 		features: [
-			"Unlimited team members",
-			"All modules + advanced features",
-			"50GB storage per user",
+			"Unlimited teammates",
+			"All core modules included",
+			"Advanced automations & playbooks",
+			"Rollup analytics dashboards",
 			"Priority support",
-			"Advanced integrations",
-			"Custom workflows",
 		],
 		color: "var(--module-projects)",
 		highlight: true,
 	},
 	{
-		name: "Business",
-		price: "$59",
+		name: "Operations+",
+		price: "$89",
 		period: "per user/month",
-		description: "Advanced controls and automations for scaling teams",
+		description: "Scaled orgs with layered approvals and governance.",
 		features: [
-			"Everything in Professional",
-			"Advanced automation builder",
-			"200GB storage per user",
-			"Granular permissions",
-			"Advanced analytics",
+			"Everything in Scale",
+			"Granular permissions & audit logs",
+			"Forecasting + scenario planning",
+			"Advanced compliance controls",
 			"Quarterly success reviews",
 		],
 		color: "var(--module-finance)",
@@ -76,18 +74,81 @@ export const pricingPlans: PricingPlan[] = [
 		name: "Enterprise",
 		price: "Custom",
 		period: "contact us",
-		description: "For organizations with specific needs",
+		description: "Ops, security, and procurement tailored to your stack.",
 		features: [
-			"Everything in Business",
-			"Unlimited storage",
-			"Dedicated support",
-			"Custom integrations",
-			"SLA guarantee",
-			"On-premise deployment",
+			"Dedicated solution architect",
+			"Private cloud or on-prem",
+			"Custom integrations & SLAs",
+			"Security reviews + compliance help",
+			"24/7 global support",
 		],
 		color: "var(--module-notes)",
 	},
 ];
+
+export interface ModulePrice {
+	slug: string;
+	monthly: number;
+	summary: string;
+}
+
+export const modulePricing: ModulePrice[] = [
+	{
+		slug: "mails",
+		monthly: 12,
+		summary: "Priority inbox, follow-ups, and AI triage.",
+	},
+	{
+		slug: "notes",
+		monthly: 9,
+		summary: "Docs, decision trails, and AI summaries.",
+	},
+	{
+		slug: "finance",
+		monthly: 18,
+		summary: "Cash, invoicing, and forecasting in one view.",
+	},
+	{
+		slug: "feeds",
+		monthly: 8,
+		summary: "Intelligence streams and exec-ready briefs.",
+	},
+	{
+		slug: "messages",
+		monthly: 14,
+		summary: "Secure async chat with shared rituals.",
+	},
+	{
+		slug: "calendar",
+		monthly: 10,
+		summary: "Smart scheduling, deadlines, and focus slots.",
+	},
+	{
+		slug: "wellness",
+		monthly: 7,
+		summary: "Team pulse, nudges, and burnout alerts.",
+	},
+	{
+		slug: "projects",
+		monthly: 16,
+		summary: "Outcome-driven roadmaps and rituals.",
+	},
+	{
+		slug: "files",
+		monthly: 11,
+		summary: "Versioned files, search, and governance.",
+	},
+	{
+		slug: "fun",
+		monthly: 6,
+		summary: "Culture rituals, celebrations, and prompts.",
+	},
+];
+
+export const modulePriceMap = modulePricing.reduce((acc, module) => {
+	acc[module.slug] = module.monthly;
+	return acc;
+}, {} as Record<string, number>);
 
 export interface IntegrationItem {
 	name: string;
