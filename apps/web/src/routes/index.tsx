@@ -275,7 +275,6 @@ function Hero() {
 		<section className="flex flex-col gap-12 text-center">
 			{/* Badge */}
 			<div className="inline-flex items-center gap-3 mx-auto px-4 py-2 retro-border bg-card/80 backdrop-blur-sm rounded-none">
-				<ShieldCheck className="h-4 w-4 text-primary" />
 				<span className="text-sm font-semibold text-foreground font-mono uppercase tracking-wider">
 					Human-centered ops stack
 				</span>
@@ -1365,7 +1364,7 @@ function NewsletterSignup() {
 						Get product updates, tips, and insights delivered to your inbox
 					</p>
 					<form
-						className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+						className="flex flex-col sm:flex-row sm:items-center gap-4 max-w-md mx-auto"
 						onSubmit={(e) => {
 							e.preventDefault();
 							// Handle newsletter signup

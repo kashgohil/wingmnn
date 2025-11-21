@@ -1,5 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { Copyright, Github, Linkedin, Mail, Twitter } from "lucide-react";
+import {
+	Copyright,
+	Facebook,
+	Github,
+	Instagram,
+	Linkedin,
+	Mail,
+	Twitter,
+} from "lucide-react";
+import { TiktokIcon } from "./icons/TiktokIcon";
 
 export function FloatingFooter() {
 	const currentYear = new Date().getFullYear();
@@ -35,6 +44,9 @@ export function FloatingFooter() {
 		{ icon: Twitter, href: "#twitter", label: "Twitter" },
 		{ icon: Github, href: "#github", label: "GitHub" },
 		{ icon: Linkedin, href: "#linkedin", label: "LinkedIn" },
+		{ icon: Instagram, href: "#instagram", label: "Instagram" },
+		{ icon: Facebook, href: "#facebook", label: "Facebook" },
+		{ icon: TiktokIcon, href: "#tiktok", label: "TikTok" },
 		{ icon: Mail, href: "#email", label: "Email" },
 	];
 
