@@ -1,6 +1,6 @@
 import { generateMetadata } from "@/lib/metadata";
 import { cn } from "@/lib/utils";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	ArrowRight,
 	Book,
@@ -51,6 +51,7 @@ export const Route = createFileRoute("/")({
 const modules = [
 	{
 		name: "Mails",
+		slug: "mails",
 		description: "Unified inbox, priority sorting, follow-up nudges.",
 		detailedDescription:
 			"Transform your email chaos into organized clarity. Wingmnn's unified inbox brings all your accounts together in one place, with intelligent priority sorting that surfaces what matters most. Never miss a follow-up with smart nudges that remind you when conversations need attention.",
@@ -67,6 +68,7 @@ const modules = [
 	},
 	{
 		name: "Notes",
+		slug: "notes",
 		description: "Lightweight docs with AI summaries and backlinks.",
 		detailedDescription:
 			"Capture ideas, document decisions, and build knowledge that connects. Our lightweight note-taking system uses AI to generate summaries and automatically creates backlinks between related notes, helping you discover connections you might have missed.",
@@ -83,6 +85,7 @@ const modules = [
 	},
 	{
 		name: "Finance",
+		slug: "finance",
 		description: "Cashflow, invoices, and approvals in one stream.",
 		detailedDescription:
 			"Keep your financial pulse in one unified view. Track cashflow, manage invoices, and handle approvals all in a single stream. Get real-time insights into your financial health with automated categorization and smart forecasting.",
@@ -99,6 +102,7 @@ const modules = [
 	},
 	{
 		name: "Feeds",
+		slug: "feeds",
 		description: "Digest company activity and curated industry intel.",
 		detailedDescription:
 			"Stay informed without the noise. Our feeds module aggregates company activity, industry news, and curated intelligence into digestible streams. Customize what you see and when, so you're always in the know without feeling overwhelmed.",
@@ -115,6 +119,7 @@ const modules = [
 	},
 	{
 		name: "Messages",
+		slug: "messages",
 		description: "Secure DMs plus async voice & video drops.",
 		detailedDescription:
 			"Communicate on your own terms. Send secure direct messages, or drop async voice and video notes when typing isn't enough. All conversations are encrypted and searchable, so nothing gets lost in the shuffle.",
@@ -131,6 +136,7 @@ const modules = [
 	},
 	{
 		name: "Calendar",
+		slug: "calendar",
 		description:
 			"Schedule meetings, track deadlines, and sync team availability.",
 		detailedDescription:
@@ -148,6 +154,7 @@ const modules = [
 	},
 	{
 		name: "Wellness",
+		slug: "wellness",
 		description: "Micro-check-ins, focus playlists, burnout alerts.",
 		detailedDescription:
 			"Take care of your team's wellbeing. Regular micro-check-ins help you spot burnout before it becomes a problem. Curated focus playlists keep everyone in the zone, and smart alerts ensure work-life balance stays balanced.",
@@ -164,6 +171,7 @@ const modules = [
 	},
 	{
 		name: "Projects",
+		slug: "projects",
 		description: "Roadmaps, tasks, and rituals tied to outcomes.",
 		detailedDescription:
 			"Ship faster with clarity. Build roadmaps that connect to real outcomes, break work into actionable tasks, and establish rituals that keep your team aligned. Every project ties back to measurable results.",
@@ -180,6 +188,7 @@ const modules = [
 	},
 	{
 		name: "Files",
+		slug: "files",
 		description: "Versioned handoffs with smart organization.",
 		detailedDescription:
 			"Never lose a file again. Every document is versioned automatically, making it easy to see what changed and when. Smart organization helps you find what you need instantly, and seamless handoffs ensure smooth collaboration.",
@@ -196,6 +205,7 @@ const modules = [
 	},
 	{
 		name: "Fun",
+		slug: "fun",
 		description: "Team rituals, async games, surprise celebrations.",
 		detailedDescription:
 			"Work hard, play together. Build team culture with async games, celebrate wins with surprise celebrations, and establish rituals that bring your team closer. Because the best teams are the ones that enjoy working together.",
@@ -495,7 +505,11 @@ function ModuleSection({
 	const isEven = index % 2 === 0;
 
 	return (
-		<div className="relative group">
+		<Link
+			to="/info/$module"
+			params={{ module: module.slug }}
+			className="relative group block"
+		>
 			<div
 				className={cn(
 					"absolute top-0 bottom-0 w-2 opacity-0 group-hover:opacity-100 transition-opacity",
@@ -503,7 +517,7 @@ function ModuleSection({
 				)}
 				style={{ backgroundColor: moduleColor }}
 			/>
-			<div className="relative retro-border group">
+			<div className="relative retro-border group cursor-pointer hover:shadow-lg transition-all duration-300">
 				<div
 					className="-left-2 top-0 bottom-0 w-1 opacity-0 group-hover:opacity-100 transition-opacity"
 					style={{ backgroundColor: moduleColor }}
@@ -557,11 +571,19 @@ function ModuleSection({
 									</div>
 								))}
 							</div>
+
+							{/* Learn More Link */}
+							<div className="pt-6">
+								<div className="inline-flex items-center gap-2 text-foreground font-mono uppercase tracking-wider text-sm hover:gap-4 transition-all duration-300">
+									<span>Learn More</span>
+									<ArrowRight className="h-4 w-4" />
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
+		</Link>
 	);
 }
 

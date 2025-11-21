@@ -22,6 +22,7 @@ import { Route as CareersRouteImport } from './routes/careers'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InfoModuleRouteImport } from './routes/info/$module'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -88,6 +89,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InfoModuleRoute = InfoModuleRouteImport.update({
+  id: '/info/$module',
+  path: '/info/$module',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
+  '/info/$module': typeof InfoModuleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
+  '/info/$module': typeof InfoModuleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
+  '/info/$module': typeof InfoModuleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/status'
     | '/terms'
+    | '/info/$module'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/status'
     | '/terms'
+    | '/info/$module'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/status'
     | '/terms'
+    | '/info/$module'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   SecurityRoute: typeof SecurityRoute
   StatusRoute: typeof StatusRoute
   TermsRoute: typeof TermsRoute
+  InfoModuleRoute: typeof InfoModuleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/info/$module': {
+      id: '/info/$module'
+      path: '/info/$module'
+      fullPath: '/info/$module'
+      preLoaderRoute: typeof InfoModuleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -309,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   SecurityRoute: SecurityRoute,
   StatusRoute: StatusRoute,
   TermsRoute: TermsRoute,
+  InfoModuleRoute: InfoModuleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
