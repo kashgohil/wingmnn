@@ -1,6 +1,7 @@
 import { cookie } from "@elysiajs/cookie";
 import { cors } from "@elysiajs/cors";
 import { jwt } from "@elysiajs/jwt";
+import { swagger } from "@elysiajs/swagger";
 import { Elysia, t } from "elysia";
 import { config, isProduction } from "./config";
 import { auth } from "./middleware/auth";
@@ -93,6 +94,196 @@ function validateOAuthState(state: string): boolean {
 }
 
 const app = new Elysia()
+  .use(
+    swagger({
+      documentation: {
+        info: {
+          title: "Authentication API",
+          version: "1.0.0",
+          description: `
+# Authentication System API
+
+A comprehensive authentication system supporting both email/password authentication and OAuth-based Single Sign-On (SSO) with Google.
+
+## Features
+
+- **Email/Password Authentication**: Traditional registration and login
+- **OAuth SSO**: Google authentication (extensible to other providers)
+- **Secure Session Management**: 30-day sessions with automatic extension
+- **Token Rotation**: Automatic refresh token rotation for enhanced security
+- **Multi-Device Support**: Manage sessions across multiple devices
+- **CSRF Protection**: State parameter validation for OAuth flows
+- **Rate Limiting**: Protection against brute force attacks
+
+## Authentication Flow
+
+### Access Tokens
+- **Format**: JWT (JSON Web Token)
+- **Expiration**: 15 minutes
+- **Storage**: Client-side (memory or localStorage)
+- **Usage**: Sent in \`Authorization: Bearer <token>\` header
+
+### Refresh Tokens
+- **Format**: Cryptographically random 256-bit string
+- **Expiration**: 30 days (tied to session)
+- **Storage**: HTTP-only secure cookie
+- **Usage**: Automatically sent with requests for token refresh
+
+### Automatic Token Refresh
+The authentication middleware automatically refreshes tokens when:
+- Access token is expired
+- Access token is near expiration (< 5 minutes remaining)
+
+When tokens are refreshed:
+- New access token is returned in \`X-Access-Token\` response header
+- New refresh token is set in HTTP-only cookie
+- Client should update stored access token from response header
+
+## Client-Side Implementation
+
+### Making Authenticated Requests
+
+\`\`\`typescript
+async function apiRequest(url: string, options: RequestInit = {}) {
+  const response = await fetch(url, {
+    ...options,
+    credentials: 'include', // Important: Send cookies
+    headers: {
+      ...options.headers,
+      'Authorization': \`Bearer \${getAccessToken()}\`,
+    },
+  });
+
+  // Check for new access token in response
+  const newAccessToken = response.headers.get('X-Access-Token');
+  if (newAccessToken) {
+    setAccessToken(newAccessToken); // Update stored token
+  }
+
+  return response;
+}
+\`\`\`
+
+### Token Storage Strategy
+
+\`\`\`typescript
+// Store access token in memory or localStorage
+let accessToken: string | null = null;
+
+function setAccessToken(token: string) {
+  accessToken = token;
+  // Optional: persist to localStorage for page refreshes
+  localStorage.setItem('accessToken', token);
+}
+
+function getAccessToken(): string | null {
+  if (!accessToken) {
+    // Try to restore from localStorage
+    accessToken = localStorage.getItem('accessToken');
+  }
+  return accessToken;
+}
+
+function clearAccessToken() {
+  accessToken = null;
+  localStorage.removeItem('accessToken');
+}
+\`\`\`
+
+### Handling Authentication
+
+\`\`\`typescript
+// Login
+async function login(email: string, password: string) {
+  const response = await fetch('/auth/login', {
+    method: 'POST',
+    credentials: 'include', // Important: Receive cookies
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await response.json();
+  setAccessToken(data.accessToken);
+  return data.user;
+}
+
+// Logout
+async function logout() {
+  await fetch('/auth/logout', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Authorization': \`Bearer \${getAccessToken()}\` },
+  });
+  clearAccessToken();
+}
+\`\`\`
+
+## Security Considerations
+
+- **HTTPS Only**: All authentication endpoints must use HTTPS in production
+- **HTTP-Only Cookies**: Refresh tokens are stored in HTTP-only cookies to prevent XSS attacks
+- **Token Rotation**: Refresh tokens are rotated on every use to prevent replay attacks
+- **Reuse Detection**: If a refresh token is reused, all session tokens are revoked
+- **Rate Limiting**: Login endpoint is rate-limited to 5 attempts per 15 minutes
+- **CSRF Protection**: OAuth flows use state parameter for CSRF protection
+- **Password Security**: Passwords are hashed with bcrypt (work factor 12)
+
+## Error Handling
+
+All errors follow a consistent format:
+
+\`\`\`json
+{
+  "error": "ERROR_CODE",
+  "message": "Human-readable error message"
+}
+\`\`\`
+
+Common error codes:
+- \`INVALID_CREDENTIALS\`: Invalid email or password
+- \`EMAIL_ALREADY_EXISTS\`: Email is already registered
+- \`INVALID_TOKEN\`: Token is invalid or expired
+- \`TOKEN_REUSE_DETECTED\`: Refresh token was reused (security violation)
+- \`SESSION_EXPIRED\`: Session has expired
+- \`OAUTH_ERROR\`: OAuth provider returned an error
+- \`OAUTH_STATE_MISMATCH\`: OAuth state parameter is invalid (CSRF protection)
+          `,
+        },
+        tags: [
+          {
+            name: "Authentication",
+            description: "Email/password authentication endpoints",
+          },
+          {
+            name: "OAuth",
+            description: "OAuth SSO authentication endpoints",
+          },
+          {
+            name: "Session Management",
+            description: "Session management and revocation endpoints",
+          },
+        ],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: "http",
+              scheme: "bearer",
+              bearerFormat: "JWT",
+              description:
+                "JWT access token obtained from login or registration",
+            },
+            cookieAuth: {
+              type: "apiKey",
+              in: "cookie",
+              name: "refresh_token",
+              description:
+                "HTTP-only refresh token cookie (automatically sent by browser)",
+            },
+          },
+        },
+      },
+    })
+  )
   .use(
     cors({
       origin: isProduction
@@ -222,6 +413,80 @@ const app = new Elysia()
         password: t.String({ minLength: 1 }),
         name: t.String({ minLength: 1 }),
       }),
+      detail: {
+        tags: ["Authentication"],
+        summary: "Register a new user",
+        description: `
+Register a new user account with email and password.
+
+**Requirements:**
+- Email must be unique (not already registered)
+- Password must be at least 8 characters
+- Password is hashed with bcrypt (work factor 12) before storage
+
+**Response:**
+- Access token (JWT) valid for 15 minutes
+- Refresh token set in HTTP-only cookie valid for 30 days
+- User profile information
+
+**Security:**
+- Password is securely hashed before storage
+- Refresh token is stored in HTTP-only cookie to prevent XSS attacks
+- Session is created with 30-day expiration
+        `,
+        responses: {
+          200: {
+            description: "User registered successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    accessToken: {
+                      type: "string",
+                      description: "JWT access token (valid for 15 minutes)",
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    },
+                    expiresIn: {
+                      type: "number",
+                      description: "Token expiration time in seconds",
+                      example: 900,
+                    },
+                    user: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string", example: "user_123" },
+                        email: { type: "string", example: "user@example.com" },
+                        name: { type: "string", example: "John Doe" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "Validation error or email already exists",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: {
+                      type: "string",
+                      example: "EMAIL_ALREADY_EXISTS",
+                    },
+                    message: {
+                      type: "string",
+                      example: "Email is already registered",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     }
   )
   // POST /auth/login - Login with email/password
@@ -269,64 +534,292 @@ const app = new Elysia()
         window: config.LOGIN_RATE_WINDOW,
         endpoint: "login",
       }),
+      detail: {
+        tags: ["Authentication"],
+        summary: "Login with email and password",
+        description: `
+Authenticate a user with email and password credentials.
+
+**Rate Limiting:**
+- Maximum 5 attempts per 15 minutes per IP address
+- Returns 429 status code when rate limit is exceeded
+
+**Response:**
+- Access token (JWT) valid for 15 minutes
+- Refresh token set in HTTP-only cookie valid for 30 days
+- User profile information
+
+**Security:**
+- Credentials are verified against securely hashed passwords
+- Generic error messages prevent user enumeration
+- Session is created with IP address and user agent tracking
+        `,
+        responses: {
+          200: {
+            description: "Login successful",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    accessToken: {
+                      type: "string",
+                      description: "JWT access token (valid for 15 minutes)",
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    },
+                    expiresIn: {
+                      type: "number",
+                      description: "Token expiration time in seconds",
+                      example: 900,
+                    },
+                    user: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string", example: "user_123" },
+                        email: { type: "string", example: "user@example.com" },
+                        name: { type: "string", example: "John Doe" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Invalid credentials",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: {
+                      type: "string",
+                      example: "INVALID_CREDENTIALS",
+                    },
+                    message: {
+                      type: "string",
+                      example: "Invalid email or password",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          429: {
+            description: "Rate limit exceeded",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: { type: "string", example: "RATE_LIMIT_EXCEEDED" },
+                    message: {
+                      type: "string",
+                      example:
+                        "Too many login attempts. Please try again later.",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     }
   )
   // POST /auth/logout - Logout current session
-  .post("/auth/logout", async ({ authenticated, sessionId, cookie }) => {
-    // Check if user is authenticated
-    if (!authenticated || !sessionId) {
-      throw new AuthError(
-        AuthErrorCode.INVALID_TOKEN,
-        "Authentication required",
-        401
-      );
+  .post(
+    "/auth/logout",
+    async ({ authenticated, sessionId, cookie }) => {
+      // Check if user is authenticated
+      if (!authenticated || !sessionId) {
+        throw new AuthError(
+          AuthErrorCode.INVALID_TOKEN,
+          "Authentication required",
+          401
+        );
+      }
+
+      // Revoke the current session
+      await sessionService.revokeSession(sessionId);
+
+      // Clear refresh token cookie
+      cookie[REFRESH_TOKEN_COOKIE_NAME].set({
+        value: "",
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: "strict",
+        path: "/",
+        maxAge: 0, // Expire immediately
+      });
+
+      return {
+        message: "Logged out successfully",
+      };
+    },
+    {
+      detail: {
+        tags: ["Authentication"],
+        summary: "Logout current session",
+        description: `
+Logout the current user session and revoke all associated tokens.
+
+**Authentication Required:**
+- Must include valid access token in Authorization header
+
+**Actions:**
+- Revokes the current session
+- Invalidates all tokens associated with the session
+- Clears the refresh token cookie
+
+**Note:** This only logs out the current session. To logout from all devices, use the \`DELETE /auth/sessions\` endpoint.
+        `,
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Logout successful",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Logged out successfully",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Authentication required",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: { type: "string", example: "INVALID_TOKEN" },
+                    message: {
+                      type: "string",
+                      example: "Authentication required",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     }
-
-    // Revoke the current session
-    await sessionService.revokeSession(sessionId);
-
-    // Clear refresh token cookie
-    cookie[REFRESH_TOKEN_COOKIE_NAME].set({
-      value: "",
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "strict",
-      path: "/",
-      maxAge: 0, // Expire immediately
-    });
-
-    return {
-      message: "Logged out successfully",
-    };
-  })
+  )
   // GET /auth/sessions - List user's active sessions
-  .get("/auth/sessions", async ({ authenticated, userId }) => {
-    // Check if user is authenticated
-    if (!authenticated || !userId) {
-      throw new AuthError(
-        AuthErrorCode.INVALID_TOKEN,
-        "Authentication required",
-        401
-      );
+  .get(
+    "/auth/sessions",
+    async ({ authenticated, userId }) => {
+      // Check if user is authenticated
+      if (!authenticated || !userId) {
+        throw new AuthError(
+          AuthErrorCode.INVALID_TOKEN,
+          "Authentication required",
+          401
+        );
+      }
+
+      // Get all active sessions for the user
+      const sessions = await sessionService.getUserSessions(userId);
+
+      // Format sessions for response (exclude sensitive data)
+      const formattedSessions = sessions.map((session) => ({
+        id: session.id,
+        createdAt: session.createdAt,
+        lastActivityAt: session.lastActivityAt,
+        expiresAt: session.expiresAt,
+        ipAddress: session.ipAddress,
+        userAgent: session.userAgent,
+      }));
+
+      return {
+        sessions: formattedSessions,
+      };
+    },
+    {
+      detail: {
+        tags: ["Session Management"],
+        summary: "List active sessions",
+        description: `
+Get a list of all active sessions for the authenticated user.
+
+**Authentication Required:**
+- Must include valid access token in Authorization header
+
+**Response:**
+- Array of session objects with metadata
+- Each session includes creation date, last activity, expiration, IP address, and user agent
+- Sensitive data (tokens) is excluded from the response
+
+**Use Cases:**
+- View all devices/locations where you're logged in
+- Monitor account security
+- Identify sessions to revoke
+        `,
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "List of active sessions",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    sessions: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          id: {
+                            type: "string",
+                            example: "session_123",
+                          },
+                          createdAt: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2024-01-15T10:30:00Z",
+                          },
+                          lastActivityAt: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2024-01-20T14:22:00Z",
+                          },
+                          expiresAt: {
+                            type: "string",
+                            format: "date-time",
+                            example: "2024-02-14T10:30:00Z",
+                          },
+                          ipAddress: {
+                            type: "string",
+                            example: "192.168.1.1",
+                          },
+                          userAgent: {
+                            type: "string",
+                            example:
+                              "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Authentication required",
+          },
+        },
+      },
     }
-
-    // Get all active sessions for the user
-    const sessions = await sessionService.getUserSessions(userId);
-
-    // Format sessions for response (exclude sensitive data)
-    const formattedSessions = sessions.map((session) => ({
-      id: session.id,
-      createdAt: session.createdAt,
-      lastActivityAt: session.lastActivityAt,
-      expiresAt: session.expiresAt,
-      ipAddress: session.ipAddress,
-      userAgent: session.userAgent,
-    }));
-
-    return {
-      sessions: formattedSessions,
-    };
-  })
+  )
   // DELETE /auth/sessions/:id - Revoke a specific session
   .delete(
     "/auth/sessions/:id",
@@ -373,26 +866,124 @@ const app = new Elysia()
       params: t.Object({
         id: t.String(),
       }),
+      detail: {
+        tags: ["Session Management"],
+        summary: "Revoke a specific session",
+        description: `
+Revoke a specific session by ID, logging out that device/location.
+
+**Authentication Required:**
+- Must include valid access token in Authorization header
+
+**Security:**
+- Users can only revoke their own sessions
+- Attempting to revoke another user's session returns 403 Forbidden
+
+**Use Cases:**
+- Logout from a specific device
+- Revoke access from a lost or stolen device
+- Remove suspicious sessions
+
+**Note:** You can revoke your current session (equivalent to logout) or any other session.
+        `,
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "Session revoked successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "Session revoked successfully",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Authentication required",
+          },
+          403: {
+            description: "Cannot revoke sessions belonging to other users",
+          },
+          404: {
+            description: "Session not found",
+          },
+        },
+      },
     }
   )
   // DELETE /auth/sessions - Revoke all other sessions (except current)
-  .delete("/auth/sessions", async ({ authenticated, userId, sessionId }) => {
-    // Check if user is authenticated
-    if (!authenticated || !userId || !sessionId) {
-      throw new AuthError(
-        AuthErrorCode.INVALID_TOKEN,
-        "Authentication required",
-        401
-      );
+  .delete(
+    "/auth/sessions",
+    async ({ authenticated, userId, sessionId }) => {
+      // Check if user is authenticated
+      if (!authenticated || !userId || !sessionId) {
+        throw new AuthError(
+          AuthErrorCode.INVALID_TOKEN,
+          "Authentication required",
+          401
+        );
+      }
+
+      // Revoke all sessions except the current one
+      await sessionService.revokeAllUserSessions(userId, sessionId);
+
+      return {
+        message: "All other sessions revoked successfully",
+      };
+    },
+    {
+      detail: {
+        tags: ["Session Management"],
+        summary: "Revoke all other sessions",
+        description: `
+Revoke all sessions except the current one, logging out from all other devices.
+
+**Authentication Required:**
+- Must include valid access token in Authorization header
+
+**Actions:**
+- Revokes all sessions for the authenticated user
+- Keeps the current session active
+- Invalidates all tokens for revoked sessions
+
+**Use Cases:**
+- Logout from all other devices while staying logged in on current device
+- Security measure after password change
+- Remove all sessions when suspicious activity is detected
+
+**Note:** This is useful for "logout everywhere else" functionality.
+        `,
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "All other sessions revoked successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    message: {
+                      type: "string",
+                      example: "All other sessions revoked successfully",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: {
+            description: "Authentication required",
+          },
+        },
+      },
     }
-
-    // Revoke all sessions except the current one
-    await sessionService.revokeAllUserSessions(userId, sessionId);
-
-    return {
-      message: "All other sessions revoked successfully",
-    };
-  })
+  )
   // GET /auth/:provider - Initiate OAuth flow
   .get(
     "/auth/:provider",
@@ -428,6 +1019,51 @@ const app = new Elysia()
       params: t.Object({
         provider: t.String(),
       }),
+      detail: {
+        tags: ["OAuth"],
+        summary: "Initiate OAuth authentication",
+        description: `
+Initiate OAuth authentication flow with a supported provider.
+
+**Supported Providers:**
+- \`google\` - Google OAuth 2.0
+- \`github\` - GitHub OAuth (coming soon)
+- \`microsoft\` - Microsoft OAuth (coming soon)
+- \`facebook\` - Facebook OAuth (coming soon)
+
+**Flow:**
+1. Client redirects user to this endpoint
+2. Server generates CSRF protection state parameter
+3. Server redirects user to OAuth provider's authorization page
+4. User authorizes the application
+5. OAuth provider redirects back to callback endpoint with authorization code
+
+**Security:**
+- State parameter is generated for CSRF protection
+- State expires after 5 minutes
+- State is validated in the callback endpoint
+
+**Example:**
+\`\`\`typescript
+// Redirect user to OAuth provider
+window.location.href = '/auth/google';
+\`\`\`
+        `,
+        responses: {
+          302: {
+            description: "Redirect to OAuth provider authorization page",
+            headers: {
+              Location: {
+                schema: { type: "string" },
+                description: "OAuth provider authorization URL",
+              },
+            },
+          },
+          400: {
+            description: "Invalid or unsupported provider",
+          },
+        },
+      },
     }
   )
   // GET /auth/:provider/callback - Handle OAuth callback
@@ -517,6 +1153,91 @@ const app = new Elysia()
         error: t.Optional(t.String()),
         error_description: t.Optional(t.String()),
       }),
+      detail: {
+        tags: ["OAuth"],
+        summary: "Handle OAuth callback",
+        description: `
+Handle OAuth provider callback after user authorization.
+
+**Flow:**
+1. OAuth provider redirects user to this endpoint with authorization code
+2. Server validates state parameter for CSRF protection
+3. Server exchanges authorization code for access token and user info
+4. Server creates or links user account
+5. Server encrypts and stores OAuth refresh token (for Google API access)
+6. Server creates session and returns authentication tokens
+
+**Security:**
+- State parameter is validated to prevent CSRF attacks
+- OAuth tokens are encrypted before storage (AES-256-GCM)
+- Refresh token is stored in HTTP-only cookie
+- Session is created with IP address and user agent tracking
+
+**Account Linking:**
+- If user with same email exists, OAuth account is linked
+- If no user exists, new user account is created
+- Users can have multiple OAuth providers linked to one account
+
+**Google Refresh Token:**
+- Requested with \`offline_access\` scope
+- Encrypted and stored for future Google API access
+- Updated when user re-authenticates
+
+**Note:** This endpoint is called automatically by the OAuth provider. Clients should not call this directly.
+        `,
+        responses: {
+          200: {
+            description: "OAuth authentication successful",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    accessToken: {
+                      type: "string",
+                      description: "JWT access token (valid for 15 minutes)",
+                      example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    },
+                    expiresIn: {
+                      type: "number",
+                      description: "Token expiration time in seconds",
+                      example: 900,
+                    },
+                    user: {
+                      type: "object",
+                      properties: {
+                        id: { type: "string", example: "user_123" },
+                        email: { type: "string", example: "user@example.com" },
+                        name: { type: "string", example: "John Doe" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: {
+            description: "OAuth error or invalid parameters",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    error: {
+                      type: "string",
+                      example: "OAUTH_STATE_MISMATCH",
+                    },
+                    message: {
+                      type: "string",
+                      example: "Invalid or expired OAuth state parameter",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     }
   )
   .listen(config.PORT);
