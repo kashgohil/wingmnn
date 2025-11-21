@@ -14,7 +14,6 @@ import {
 	PartyPopper,
 	Rss,
 	ShieldCheck,
-	Sparkles,
 	TrendingUp,
 	Zap,
 } from "lucide-react";
@@ -31,6 +30,10 @@ export const Route = createFileRoute("/")({
 				"Ship faster rituals with one login. Wingmnn blends comms, docs, money, wellness, and play so you gain clarity without juggling tabs or tooling fluff.",
 			path: "/",
 			keywords: ["team productivity", "unified inbox", "project management"],
+			image: "/logo512.png",
+			imageAlt: "Wingmnn - Human-centered ops stack for modern teams",
+			imageWidth: 1200,
+			imageHeight: 630,
 		}),
 });
 
@@ -248,9 +251,8 @@ function Hero() {
 			{/* Main heading */}
 			<div className="space-y-6 max-w-5xl mx-auto">
 				<h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
-					<span className="text-primary">Wingmnn</span>{" "}
 					<span className="text-foreground">
-						keeps every part of your team rhythm tidy, from mails to fun.
+						keep every part of your team rhythm tidy, from mails to fun.
 					</span>
 				</h1>
 				<p className="text-xl md:text-2xl mx-auto text-muted-foreground max-w-3xl leading-relaxed">
@@ -455,7 +457,6 @@ function Modules() {
 		<section className="space-y-16">
 			<div className="text-center mb-12">
 				<div className="inline-flex items-center gap-2 mb-4">
-					<Sparkles className="h-6 w-6 text-primary" />
 					<h2 className="text-4xl md:text-5xl font-bold text-foreground">
 						Every workspace beat, ready for you.
 					</h2>
