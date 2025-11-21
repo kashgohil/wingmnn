@@ -7,6 +7,7 @@ import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { rateLimit } from "./middleware/rate-limit";
 import { AuthError, AuthErrorCode, authService } from "./services/auth.service";
+import { cleanupService } from "./services/cleanup.service";
 import { initializeOAuthProviders } from "./services/oauth.service";
 import { sessionService } from "./services/session.service";
 
@@ -35,6 +36,28 @@ setInterval(() => {
     }
   }
 }, 10 * 60 * 1000);
+
+// Run cleanup job for expired sessions and old used refresh tokens
+// Run daily (every 24 hours)
+const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Run cleanup on startup (after a short delay to ensure DB is ready)
+setTimeout(async () => {
+  try {
+    await cleanupService.runCleanup();
+  } catch (error) {
+    console.error("[Cleanup] Error running initial cleanup:", error);
+  }
+}, 5000); // 5 second delay
+
+// Schedule cleanup to run daily
+setInterval(async () => {
+  try {
+    await cleanupService.runCleanup();
+  } catch (error) {
+    console.error("[Cleanup] Error running scheduled cleanup:", error);
+  }
+}, CLEANUP_INTERVAL_MS);
 
 /**
  * Generate a cryptographically secure random state parameter for OAuth CSRF protection

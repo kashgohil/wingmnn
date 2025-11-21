@@ -9,7 +9,7 @@ const pool = new Pool({
 export const db = drizzle({ client: pool, schema });
 
 // Re-export commonly used drizzle-orm functions
-export { and, eq, or, sql } from "drizzle-orm";
+export { and, eq, lt, or, sql } from "drizzle-orm";
 
 // Re-export schema tables
 export { audits } from "./schema/audits";
