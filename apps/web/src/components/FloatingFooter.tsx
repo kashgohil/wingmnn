@@ -88,20 +88,6 @@ export function FloatingFooter() {
 
 	return (
 		<footer className="w-full bg-card/80 backdrop-blur-sm border-t-2 border-border rounded-none relative overflow-hidden">
-			{/* Retro background pattern overlay */}
-			<div className="absolute inset-0 opacity-40 pointer-events-none">
-				<div
-					className="absolute inset-0"
-					style={{
-						backgroundImage: `
-							linear-gradient(var(--border) 1px, transparent 1px),
-							linear-gradient(90deg, var(--border) 1px, transparent 1px)
-						`,
-						backgroundSize: "20px 20px",
-					}}
-				/>
-			</div>
-
 			{/* Color accent bars at top - using all module colors */}
 			<div className="flex h-1">
 				{topBorderColors.map((color, idx) => (
@@ -263,13 +249,13 @@ export function FloatingFooter() {
 				{/* Retro Divider with pattern */}
 				<div className="relative mb-6">
 					<div className="border-t-2 border-border" />
-					<div className="absolute top-0 left-0 right-0 flex gap-1 justify-center -mt-1">
+					<div className="absolute top-0 left-0 right-0 flex gap-1 justify-center -translate-y-1.5">
 						{shuffle(allModuleColors)
 							.slice(0, 8)
 							.map((color, idx) => (
 								<div
 									key={idx}
-									className="w-2 h-2"
+									className="w-3 h-3"
 									style={{ backgroundColor: color }}
 								/>
 							))}

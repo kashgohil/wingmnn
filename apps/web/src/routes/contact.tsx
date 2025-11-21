@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Mail, MessageSquare, Send } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
+import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatterns";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -24,18 +25,7 @@ function ContactPage() {
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
 			{/* Soft retro background pattern */}
-			<div className="fixed inset-0 -z-10 overflow-hidden opacity-5">
-				<div
-					className="absolute inset-0"
-					style={{
-						backgroundImage: `
-							linear-gradient(var(--border) 1px, transparent 1px),
-							linear-gradient(90deg, var(--border) 1px, transparent 1px)
-						`,
-						backgroundSize: "40px 40px",
-					}}
-				/>
-			</div>
+			<SoftRetroGridBackground className="absolute inset-0 overflow-hidden opacity-40" />
 
 			<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 pt-6 pb-24">
 				<FloatingHeader />

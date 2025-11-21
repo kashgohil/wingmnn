@@ -77,19 +77,6 @@ export function FloatingHeader() {
 	return (
 		<>
 			<header className="fixed sm:sticky top-0 left-0 z-50 w-full bg-card/80 backdrop-blur-sm sm:retro-border rounded-none overflow-hidden">
-				{/* Retro background pattern overlay */}
-				<div className="absolute inset-0 opacity-40 pointer-events-none">
-					<div
-						className="absolute inset-0"
-						style={{
-							backgroundImage: `
-								linear-gradient(var(--border) 1px, transparent 1px),
-								linear-gradient(90deg, var(--border) 1px, transparent 1px)
-							`,
-							backgroundSize: "20px 20px",
-						}}
-					/>
-				</div>
 				{/* Color accent bars on all four borders */}
 				{/* Top border */}
 				<div className="hidden sm:flex absolute top-0 left-0 right-0 h-1">

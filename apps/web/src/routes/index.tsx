@@ -29,6 +29,7 @@ import {
 import * as React from "react";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
+import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatterns";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 
@@ -226,18 +227,7 @@ function App() {
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
 			{/* Soft retro background pattern */}
-			<div className="absolute inset-0 z-0 overflow-hidden opacity-40">
-				<div
-					className="absolute inset-0"
-					style={{
-						backgroundImage: `
-							linear-gradient(var(--border) 1px, transparent 1px),
-							linear-gradient(90deg, var(--border) 1px, transparent 1px)
-						`,
-						backgroundSize: "40px 40px",
-					}}
-				/>
-			</div>
+			<SoftRetroGridBackground className="absolute inset-0 z-0 overflow-hidden opacity-40" />
 
 			{/* Soft pastel glow effects */}
 			<div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
