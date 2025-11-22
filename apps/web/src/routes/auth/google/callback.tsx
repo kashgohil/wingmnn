@@ -74,9 +74,8 @@ function OAuthCallback() {
         // Invalidate auth query to trigger refetch with new token
         await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
 
-        // Get intended destination or default to home
-        const redirectTo = sessionStorage.getItem("auth_redirect") || "/";
-        sessionStorage.removeItem("auth_redirect");
+        // Get intended destination from query params or default to home
+        const redirectTo = params.get("redirect") || "/";
 
         // Redirect - the auth context will have the user data
         navigate({ to: redirectTo });
