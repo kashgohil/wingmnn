@@ -1,8 +1,8 @@
 import { generateMetadata } from "@/lib/metadata";
+import { getServerRequest } from "@/lib/server-utils";
 import { pricingPlans, spotlightIntegrations } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { catchErrorSync } from "@wingmnn/utils/catch-error";
 import {
 	ArrowRight,
 	Book,
@@ -34,103 +34,41 @@ import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatt
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 
-// Server-side beforeLoad: Check for refresh_token cookie and redirect if authenticated
-async function serverBeforeLoad({
-	location,
-}: {
-	location: { pathname: string };
-}) {
-	// Only check on homepage
-	if (location.pathname !== "/") {
-		return;
-	}
-
-	// Try to access request through various possible ways
-	// TanStack Start may provide it through different mechanisms
-	let cookieHeader = "";
-
-	// Try accessing through Node.js request (if available in SSR context)
-	const [processRequest, processError] = catchErrorSync(() => {
-		if (typeof process !== "undefined" && (process as any).request) {
-			return (process as any).request;
-		}
-		return null;
-	});
-
-	if (processRequest && !processError) {
-		cookieHeader =
-			processRequest.headers?.cookie || processRequest.headers?.Cookie || "";
-	}
-
-	// Try accessing through global request (some SSR frameworks expose this)
-	if (!cookieHeader) {
-		const [globalRequest, globalError] = catchErrorSync(() => {
-			if (typeof globalThis !== "undefined") {
-				return (globalThis as any).request || (globalThis as any).req;
-			}
-			return null;
-		});
-
-		if (globalRequest?.headers && !globalError) {
-			cookieHeader =
-				globalRequest.headers.cookie ||
-				globalRequest.headers.Cookie ||
-				globalRequest.headers.get?.("cookie") ||
-				globalRequest.headers.get?.("Cookie") ||
-				"";
-		}
-	}
-
-	// Check if refresh_token cookie exists
-	const hasRefreshToken = cookieHeader.includes("refresh_token=");
-
-	// If refresh token exists, redirect to dashboard
-	// No need to verify with API - just check cookie presence
-	// If token is invalid, dashboard will handle it
-	if (hasRefreshToken) {
-		throw redirect({
-			to: "/dashboard",
-		});
-	}
-}
-
-// Client-side beforeLoad: Handle any client-specific logic
-async function clientBeforeLoad({
-	location,
-}: {
-	location: { pathname: string };
-}) {
-	// Only check on homepage
-	if (location.pathname !== "/") {
-		return;
-	}
-
-	// Add any client-side logic here if needed
-	// For example, you could check localStorage, make API calls, etc.
-}
-
 export const Route = createFileRoute("/")({
 	component: App,
 	// Explicitly enable SSR for the homepage
 	ssr: true,
 	beforeLoad: async ({ location }) => {
-		// Server-side auth check: Check for refresh_token cookie directly
-		// This runs on the server, so crawlers (without cookies) will see the landing page
-		// Authenticated users (with cookies) will be redirected server-side before render
-
 		// Only check on homepage
 		if (location.pathname !== "/") {
 			return;
 		}
 
-		// Call appropriate function based on environment
+		// Server-side: Check for refresh_token cookie and redirect if authenticated
 		if (typeof window === "undefined") {
-			// Server-side
-			await serverBeforeLoad({ location });
-		} else {
-			// Client-side
-			await clientBeforeLoad({ location });
+			const request = await getServerRequest();
+
+			if (request) {
+				// Get cookie header from request
+				const cookieHeader =
+					request.headers.get("cookie") || request.headers.get("Cookie") || "";
+
+				// Check if refresh_token cookie exists
+				const hasRefreshToken = cookieHeader.includes("refresh_token=");
+
+				// If refresh token exists, redirect to dashboard
+				// No need to verify with API - just check cookie presence
+				// If token is invalid, dashboard will handle it
+				if (hasRefreshToken) {
+					throw redirect({
+						to: "/dashboard",
+					});
+				}
+			}
 		}
+
+		// Client-side: Do nothing (no client-side redirect needed)
+		// The server already handled the redirect if needed
 	},
 	head: () =>
 		generateMetadata({
