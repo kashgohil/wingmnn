@@ -76,7 +76,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return null;
       }
 
-      // Verify token with backend
+      // Try to get user data from storage first
+      const storedUser = tokenManager.getUserData();
+
+      // Verify token is still valid with backend
       const [response, responseError] = await catchError(
         api.auth.sessions.get()
       );
@@ -86,13 +89,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return null;
       }
 
-      // Decode token to get user info
+      // If we have stored user data, return it
+      if (storedUser) {
+        return storedUser;
+      }
+
+      // If no stored user data but token is valid, decode token for basic info
       const payload = tokenManager.decodeToken(token);
       if (payload) {
         return {
           id: payload.userId,
-          email: "", // Will be populated from API if needed
-          name: "", // Will be populated from API if needed
+          email: "", // Will be empty until we fetch from API
+          name: "", // Will be empty until we fetch from API
         } as User;
       }
 
@@ -134,6 +142,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       expiresIn: number;
     }) => {
       tokenManager.setAccessToken(data.accessToken);
+      tokenManager.setUserData(data.user);
       queryClient.setQueryData(["auth", "user"], data.user);
       setError(null);
     },
@@ -176,6 +185,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       expiresIn: number;
     }) => {
       tokenManager.setAccessToken(data.accessToken);
+      tokenManager.setUserData(data.user);
       queryClient.setQueryData(["auth", "user"], data.user);
       setError(null);
     },
@@ -216,7 +226,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearError();
       await loginMutation.mutateAsync({ email, password });
     },
-    [clearError]
+    [clearError, loginMutation]
   );
 
   const register = React.useCallback(
@@ -224,7 +234,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearError();
       await registerMutation.mutateAsync({ email, password, name });
     },
-    [clearError]
+    [clearError, registerMutation]
   );
 
   const value: AuthContextValue = {

@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { tokenManager } from "../../../lib/auth/token-manager";
@@ -8,6 +9,7 @@ export const Route = createFileRoute("/auth/google/callback")({
 
 function OAuthCallback() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
 
@@ -42,11 +44,26 @@ function OAuthCallback() {
         // Store the access token
         tokenManager.setAccessToken(accessToken);
 
+        // Extract and store user data from URL parameter
+        const userParam = params.get("user");
+        if (userParam) {
+          try {
+            const userData = JSON.parse(decodeURIComponent(userParam));
+            tokenManager.setUserData(userData);
+            console.log("[OAuth] Stored user data:", userData);
+          } catch (error) {
+            console.error("[OAuth] Failed to parse user data:", error);
+          }
+        }
+
+        // Invalidate auth query to trigger refetch with new token
+        await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
+
         // Get intended destination or default to home
         const redirectTo = sessionStorage.getItem("auth_redirect") || "/";
         sessionStorage.removeItem("auth_redirect");
 
-        // Redirect immediately - the auth context will pick up the token on the next page
+        // Redirect - the auth context will have the user data
         navigate({ to: redirectTo });
         return;
       }
@@ -61,7 +78,7 @@ function OAuthCallback() {
     };
 
     processCallback();
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   if (error) {
     return (

@@ -12,11 +12,22 @@ export interface TokenPayload {
   iat: number;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+
 export interface TokenManager {
   // Token Storage
   getAccessToken(): string | null;
   setAccessToken(token: string): void;
   clearAccessToken(): void;
+
+  // User Data Storage
+  getUserData(): User | null;
+  setUserData(user: User): void;
+  clearUserData(): void;
 
   // Token Validation
   isTokenExpired(token: string): boolean;
@@ -25,6 +36,7 @@ export interface TokenManager {
 
 class TokenManagerImpl implements TokenManager {
   private readonly STORAGE_KEY = "access_token";
+  private readonly USER_DATA_KEY = "user_data";
 
   /**
    * Retrieves the access token from localStorage
@@ -47,6 +59,37 @@ class TokenManagerImpl implements TokenManager {
    */
   clearAccessToken(): void {
     localStorage.removeItem(this.STORAGE_KEY);
+    this.clearUserData(); // Also clear user data when clearing token
+  }
+
+  /**
+   * Retrieves the user data from localStorage
+   * @returns The stored user data or null if not found
+   */
+  getUserData(): User | null {
+    const data = localStorage.getItem(this.USER_DATA_KEY);
+    if (!data) return null;
+
+    try {
+      return JSON.parse(data);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Stores the user data in localStorage
+   * @param user The user data to store
+   */
+  setUserData(user: User): void {
+    localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(user));
+  }
+
+  /**
+   * Removes the user data from localStorage
+   */
+  clearUserData(): void {
+    localStorage.removeItem(this.USER_DATA_KEY);
   }
 
   /**

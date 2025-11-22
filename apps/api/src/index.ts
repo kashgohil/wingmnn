@@ -1146,11 +1146,12 @@ window.location.href = '/auth/google';
           maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
         });
 
-        // Redirect to frontend with success and access token
+        // Redirect to frontend with success, access token, and user data
+        const userData = encodeURIComponent(JSON.stringify(result.user));
         set.status = 302;
         set.headers[
           "Location"
-        ] = `${frontendUrl}/auth/${provider}/callback?success=true&access_token=${result.accessToken}`;
+        ] = `${frontendUrl}/auth/${provider}/callback?success=true&access_token=${result.accessToken}&user=${userData}`;
         return;
       } catch (error) {
         // Redirect to frontend with error

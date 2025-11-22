@@ -80,7 +80,7 @@ export function FloatingHeader() {
 
   return (
     <>
-      <header className="fixed sm:sticky top-0 left-0 z-50 w-full bg-card/80 backdrop-blur-sm sm:retro-border rounded-none overflow-hidden">
+      <header className="fixed sm:sticky top-0 left-0 z-50 w-full bg-card/80 backdrop-blur-sm sm:retro-border rounded-none">
         {/* Color accent bars on all four borders */}
         {/* Top border */}
         <div className="hidden sm:flex absolute top-0 left-0 right-0 h-1">
