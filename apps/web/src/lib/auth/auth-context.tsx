@@ -146,20 +146,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
       email: string;
       password: string;
     }) => {
-      const response = await api.auth.login.post({ email, password });
+      try {
+        const response = await api.auth.login.post({ email, password });
 
-      if (response.error || !response.data) {
-        const errorMessage = response.error
-          ? (response.error as any).message || "Invalid email or password"
-          : "No data received from server";
-        throw new Error(errorMessage);
+        if (response.error || !response.data) {
+          // Handle API errors with proper error messages
+          const error = response.error as any;
+
+          // Check for rate limiting (429)
+          if (error?.status === 429) {
+            throw new Error("Too many login attempts. Please try again later.");
+          }
+
+          // Check for validation errors
+          if (error?.status === 400 && error?.message) {
+            throw new Error(error.message);
+          }
+
+          // Default authentication error
+          const errorMessage = error?.message || "Invalid email or password";
+          throw new Error(errorMessage);
+        }
+
+        return response.data as {
+          accessToken: string;
+          user: User;
+          expiresIn: number;
+        };
+      } catch (error: any) {
+        // Handle network errors
+        if (error.message === "Failed to fetch" || error.name === "TypeError") {
+          throw new Error("Network error. Please check your connection.");
+        }
+
+        // Re-throw other errors
+        throw error;
       }
-
-      return response.data as {
-        accessToken: string;
-        user: User;
-        expiresIn: number;
-      };
     },
     onSuccess: (data: {
       accessToken: string;
@@ -172,7 +194,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null);
     },
     onError: (error: Error) => {
-      setError(error.message || "Login failed");
+      setError(
+        error.message || "An unexpected error occurred. Please try again."
+      );
     },
   });
 
@@ -189,20 +213,62 @@ export function AuthProvider({ children }: AuthProviderProps) {
       password: string;
       name: string;
     }) => {
-      const response = await api.auth.register.post({ email, password, name });
+      try {
+        const response = await api.auth.register.post({
+          email,
+          password,
+          name,
+        });
 
-      if (response.error || !response.data) {
-        const errorMessage = response.error
-          ? (response.error as any).message || "Registration failed"
-          : "No data received from server";
-        throw new Error(errorMessage);
+        if (response.error || !response.data) {
+          // Handle API errors with proper error messages
+          const error = response.error as any;
+
+          // Check for rate limiting (429)
+          if (error?.status === 429) {
+            throw new Error(
+              "Too many registration attempts. Please try again later."
+            );
+          }
+
+          // Check for validation errors (e.g., email already exists, weak password)
+          if (error?.status === 400 || error?.status === 409) {
+            const errorMessage = error?.message || "Registration failed";
+
+            // Handle specific validation errors
+            if (
+              errorMessage.toLowerCase().includes("email") &&
+              errorMessage.toLowerCase().includes("already")
+            ) {
+              throw new Error("Email is already registered");
+            }
+
+            if (errorMessage.toLowerCase().includes("password")) {
+              throw new Error(errorMessage);
+            }
+
+            throw new Error(errorMessage);
+          }
+
+          // Default registration error
+          const errorMessage = error?.message || "Registration failed";
+          throw new Error(errorMessage);
+        }
+
+        return response.data as {
+          accessToken: string;
+          user: User;
+          expiresIn: number;
+        };
+      } catch (error: any) {
+        // Handle network errors
+        if (error.message === "Failed to fetch" || error.name === "TypeError") {
+          throw new Error("Network error. Please check your connection.");
+        }
+
+        // Re-throw other errors
+        throw error;
       }
-
-      return response.data as {
-        accessToken: string;
-        user: User;
-        expiresIn: number;
-      };
     },
     onSuccess: (data: {
       accessToken: string;
@@ -215,7 +281,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null);
     },
     onError: (error: Error) => {
-      setError(error.message || "Registration failed");
+      setError(
+        error.message || "An unexpected error occurred. Please try again."
+      );
     },
   });
 

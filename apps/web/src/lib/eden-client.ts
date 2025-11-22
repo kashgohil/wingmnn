@@ -39,6 +39,17 @@ const createEdenClient = (baseURL: string) => {
       if (newAccessToken) {
         tokenManager.setAccessToken(newAccessToken);
       }
+
+      // Handle rate limiting errors
+      if (response.status === 429) {
+        console.warn("[API] Rate limit exceeded");
+      }
+
+      // Handle authentication errors
+      if (response.status === 401) {
+        console.warn("[API] Authentication failed - token may be invalid");
+      }
+
       return response;
     },
   });
