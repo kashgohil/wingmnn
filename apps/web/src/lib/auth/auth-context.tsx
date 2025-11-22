@@ -3,10 +3,13 @@
  *
  * Provides authentication state and actions throughout the application.
  * Handles login, registration, logout, and automatic session restoration.
+ * Uses TanStack Query for efficient data fetching and caching.
  */
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
+import { catchError } from "../catch-error";
 import { api } from "../eden-client";
 import { tokenManager } from "./token-manager";
 
@@ -15,14 +18,6 @@ export interface User {
   id: string;
   email: string;
   name: string;
-}
-
-// Auth state interface
-interface AuthState {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  user: User | null;
-  error: string | null;
 }
 
 // Auth context value interface
@@ -59,89 +54,65 @@ interface AuthProviderProps {
 
 // Auth Provider Component
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [state, setState] = useState<AuthState>({
-    isAuthenticated: false,
-    isLoading: true,
-    user: null,
-    error: null,
-  });
-
-  // Initialize auth state on mount
-  useEffect(() => {
-    initializeAuth();
-  }, []);
+  const queryClient = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
 
   /**
-   * Initialize authentication state by checking for stored token
-   * and verifying it with the backend
+   * Query to verify current authentication status
+   * Runs on mount and can be manually refetched
    */
-  async function initializeAuth() {
-    const token = tokenManager.getAccessToken();
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["auth", "user"],
+    queryFn: async () => {
+      const token = tokenManager.getAccessToken();
 
-    if (!token) {
-      setState((prev) => ({ ...prev, isLoading: false }));
-      return;
-    }
-
-    // Check if token is expired
-    if (tokenManager.isTokenExpired(token)) {
-      tokenManager.clearAccessToken();
-      setState((prev) => ({ ...prev, isLoading: false }));
-      return;
-    }
-
-    // Verify token with backend by making an authenticated request
-    try {
-      const response = await api.auth.sessions.get();
-
-      if (response.error) {
-        throw new Error("Token verification failed");
+      if (!token) {
+        return null;
       }
 
-      // Token is valid, decode it to get user info
+      // Check if token is expired
+      if (tokenManager.isTokenExpired(token)) {
+        tokenManager.clearAccessToken();
+        return null;
+      }
+
+      // Verify token with backend
+      const [response, responseError] = await catchError(
+        api.auth.sessions.get()
+      );
+
+      if (responseError || response?.error) {
+        tokenManager.clearAccessToken();
+        return null;
+      }
+
+      // Decode token to get user info
       const payload = tokenManager.decodeToken(token);
       if (payload) {
-        setState({
-          isAuthenticated: true,
-          isLoading: false,
-          user: {
-            id: payload.userId,
-            email: "", // Will be populated from API if needed
-            name: "", // Will be populated from API if needed
-          },
-          error: null,
-        });
-      } else {
-        // Token couldn't be decoded
-        tokenManager.clearAccessToken();
-        setState({
-          isAuthenticated: false,
-          isLoading: false,
-          user: null,
-          error: null,
-        });
+        return {
+          id: payload.userId,
+          email: "", // Will be populated from API if needed
+          name: "", // Will be populated from API if needed
+        } as User;
       }
-    } catch (error) {
-      // Token is invalid, clear it
-      tokenManager.clearAccessToken();
-      setState({
-        isAuthenticated: false,
-        isLoading: false,
-        user: null,
-        error: null,
-      });
-    }
-  }
+
+      return null;
+    },
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    retry: false, // Don't retry failed auth checks
+  });
 
   /**
-   * Login with email and password
-   * @param email User's email address
-   * @param password User's password
+   * Login mutation
    */
-  async function login(email: string, password: string) {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-    try {
+  const loginMutation = useMutation({
+    mutationFn: async ({
+      email,
+      password,
+    }: {
+      email: string;
+      password: string;
+    }) => {
       const response = await api.auth.login.post({ email, password });
 
       if (response.error || !response.data) {
@@ -151,45 +122,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(errorMessage);
       }
 
-      // Type narrowing: at this point we know response.data exists
-      const data = response.data as {
+      return response.data as {
         accessToken: string;
         user: User;
         expiresIn: number;
       };
+    },
+    onSuccess: (data: {
+      accessToken: string;
+      user: User;
+      expiresIn: number;
+    }) => {
       tokenManager.setAccessToken(data.accessToken);
-
-      setState({
-        isAuthenticated: true,
-        isLoading: false,
-        user: data.user,
-        error: null,
-      });
-    } catch (error: any) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: error.message || "Login failed",
-      }));
-      throw error;
-    }
-  }
+      queryClient.setQueryData(["auth", "user"], data.user);
+      setError(null);
+    },
+    onError: (error: Error) => {
+      setError(error.message || "Login failed");
+    },
+  });
 
   /**
-   * Register a new user with email and password
-   * @param email User's email address
-   * @param password User's password
-   * @param name User's full name
+   * Register mutation
    */
-  async function register(email: string, password: string, name: string) {
-    setState((prev) => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      const response = await api.auth.register.post({
-        email,
-        password,
-        name,
-      });
+  const registerMutation = useMutation({
+    mutationFn: async ({
+      email,
+      password,
+      name,
+    }: {
+      email: string;
+      password: string;
+      name: string;
+    }) => {
+      const response = await api.auth.register.post({ email, password, name });
 
       if (response.error || !response.data) {
         const errorMessage = response.error
@@ -198,66 +164,81 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error(errorMessage);
       }
 
-      // Type narrowing: at this point we know response.data exists
-      const data = response.data as {
+      return response.data as {
         accessToken: string;
         user: User;
         expiresIn: number;
       };
+    },
+    onSuccess: (data: {
+      accessToken: string;
+      user: User;
+      expiresIn: number;
+    }) => {
       tokenManager.setAccessToken(data.accessToken);
-
-      setState({
-        isAuthenticated: true,
-        isLoading: false,
-        user: data.user,
-        error: null,
-      });
-    } catch (error: any) {
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        error: error.message || "Registration failed",
-      }));
-      throw error;
-    }
-  }
+      queryClient.setQueryData(["auth", "user"], data.user);
+      setError(null);
+    },
+    onError: (error: Error) => {
+      setError(error.message || "Registration failed");
+    },
+  });
 
   /**
-   * Logout the current user
-   * Clears authentication state even if API call fails
+   * Logout mutation
    */
-  async function logout() {
-    try {
-      await api.auth.logout.post();
-    } catch (error) {
-      // Continue with logout even if API call fails
-      console.error("Logout API call failed:", error);
-    } finally {
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const [, error] = await catchError(api.auth.logout.post());
+      if (error) {
+        // Continue with logout even if API call fails
+        console.error("Logout API call failed:", error);
+      }
+    },
+    onSettled: () => {
+      // Always clear local state regardless of API success
       tokenManager.clearAccessToken();
-      setState({
-        isAuthenticated: false,
-        isLoading: false,
-        user: null,
-        error: null,
-      });
-    }
-  }
+      queryClient.setQueryData(["auth", "user"], null);
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
+      setError(null);
+    },
+  });
 
   /**
-   * Clear any error messages
+   * Wrapper functions for mutations
    */
-  function clearError() {
-    setState((prev) => ({ ...prev, error: null }));
-  }
+  const clearError = React.useCallback(() => {
+    setError(null);
+  }, []);
+
+  const login = React.useCallback(
+    async (email: string, password: string) => {
+      clearError();
+      await loginMutation.mutateAsync({ email, password });
+    },
+    [clearError]
+  );
+
+  const register = React.useCallback(
+    async (email: string, password: string, name: string) => {
+      clearError();
+      await registerMutation.mutateAsync({ email, password, name });
+    },
+    [clearError]
+  );
 
   const value: AuthContextValue = {
-    isAuthenticated: state.isAuthenticated,
-    isLoading: state.isLoading,
-    user: state.user,
-    error: state.error,
+    isAuthenticated: !!user,
+    isLoading:
+      isLoading ||
+      loginMutation.isPending ||
+      registerMutation.isPending ||
+      logoutMutation.isPending,
+    user: user || null,
+    error,
     login,
     register,
-    logout,
+    logout: logoutMutation.mutateAsync,
     clearError,
   };
 

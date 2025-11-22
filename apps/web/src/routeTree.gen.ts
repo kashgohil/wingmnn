@@ -18,12 +18,14 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CareersRouteImport } from './routes/careers'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InfoModuleRouteImport } from './routes/info/$module'
+import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -70,6 +72,11 @@ const FeaturesRoute = FeaturesRouteImport.update({
   path: '/features',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -100,6 +107,11 @@ const InfoModuleRoute = InfoModuleRouteImport.update({
   path: '/info/$module',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthGoogleCallbackRoute = AuthGoogleCallbackRouteImport.update({
+  id: '/auth/google/callback',
+  path: '/auth/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -107,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/blog': typeof BlogRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/features': typeof FeaturesRoute
   '/help': typeof HelpRoute
   '/integrations': typeof IntegrationsRoute
@@ -117,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
   '/info/$module': typeof InfoModuleRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -124,6 +138,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/features': typeof FeaturesRoute
   '/help': typeof HelpRoute
   '/integrations': typeof IntegrationsRoute
@@ -134,6 +149,7 @@ export interface FileRoutesByTo {
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
   '/info/$module': typeof InfoModuleRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -142,6 +158,7 @@ export interface FileRoutesById {
   '/blog': typeof BlogRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/features': typeof FeaturesRoute
   '/help': typeof HelpRoute
   '/integrations': typeof IntegrationsRoute
@@ -152,6 +169,7 @@ export interface FileRoutesById {
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
   '/info/$module': typeof InfoModuleRoute
+  '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +179,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/careers'
     | '/contact'
+    | '/dashboard'
     | '/features'
     | '/help'
     | '/integrations'
@@ -171,6 +190,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/terms'
     | '/info/$module'
+    | '/auth/google/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,6 +198,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/careers'
     | '/contact'
+    | '/dashboard'
     | '/features'
     | '/help'
     | '/integrations'
@@ -188,6 +209,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/terms'
     | '/info/$module'
+    | '/auth/google/callback'
   id:
     | '__root__'
     | '/'
@@ -195,6 +217,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/careers'
     | '/contact'
+    | '/dashboard'
     | '/features'
     | '/help'
     | '/integrations'
@@ -205,6 +228,7 @@ export interface FileRouteTypes {
     | '/status'
     | '/terms'
     | '/info/$module'
+    | '/auth/google/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -213,6 +237,7 @@ export interface RootRouteChildren {
   BlogRoute: typeof BlogRoute
   CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
+  DashboardRoute: typeof DashboardRoute
   FeaturesRoute: typeof FeaturesRoute
   HelpRoute: typeof HelpRoute
   IntegrationsRoute: typeof IntegrationsRoute
@@ -223,6 +248,7 @@ export interface RootRouteChildren {
   StatusRoute: typeof StatusRoute
   TermsRoute: typeof TermsRoute
   InfoModuleRoute: typeof InfoModuleRoute
+  AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -290,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeaturesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -332,6 +365,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InfoModuleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/google/callback': {
+      id: '/auth/google/callback'
+      path: '/auth/google/callback'
+      fullPath: '/auth/google/callback'
+      preLoaderRoute: typeof AuthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -341,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRoute: BlogRoute,
   CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
+  DashboardRoute: DashboardRoute,
   FeaturesRoute: FeaturesRoute,
   HelpRoute: HelpRoute,
   IntegrationsRoute: IntegrationsRoute,
@@ -351,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   StatusRoute: StatusRoute,
   TermsRoute: TermsRoute,
   InfoModuleRoute: InfoModuleRoute,
+  AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
