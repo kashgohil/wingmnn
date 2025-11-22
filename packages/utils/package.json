@@ -1,0 +1,15 @@
+{
+	"name": "@wingmnn/utils",
+	"version": "0.0.1",
+	"type": "module",
+	"main": "index.ts",
+	"types": "index.ts",
+	"exports": {
+		".": "./index.ts",
+		"./catch-error": "./catch-error.ts"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"typescript": "^5"
+	}
+}
