@@ -217,7 +217,7 @@ describe("Eden Client", () => {
         },
       };
 
-      const result = onResponseHandler(mockResponse);
+      onResponseHandler(mockResponse);
 
       expect(mockResponse.headers.get).toHaveBeenCalledWith("X-Access-Token");
       expect(tokenManager.setAccessToken).not.toHaveBeenCalled();
