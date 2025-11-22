@@ -110,14 +110,12 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
       return;
     }
 
-    // Check for redirect query param
+    // Redirect is now handled by AuthProvider
+    // Only close dialog if no redirect occurred
     const params = new URLSearchParams(window.location.search);
     const redirectTo = params.get("redirect");
 
-    if (redirectTo) {
-      // Navigate to intended destination
-      window.location.href = redirectTo;
-    } else {
+    if (!redirectTo) {
       onSuccess();
     }
   }
@@ -222,14 +220,12 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
       return;
     }
 
-    // Check for redirect query param
+    // Redirect is now handled by AuthProvider
+    // Only close dialog if no redirect occurred
     const params = new URLSearchParams(window.location.search);
     const redirectTo = params.get("redirect");
 
-    if (redirectTo) {
-      // Navigate to intended destination
-      window.location.href = redirectTo;
-    } else {
+    if (!redirectTo) {
       onSuccess();
     }
   }
