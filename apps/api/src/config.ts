@@ -15,7 +15,10 @@ const envSchema = z.object({
   // OAuth Providers
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
-  GOOGLE_REDIRECT_URI: z.string().url(),
+  GOOGLE_REDIRECT_URI: z.url(),
+
+  // Frontend URL for OAuth redirects
+  FRONTEND_URL: z.url().default("http://localhost:3001"),
 
   // Session Configuration
   SESSION_EXPIRATION_DAYS: z.coerce.number().default(30),

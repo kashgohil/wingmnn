@@ -1069,79 +1069,101 @@ window.location.href = '/auth/google';
   // GET /auth/:provider/callback - Handle OAuth callback
   .get(
     "/auth/:provider/callback",
-    async ({ params, query, request, cookie }) => {
+    async ({ params, query, request, cookie, set }) => {
       const { provider } = params;
       const { code, state, error: oauthError, error_description } = query;
+
+      // Get frontend URL from environment or use default
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3001";
 
       // Validate provider is supported
       const validProviders = ["google", "github", "microsoft", "facebook"];
       if (!validProviders.includes(provider)) {
-        throw new AuthError(
-          AuthErrorCode.INVALID_PROVIDER,
-          `Provider '${provider}' is not supported`,
-          400
-        );
+        // Redirect to frontend with error
+        set.status = 302;
+        set.headers[
+          "Location"
+        ] = `${frontendUrl}/auth/${provider}/callback?error=invalid_provider`;
+        return;
       }
 
       // Handle OAuth errors from provider
       if (oauthError) {
-        throw new AuthError(
-          AuthErrorCode.OAUTH_ERROR,
-          error_description || `OAuth error: ${oauthError}`,
-          400
-        );
+        // Redirect to frontend with error
+        set.status = 302;
+        set.headers[
+          "Location"
+        ] = `${frontendUrl}/auth/${provider}/callback?error=${oauthError}&error_description=${encodeURIComponent(
+          error_description || ""
+        )}`;
+        return;
       }
 
       // Validate required parameters
       if (!code || !state) {
-        throw new AuthError(
-          AuthErrorCode.OAUTH_ERROR,
-          "Missing required OAuth parameters",
-          400
-        );
+        // Redirect to frontend with error
+        set.status = 302;
+        set.headers[
+          "Location"
+        ] = `${frontendUrl}/auth/${provider}/callback?error=missing_parameters`;
+        return;
       }
 
       // Validate state parameter for CSRF protection
       if (!validateOAuthState(state)) {
-        throw new AuthError(
-          AuthErrorCode.OAUTH_STATE_MISMATCH,
-          "Invalid or expired OAuth state parameter",
-          400
-        );
+        // Redirect to frontend with error
+        set.status = 302;
+        set.headers[
+          "Location"
+        ] = `${frontendUrl}/auth/${provider}/callback?error=state_mismatch`;
+        return;
       }
 
-      // Extract request metadata
-      const metadata = {
-        ipAddress:
-          request.headers.get("x-forwarded-for") ||
-          request.headers.get("x-real-ip") ||
-          "unknown",
-        userAgent: request.headers.get("user-agent") || "unknown",
-      };
+      try {
+        // Extract request metadata
+        const metadata = {
+          ipAddress:
+            request.headers.get("x-forwarded-for") ||
+            request.headers.get("x-real-ip") ||
+            "unknown",
+          userAgent: request.headers.get("user-agent") || "unknown",
+        };
 
-      // Handle OAuth callback and authenticate user
-      const result = await authService.handleOAuthCallback(
-        provider as "google" | "github" | "microsoft" | "facebook",
-        code,
-        metadata
-      );
+        // Handle OAuth callback and authenticate user
+        const result = await authService.handleOAuthCallback(
+          provider as "google" | "github" | "microsoft" | "facebook",
+          code,
+          metadata
+        );
 
-      // Set refresh token in HTTP-only cookie
-      cookie[REFRESH_TOKEN_COOKIE_NAME].set({
-        value: result.refreshToken,
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: "strict",
-        path: "/",
-        maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
-      });
+        // Set refresh token in HTTP-only cookie
+        cookie[REFRESH_TOKEN_COOKIE_NAME].set({
+          value: result.refreshToken,
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: "lax", // Changed from "strict" to "lax" to allow cross-site redirects
+          path: "/",
+          maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+        });
 
-      // Return access token in response body
-      return {
-        accessToken: result.accessToken,
-        expiresIn: result.expiresIn,
-        user: result.user,
-      };
+        // Redirect to frontend with success and access token
+        set.status = 302;
+        set.headers[
+          "Location"
+        ] = `${frontendUrl}/auth/${provider}/callback?success=true&access_token=${result.accessToken}`;
+        return;
+      } catch (error) {
+        // Redirect to frontend with error
+        const errorMessage =
+          error instanceof Error ? error.message : "authentication_failed";
+        set.status = 302;
+        set.headers[
+          "Location"
+        ] = `${frontendUrl}/auth/${provider}/callback?error=${encodeURIComponent(
+          errorMessage
+        )}`;
+        return;
+      }
     },
     {
       params: t.Object({
