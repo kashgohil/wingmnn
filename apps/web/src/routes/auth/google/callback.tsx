@@ -1,15 +1,31 @@
+import { generateMetadata } from "@/lib/metadata";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useAuth } from "../../../lib/auth/auth-context";
 import { tokenManager } from "../../../lib/auth/token-manager";
 
 export const Route = createFileRoute("/auth/google/callback")({
   component: OAuthCallback,
+  head: () =>
+    generateMetadata({
+      title: "Authentication",
+      description: "Completing authentication",
+      noindex: true,
+    }),
 });
 
+/**
+ * OAuth Callback Component
+ *
+ * Handles the OAuth callback from Google authentication.
+ * Extracts tokens from URL parameters, updates auth state,
+ * and redirects to the intended destination.
+ */
 function OAuthCallback() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
 
@@ -50,7 +66,6 @@ function OAuthCallback() {
           try {
             const userData = JSON.parse(decodeURIComponent(userParam));
             tokenManager.setUserData(userData);
-            console.log("[OAuth] Stored user data:", userData);
           } catch (error) {
             console.error("[OAuth] Failed to parse user data:", error);
           }
@@ -78,7 +93,7 @@ function OAuthCallback() {
     };
 
     processCallback();
-  }, [navigate, queryClient]);
+  }, [navigate, queryClient, isAuthenticated]);
 
   if (error) {
     return (

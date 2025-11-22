@@ -18,6 +18,7 @@ export interface MetadataOptions {
 	publishedTime?: string;
 	modifiedTime?: string;
 	author?: string;
+	structuredData?: Record<string, unknown>;
 }
 
 export function generateMetadata({
@@ -34,6 +35,7 @@ export function generateMetadata({
 	publishedTime,
 	modifiedTime,
 	author,
+	structuredData,
 }: MetadataOptions) {
 	const url = `${SITE_URL}${path}`;
 	const fullTitle = title.includes(SITE_NAME)
@@ -184,12 +186,50 @@ export function generateMetadata({
 		},
 	];
 
+	// Generate default structured data if not provided
+	const defaultStructuredData: Record<string, unknown> = structuredData || {
+		"@context": "https://schema.org",
+		"@type": type === "article" ? "Article" : "WebSite",
+		name: fullTitle,
+		description: description,
+		url: url,
+		...(type === "article"
+			? {
+					headline: title,
+					...(publishedTime && { datePublished: publishedTime }),
+					...(modifiedTime && { dateModified: modifiedTime }),
+					...(author && { author: { "@type": "Person", name: author } }),
+			  }
+			: {
+					publisher: {
+						"@type": "Organization",
+						name: SITE_NAME,
+						logo: {
+							"@type": "ImageObject",
+							url: `${SITE_URL}/logo512.png`,
+						},
+					},
+			  }),
+		image: {
+			"@type": "ImageObject",
+			url: imageUrl,
+			width: imageWidth,
+			height: imageHeight,
+		},
+	};
+
 	return {
 		meta: metaTags,
 		links: [
 			{
 				rel: "canonical",
 				href: url,
+			},
+		],
+		scripts: [
+			{
+				type: "application/ld+json",
+				children: JSON.stringify(defaultStructuredData),
 			},
 		],
 	};

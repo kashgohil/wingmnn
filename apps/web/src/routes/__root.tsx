@@ -48,6 +48,22 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				rel: "apple-touch-icon",
 				href: "/logo192.png",
 			},
+			// Resource hints for performance
+			{
+				rel: "preconnect",
+				href: "https://wingmnn.com",
+			},
+			{
+				rel: "dns-prefetch",
+				href: "https://wingmnn.com",
+			},
+			// Preload critical images
+			{
+				rel: "preload",
+				href: "/logo512.png",
+				as: "image",
+				type: "image/png",
+			},
 		],
 	}),
 

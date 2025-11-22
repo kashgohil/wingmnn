@@ -1,7 +1,7 @@
 import { generateMetadata } from "@/lib/metadata";
 import { pricingPlans, spotlightIntegrations } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
   ArrowRight,
   Book,
@@ -32,10 +32,68 @@ import { FloatingHeader } from "../components/FloatingHeader";
 import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatterns";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { useAuth } from "../lib/auth/auth-context";
 
 export const Route = createFileRoute("/")({
   component: App,
+  // Explicitly enable SSR for the homepage
+  ssr: true,
+  beforeLoad: async ({ location }) => {
+    // Server-side auth check: Check for refresh_token cookie directly
+    // This runs on the server, so crawlers (without cookies) will see the landing page
+    // Authenticated users (with cookies) will be redirected server-side before render
+
+    // Only check on homepage
+    if (location.pathname !== "/") {
+      return;
+    }
+
+    // Check if we're on the server
+    if (typeof window === "undefined") {
+      try {
+        // Try to access request through various possible ways
+        // TanStack Start may provide it through different mechanisms
+        let cookieHeader = "";
+
+        // Try accessing through Node.js request (if available in SSR context)
+        if (typeof process !== "undefined" && (process as any).request) {
+          const req = (process as any).request;
+          cookieHeader = req.headers?.cookie || req.headers?.Cookie || "";
+        }
+
+        // Try accessing through global request (some SSR frameworks expose this)
+        if (!cookieHeader && typeof globalThis !== "undefined") {
+          const req = (globalThis as any).request || (globalThis as any).req;
+          if (req?.headers) {
+            cookieHeader =
+              req.headers.cookie ||
+              req.headers.Cookie ||
+              req.headers.get?.("cookie") ||
+              req.headers.get?.("Cookie") ||
+              "";
+          }
+        }
+
+        // Check if refresh_token cookie exists
+        const hasRefreshToken = cookieHeader.includes("refresh_token=");
+
+        // If refresh token exists, redirect to dashboard
+        // No need to verify with API - just check cookie presence
+        // If token is invalid, dashboard will handle it
+        if (hasRefreshToken) {
+          throw redirect({
+            to: "/dashboard",
+          });
+        }
+      } catch (error) {
+        // If it's a redirect, re-throw it (TanStack Router handles this)
+        if (error && typeof error === "object" && "to" in error) {
+          throw error;
+        }
+        // Otherwise, proceed to render landing page
+        // (request not accessible through these methods)
+      }
+    }
+  },
   head: () =>
     generateMetadata({
       title: "Wingmnn - Human-centered ops stack",
@@ -225,25 +283,12 @@ const modules = [
 ];
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Redirect authenticated users to dashboard
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
-  }
-
+  // Server-side loader handles redirect for authenticated users
+  // No client-side redirect needed - server handles it before HTML is sent
+  // Always render landing page content for SEO
+  // - Crawlers see full content immediately (no cookies, no redirect)
+  // - Authenticated users are redirected server-side (no HTML sent)
+  // - Non-authenticated users see the landing page
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
       {/* Soft retro background pattern */}

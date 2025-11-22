@@ -60,31 +60,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
   /**
    * Query to verify current authentication status
    * Runs on mount and can be manually refetched
+   *
+   * This query handles automatic token refresh by making an API request
+   * even when the access token is expired. The backend will use the
+   * refresh token cookie to issue a new access token via X-Access-Token header.
    */
   const { data: user, isLoading } = useQuery({
     queryKey: ["auth", "user"],
     queryFn: async () => {
       const token = tokenManager.getAccessToken();
-
-      if (!token) {
-        return null;
-      }
-
-      // Check if token is expired
-      if (tokenManager.isTokenExpired(token)) {
-        tokenManager.clearAccessToken();
-        return null;
-      }
-
-      // Try to get user data from storage first
       const storedUser = tokenManager.getUserData();
 
-      // Verify token is still valid with backend
+      // If no token at all, check if we might have a refresh token cookie
+      // by making a request anyway - the backend will refresh if possible
+      if (!token) {
+        // Try to verify with backend using refresh token cookie
+        const [response, responseError] = await catchError(
+          api.auth.sessions.get()
+        );
+
+        if (responseError || response?.error) {
+          // No valid session
+          return null;
+        }
+
+        // Backend refreshed the token via X-Access-Token header
+        // The Eden client onResponse interceptor already stored it
+        const newToken = tokenManager.getAccessToken();
+        if (newToken && storedUser) {
+          return storedUser;
+        }
+
+        return null;
+      }
+
+      // If token is expired, don't clear it yet - make a request to trigger refresh
+      // The backend will automatically refresh using the refresh token cookie
+      // and send a new access token in the X-Access-Token header
+
+      // Verify token with backend (will trigger refresh if expired)
       const [response, responseError] = await catchError(
         api.auth.sessions.get()
       );
 
       if (responseError || response?.error) {
+        // Token refresh failed or no valid session
         tokenManager.clearAccessToken();
         return null;
       }
@@ -95,13 +115,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       // If no stored user data but token is valid, decode token for basic info
-      const payload = tokenManager.decodeToken(token);
-      if (payload) {
-        return {
-          id: payload.userId,
-          email: "", // Will be empty until we fetch from API
-          name: "", // Will be empty until we fetch from API
-        } as User;
+      const currentToken = tokenManager.getAccessToken();
+      if (currentToken) {
+        const payload = tokenManager.decodeToken(currentToken);
+        if (payload) {
+          return {
+            id: payload.userId,
+            email: "", // Will be empty until we fetch from API
+            name: "", // Will be empty until we fetch from API
+          } as User;
+        }
       }
 
       return null;

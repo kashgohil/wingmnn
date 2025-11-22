@@ -1,3 +1,28 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+# Allow all public pages
+Allow: /
+Allow: /about
+Allow: /features
+Allow: /pricing
+Allow: /blog
+Allow: /careers
+Allow: /contact
+Allow: /help
+Allow: /integrations
+Allow: /privacy
+Allow: /terms
+Allow: /security
+Allow: /status
+Allow: /roadmap
+Allow: /info/
+
+# Disallow authenticated/app routes
+Disallow: /dashboard
+Disallow: /auth/
+
+# Disallow API routes
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://wingmnn.com/sitemap.xml

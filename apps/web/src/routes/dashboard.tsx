@@ -1,3 +1,4 @@
+import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
@@ -5,6 +6,12 @@ import { useAuth } from "../lib/auth/auth-context";
 
 export const Route = createFileRoute("/dashboard")({
   component: Dashboard,
+  head: () =>
+    generateMetadata({
+      title: "Dashboard",
+      description: "Your Wingmnn workspace dashboard",
+      noindex: true,
+    }),
 });
 
 function Dashboard() {
