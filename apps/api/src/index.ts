@@ -7,6 +7,11 @@ import { config, isProduction } from "./config";
 import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { rateLimit } from "./middleware/rate-limit";
+import {
+  activityLogRoutes,
+  projectActivityRoutes,
+  taskActivityRoutes,
+} from "./routes/activity-logs";
 import { attachmentRoutes } from "./routes/attachments";
 import { commentRoutes } from "./routes/comments";
 import { projectRoutes } from "./routes/projects";
@@ -303,6 +308,11 @@ Common error codes:
             description:
               "File attachment management for tasks and subtasks with secure download URLs",
           },
+          {
+            name: "Activity Logs",
+            description:
+              "Activity log viewing and filtering for audit trails and change history",
+          },
         ],
         components: {
           securitySchemes: {
@@ -368,6 +378,9 @@ Common error codes:
   .use(timeEntryRoutes)
   .use(commentRoutes)
   .use(attachmentRoutes)
+  .use(activityLogRoutes)
+  .use(projectActivityRoutes)
+  .use(taskActivityRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
