@@ -8,6 +8,13 @@
       "when": 1763629642714,
       "tag": "0000_burly_dragon_lord",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1763890580896,
+      "tag": "0001_magenta_storm",
+      "breakpoints": true
     }
   ]
 }
