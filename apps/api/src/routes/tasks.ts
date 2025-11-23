@@ -989,9 +989,9 @@ Get all relationships for a task.
       },
     }
   )
-  // GET /tasks/:taskId/subtasks - List subtasks for a task
+  // GET /tasks/:id/subtasks - List subtasks for a task
   .get(
-    "/:taskId/subtasks",
+    "/:id/subtasks",
     async ({ params, authenticated, userId }) => {
       // Check authentication
       if (!authenticated || !userId) {
@@ -1002,7 +1002,7 @@ Get all relationships for a task.
         );
       }
 
-      const subtasks = await subtaskService.listSubtasks(params.taskId, userId);
+      const subtasks = await subtaskService.listSubtasks(params.id, userId);
 
       return {
         subtasks,
@@ -1010,7 +1010,7 @@ Get all relationships for a task.
     },
     {
       params: t.Object({
-        taskId: t.String(),
+        id: t.String(),
       }),
       detail: {
         tags: ["Tasks", "Subtasks"],
