@@ -37,6 +37,10 @@ describe("SubtaskService", () => {
 
   // Create test users before all tests
   beforeAll(async () => {
+    // Clean up any orphaned test data from previous runs
+    await db.delete(subtasks);
+    await db.delete(tasks);
+
     const user1 = await db
       .insert(users)
       .values({
@@ -68,7 +72,19 @@ describe("SubtaskService", () => {
       await db.delete(subtasks);
       await db.delete(tasks);
       await db.delete(projects).where(eq(projects.ownerId, testUserId));
-      await db.delete(workflowStatuses);
+
+      // Delete workflow statuses for test workflows only
+      if (testWorkflowId) {
+        await db
+          .delete(workflowStatuses)
+          .where(eq(workflowStatuses.workflowId, testWorkflowId));
+      }
+      if (testSubtaskWorkflowId) {
+        await db
+          .delete(workflowStatuses)
+          .where(eq(workflowStatuses.workflowId, testSubtaskWorkflowId));
+      }
+
       await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
       await db.delete(users).where(eq(users.id, testUserId));
     }
@@ -82,7 +98,20 @@ describe("SubtaskService", () => {
     await db.delete(subtasks);
     await db.delete(tasks);
     await db.delete(projects).where(eq(projects.ownerId, testUserId));
-    await db.delete(workflowStatuses);
+
+    // Delete workflow statuses for test workflows only
+    if (testWorkflowId) {
+      await db
+        .delete(workflowStatuses)
+        .where(eq(workflowStatuses.workflowId, testWorkflowId));
+    }
+    if (testSubtaskWorkflowId) {
+      await db
+        .delete(workflowStatuses)
+        .where(eq(workflowStatuses.workflowId, testSubtaskWorkflowId));
+    }
+
+    // Delete test workflows
     await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
 
     // Create a task workflow
@@ -183,6 +212,7 @@ describe("SubtaskService", () => {
         title: "Test Subtask",
         description: "Test description",
         priority: "high",
+        statusId: testSubtaskStatusId,
       };
 
       const subtask = await subtaskService.createSubtask(input, testUserId);
@@ -201,6 +231,7 @@ describe("SubtaskService", () => {
       const input: CreateSubtaskInput = {
         taskId: testTaskId,
         title: "Minimal Subtask",
+        statusId: testSubtaskStatusId,
       };
 
       const subtask = await subtaskService.createSubtask(input, testUserId);
@@ -277,6 +308,7 @@ describe("SubtaskService", () => {
         title: "Test Subtask",
         startDate: date,
         dueDate: date,
+        statusId: testSubtaskStatusId,
       };
 
       const subtask = await subtaskService.createSubtask(input, testUserId);
@@ -309,6 +341,7 @@ describe("SubtaskService", () => {
         taskId: testTaskId,
         title: "Test Subtask",
         assignedTo: testUserId2,
+        statusId: testSubtaskStatusId,
       };
 
       const subtask = await subtaskService.createSubtask(input, testUserId);
@@ -323,6 +356,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -347,6 +381,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -363,6 +398,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Subtask 1",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -371,6 +407,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Subtask 2",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -399,6 +436,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Subtask 1",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -416,6 +454,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Subtask 1",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -424,6 +463,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Subtask 2",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -448,6 +488,7 @@ describe("SubtaskService", () => {
           taskId: testTaskId,
           title: "Original Title",
           description: "Original description",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -472,6 +513,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -503,6 +545,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -523,6 +566,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -550,6 +594,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -573,6 +618,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -588,6 +634,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -615,6 +662,7 @@ describe("SubtaskService", () => {
           taskId: testTaskId,
           title: "Test Subtask",
           assignedTo: testUserId,
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -643,6 +691,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -661,6 +710,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -687,6 +737,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -705,6 +756,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
@@ -719,6 +771,7 @@ describe("SubtaskService", () => {
         {
           taskId: testTaskId,
           title: "Test Subtask",
+          statusId: testSubtaskStatusId,
         },
         testUserId
       );
