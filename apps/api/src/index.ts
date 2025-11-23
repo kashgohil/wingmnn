@@ -7,6 +7,7 @@ import { config, isProduction } from "./config";
 import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { rateLimit } from "./middleware/rate-limit";
+import { projectRoutes } from "./routes/projects";
 import { workflowRoutes } from "./routes/workflows";
 import { AuthError, AuthErrorCode, authService } from "./services/auth.service";
 import { cleanupService } from "./services/cleanup.service";
@@ -263,6 +264,15 @@ Common error codes:
             name: "Session Management",
             description: "Session management and revocation endpoints",
           },
+          {
+            name: "Workflows",
+            description: "Workflow and status management endpoints",
+          },
+          {
+            name: "Projects",
+            description:
+              "Project management, status updates, and member management endpoints",
+          },
         ],
         components: {
           securitySchemes: {
@@ -322,6 +332,7 @@ Common error codes:
   .use(csrf())
   .use(auth())
   .use(workflowRoutes)
+  .use(projectRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
