@@ -181,6 +181,7 @@ describe("Subtask Routes", () => {
             title: "Test Subtask",
             description: "Test subtask description",
             priority: "high",
+            statusId: testSubtaskStatusId,
           }),
         })
       );
