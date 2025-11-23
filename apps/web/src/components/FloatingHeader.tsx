@@ -1,4 +1,5 @@
 import { useAuth } from "@/lib/auth/auth-context";
+import { getModuleByPathname } from "@/lib/modules";
 import { Link, useLocation } from "@tanstack/react-router";
 import { catchError } from "@wingmnn/utils/catch-error";
 import {
@@ -49,8 +50,11 @@ export function FloatingHeader() {
 		return null;
 	}
 
-	// Use primary color for consistent legibility
-	const logoColor = "var(--primary)";
+	// Get current module to determine icon color (for consistency, even though header doesn't show on module routes)
+	const currentModule = getModuleByPathname(location.pathname);
+	const logoColor = currentModule
+		? `var(${currentModule.colorVar})`
+		: "var(--primary)";
 
 	// All module colors for border decorations
 	const allModuleColors = [

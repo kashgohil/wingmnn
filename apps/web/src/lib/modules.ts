@@ -1231,3 +1231,13 @@ export function getModuleBySlug(slug: string): Module | undefined {
 export function getAllModuleSlugs(): string[] {
 	return modules.map((module) => module.slug);
 }
+
+export function getModuleByPathname(pathname: string): Module | undefined {
+	// Check if pathname matches a module route (e.g., /mails, /files, etc.)
+	for (const module of modules) {
+		if (pathname === `/${module.slug}` || pathname.startsWith(`/${module.slug}/`)) {
+			return module;
+		}
+	}
+	return undefined;
+}

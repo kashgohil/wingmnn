@@ -1,6 +1,6 @@
 import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/lib/auth/auth-context";
-import { modules } from "@/lib/modules";
+import { getModuleByPathname, modules } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import { catchError } from "@wingmnn/utils/catch-error";
@@ -28,6 +28,12 @@ export function ModuleSidebar() {
 	const { user, logout } = useAuth();
 	const { theme, setTheme } = useTheme();
 
+	// Get current module to determine icon color
+	const currentModule = getModuleByPathname(location.pathname);
+	const iconColor = currentModule
+		? `var(${currentModule.colorVar})`
+		: "var(--primary)";
+
 	const getThemeIcon = () => {
 		return theme === "light" ? (
 			<Sun className="h-5 w-5" />
@@ -54,7 +60,7 @@ export function ModuleSidebar() {
 									className="cursor-pointer flex items-center justify-center"
 								>
 									<WingmnnIcon
-										color="var(--primary)"
+										color={iconColor}
 										className="h-10 w-10"
 									/>
 								</Link>
@@ -81,15 +87,20 @@ export function ModuleSidebar() {
 											<div
 												className={cn(
 													"w-full flex items-center justify-center p-2 rounded-none transition-all opacity-70",
-													isActive && "opacity-100 retro-border",
+													isActive && "opacity-100",
 												)}
-												style={
-													isActive
-														? {
-																background: `var(${module.colorVar})`,
-														  }
-														: undefined
-												}
+												style={{
+													boxSizing: "border-box",
+													border: isActive
+														? "3px solid var(--border)"
+														: "3px solid transparent",
+													boxShadow: isActive
+														? "inset -2px -2px 0 rgba(0, 0, 0, 0.15), inset 2px 2px 0 rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15)"
+														: "none",
+													background: isActive
+														? `var(${module.colorVar})`
+														: "transparent",
+												}}
 											>
 												<Icon
 													className={cn(

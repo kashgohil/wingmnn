@@ -10,6 +10,9 @@ export function WingmnnIcon({
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 24 24"
 			fill={color}
+			stroke="var(--border)"
+			strokeWidth="1.5"
+			strokeLinejoin="round"
 			className={className || "h-6 w-6"}
 		>
 			<title>Wingmnn Logo</title>

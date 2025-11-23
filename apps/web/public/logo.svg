@@ -1,7 +1,10 @@
 <svg
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 24 24"
-  fill="var(--primary)"
+  fill="#ff9ec5"
+  stroke="#6b6b6b"
+  stroke-width="1.5"
+  stroke-linejoin="round"
 >
   <title>Wingmnn Logo v5</title>
   <path d="M2 3 L8 3 L12 12 L8 21 L2 21 Z" />
