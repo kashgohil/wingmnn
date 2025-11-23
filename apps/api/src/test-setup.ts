@@ -6,12 +6,10 @@ process.env.NODE_ENV = "test";
 
 // Set up test environment variables (these will use defaults from config.ts in test mode)
 // But we set them explicitly here to ensure they're available
-if (!process.env.DATABASE_URL) {
-  // Use the same database as development for now
-  // TODO: Create a separate test database for better isolation
-  process.env.DATABASE_URL =
-    "postgresql://kashyapgohil:kdausi123*@localhost:5432/wingmnn?sslmode=disable";
-}
+// Force override DATABASE_URL for tests
+process.env.DATABASE_URL =
+  "postgresql://wingmnn:wingmnn@localhost:5432/wingmnn?sslmode=disable";
+
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = "test-jwt-secret-key-minimum-32-characters-long";
 }

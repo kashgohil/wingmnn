@@ -1,0 +1,6 @@
+[test]
+preload = ["./apps/api/src/test-setup.ts"]
+
+[test.env]
+DATABASE_URL = "postgresql://wingmnn:wingmnn@localhost:5432/wingmnn?sslmode=disable"
+NODE_ENV = "test"
