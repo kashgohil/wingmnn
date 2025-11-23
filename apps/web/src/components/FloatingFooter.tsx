@@ -1,3 +1,4 @@
+import { useAuth } from "@/lib/auth/auth-context";
 import { Link } from "@tanstack/react-router";
 import {
 	Copyright,
@@ -11,7 +12,13 @@ import {
 import { TiktokIcon } from "./icons/TiktokIcon";
 
 export function FloatingFooter() {
+	const { isAuthenticated } = useAuth();
 	const currentYear = new Date().getFullYear();
+
+	// Don't show footer when authenticated
+	if (isAuthenticated) {
+		return null;
+	}
 
 	const handleLinkClick = () => {
 		window.scrollTo({ top: 0, behavior: "instant" });

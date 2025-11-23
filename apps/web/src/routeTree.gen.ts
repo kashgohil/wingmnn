@@ -9,24 +9,39 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WellnessRouteImport } from './routes/wellness'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as NotesRouteImport } from './routes/notes'
+import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as MailsRouteImport } from './routes/mails'
 import { Route as IntegrationsRouteImport } from './routes/integrations'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as FunRouteImport } from './routes/fun'
+import { Route as FinanceRouteImport } from './routes/finance'
+import { Route as FilesRouteImport } from './routes/files'
+import { Route as FeedsRouteImport } from './routes/feeds'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CareersRouteImport } from './routes/careers'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InfoModuleRouteImport } from './routes/info/$module'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
+const WellnessRoute = WellnessRouteImport.update({
+  id: '/wellness',
+  path: '/wellness',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -47,6 +62,11 @@ const RoadmapRoute = RoadmapRouteImport.update({
   path: '/roadmap',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -57,6 +77,21 @@ const PricingRoute = PricingRouteImport.update({
   path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NotesRoute = NotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MailsRoute = MailsRouteImport.update({
+  id: '/mails',
+  path: '/mails',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntegrationsRoute = IntegrationsRouteImport.update({
   id: '/integrations',
   path: '/integrations',
@@ -65,6 +100,26 @@ const IntegrationsRoute = IntegrationsRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FunRoute = FunRouteImport.update({
+  id: '/fun',
+  path: '/fun',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceRoute = FinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilesRoute = FilesRouteImport.update({
+  id: '/files',
+  path: '/files',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedsRoute = FeedsRouteImport.update({
+  id: '/feeds',
+  path: '/feeds',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeaturesRoute = FeaturesRouteImport.update({
@@ -85,6 +140,11 @@ const ContactRoute = ContactRouteImport.update({
 const CareersRoute = CareersRouteImport.update({
   id: '/careers',
   path: '/careers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogRoute = BlogRouteImport.update({
@@ -117,18 +177,28 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/calendar': typeof CalendarRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/features': typeof FeaturesRoute
+  '/feeds': typeof FeedsRoute
+  '/files': typeof FilesRoute
+  '/finance': typeof FinanceRoute
+  '/fun': typeof FunRoute
   '/help': typeof HelpRoute
   '/integrations': typeof IntegrationsRoute
+  '/mails': typeof MailsRoute
+  '/messages': typeof MessagesRoute
+  '/notes': typeof NotesRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/projects': typeof ProjectsRoute
   '/roadmap': typeof RoadmapRoute
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
+  '/wellness': typeof WellnessRoute
   '/info/$module': typeof InfoModuleRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
@@ -136,18 +206,28 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/calendar': typeof CalendarRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/features': typeof FeaturesRoute
+  '/feeds': typeof FeedsRoute
+  '/files': typeof FilesRoute
+  '/finance': typeof FinanceRoute
+  '/fun': typeof FunRoute
   '/help': typeof HelpRoute
   '/integrations': typeof IntegrationsRoute
+  '/mails': typeof MailsRoute
+  '/messages': typeof MessagesRoute
+  '/notes': typeof NotesRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/projects': typeof ProjectsRoute
   '/roadmap': typeof RoadmapRoute
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
+  '/wellness': typeof WellnessRoute
   '/info/$module': typeof InfoModuleRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
@@ -156,18 +236,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/calendar': typeof CalendarRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/features': typeof FeaturesRoute
+  '/feeds': typeof FeedsRoute
+  '/files': typeof FilesRoute
+  '/finance': typeof FinanceRoute
+  '/fun': typeof FunRoute
   '/help': typeof HelpRoute
   '/integrations': typeof IntegrationsRoute
+  '/mails': typeof MailsRoute
+  '/messages': typeof MessagesRoute
+  '/notes': typeof NotesRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/projects': typeof ProjectsRoute
   '/roadmap': typeof RoadmapRoute
   '/security': typeof SecurityRoute
   '/status': typeof StatusRoute
   '/terms': typeof TermsRoute
+  '/wellness': typeof WellnessRoute
   '/info/$module': typeof InfoModuleRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
@@ -177,18 +267,28 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/blog'
+    | '/calendar'
     | '/careers'
     | '/contact'
     | '/dashboard'
     | '/features'
+    | '/feeds'
+    | '/files'
+    | '/finance'
+    | '/fun'
     | '/help'
     | '/integrations'
+    | '/mails'
+    | '/messages'
+    | '/notes'
     | '/pricing'
     | '/privacy'
+    | '/projects'
     | '/roadmap'
     | '/security'
     | '/status'
     | '/terms'
+    | '/wellness'
     | '/info/$module'
     | '/auth/google/callback'
   fileRoutesByTo: FileRoutesByTo
@@ -196,18 +296,28 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/blog'
+    | '/calendar'
     | '/careers'
     | '/contact'
     | '/dashboard'
     | '/features'
+    | '/feeds'
+    | '/files'
+    | '/finance'
+    | '/fun'
     | '/help'
     | '/integrations'
+    | '/mails'
+    | '/messages'
+    | '/notes'
     | '/pricing'
     | '/privacy'
+    | '/projects'
     | '/roadmap'
     | '/security'
     | '/status'
     | '/terms'
+    | '/wellness'
     | '/info/$module'
     | '/auth/google/callback'
   id:
@@ -215,18 +325,28 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/blog'
+    | '/calendar'
     | '/careers'
     | '/contact'
     | '/dashboard'
     | '/features'
+    | '/feeds'
+    | '/files'
+    | '/finance'
+    | '/fun'
     | '/help'
     | '/integrations'
+    | '/mails'
+    | '/messages'
+    | '/notes'
     | '/pricing'
     | '/privacy'
+    | '/projects'
     | '/roadmap'
     | '/security'
     | '/status'
     | '/terms'
+    | '/wellness'
     | '/info/$module'
     | '/auth/google/callback'
   fileRoutesById: FileRoutesById
@@ -235,24 +355,41 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   BlogRoute: typeof BlogRoute
+  CalendarRoute: typeof CalendarRoute
   CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   FeaturesRoute: typeof FeaturesRoute
+  FeedsRoute: typeof FeedsRoute
+  FilesRoute: typeof FilesRoute
+  FinanceRoute: typeof FinanceRoute
+  FunRoute: typeof FunRoute
   HelpRoute: typeof HelpRoute
   IntegrationsRoute: typeof IntegrationsRoute
+  MailsRoute: typeof MailsRoute
+  MessagesRoute: typeof MessagesRoute
+  NotesRoute: typeof NotesRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  ProjectsRoute: typeof ProjectsRoute
   RoadmapRoute: typeof RoadmapRoute
   SecurityRoute: typeof SecurityRoute
   StatusRoute: typeof StatusRoute
   TermsRoute: typeof TermsRoute
+  WellnessRoute: typeof WellnessRoute
   InfoModuleRoute: typeof InfoModuleRoute
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wellness': {
+      id: '/wellness'
+      path: '/wellness'
+      fullPath: '/wellness'
+      preLoaderRoute: typeof WellnessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -281,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoadmapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -295,6 +439,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/notes': {
+      id: '/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof NotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mails': {
+      id: '/mails'
+      path: '/mails'
+      fullPath: '/mails'
+      preLoaderRoute: typeof MailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integrations': {
       id: '/integrations'
       path: '/integrations'
@@ -307,6 +472,34 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fun': {
+      id: '/fun'
+      path: '/fun'
+      fullPath: '/fun'
+      preLoaderRoute: typeof FunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance': {
+      id: '/finance'
+      path: '/finance'
+      fullPath: '/finance'
+      preLoaderRoute: typeof FinanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/files': {
+      id: '/files'
+      path: '/files'
+      fullPath: '/files'
+      preLoaderRoute: typeof FilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feeds': {
+      id: '/feeds'
+      path: '/feeds'
+      fullPath: '/feeds'
+      preLoaderRoute: typeof FeedsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/features': {
@@ -335,6 +528,13 @@ declare module '@tanstack/react-router' {
       path: '/careers'
       fullPath: '/careers'
       preLoaderRoute: typeof CareersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog': {
@@ -379,18 +579,28 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   BlogRoute: BlogRoute,
+  CalendarRoute: CalendarRoute,
   CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   FeaturesRoute: FeaturesRoute,
+  FeedsRoute: FeedsRoute,
+  FilesRoute: FilesRoute,
+  FinanceRoute: FinanceRoute,
+  FunRoute: FunRoute,
   HelpRoute: HelpRoute,
   IntegrationsRoute: IntegrationsRoute,
+  MailsRoute: MailsRoute,
+  MessagesRoute: MessagesRoute,
+  NotesRoute: NotesRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  ProjectsRoute: ProjectsRoute,
   RoadmapRoute: RoadmapRoute,
   SecurityRoute: SecurityRoute,
   StatusRoute: StatusRoute,
   TermsRoute: TermsRoute,
+  WellnessRoute: WellnessRoute,
   InfoModuleRoute: InfoModuleRoute,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
 }

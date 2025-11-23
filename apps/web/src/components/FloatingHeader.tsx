@@ -29,6 +29,11 @@ export function FloatingHeader() {
 	const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 	const [showUserMenu, setShowUserMenu] = useState(false);
 
+	// Don't show header when authenticated
+	if (isAuthenticated) {
+		return null;
+	}
+
 	// Use primary color for consistent legibility
 	const logoColor = "var(--primary)";
 
