@@ -15,6 +15,13 @@
       "when": 1763890580896,
       "tag": "0001_magenta_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1763905881943,
+      "tag": "0002_quick_salo",
+      "breakpoints": true
     }
   ]
 }
