@@ -60,135 +60,108 @@ const app = new Elysia()
     swagger({
       documentation: {
         info: {
-          title: "Authentication API",
+          title: "Wingmnn API",
           version: "1.0.0",
           description: `
-# Authentication System API
+          
+# Project Management API
 
-A comprehensive authentication system supporting both email/password authentication and OAuth-based Single Sign-On (SSO) with Google.
+A comprehensive project management system with authentication, workflows, task tracking, time management, and team collaboration features.
 
-## Features
+## Core Features
 
-- **Email/Password Authentication**: Traditional registration and login
+### 🔐 Authentication & Authorization
+- **Email/Password Authentication**: Secure user registration and login
 - **OAuth SSO**: Google authentication (extensible to other providers)
-- **Secure Session Management**: 30-day sessions with automatic extension
-- **Token Rotation**: Automatic refresh token rotation for enhanced security
-- **Multi-Device Support**: Manage sessions across multiple devices
-- **CSRF Protection**: State parameter validation for OAuth flows
-- **Rate Limiting**: Protection against brute force attacks
+- **Session Management**: Multi-device support with 30-day sessions
+- **Token Security**: JWT access tokens with automatic refresh token rotation
 
-## Authentication Flow
+### 📋 Workflow Management
+- **Custom Workflows**: Define project-specific workflows with custom statuses
+- **Status Transitions**: Configure allowed status transitions and validation rules
+- **Workflow Templates**: Reusable workflow definitions across projects
 
-### Access Tokens
-- **Format**: JWT (JSON Web Token)
-- **Expiration**: 15 minutes
-- **Storage**: Client-side (memory or localStorage)
-- **Usage**: Sent in \`Authorization: Bearer <token>\` header
+### 🎯 Project Management
+- **Project Creation**: Create and configure projects with custom workflows
+- **Team Management**: Add/remove team members and manage project access
+- **Project Status**: Track project progress and status updates
+- **Activity Tracking**: Complete audit trail of all project changes
 
-### Refresh Tokens
-- **Format**: Cryptographically random 256-bit string
-- **Expiration**: 30 days (tied to session)
-- **Storage**: HTTP-only secure cookie
-- **Usage**: Automatically sent with requests for token refresh
+### ✅ Task Management
+- **Task Organization**: Create, assign, and track tasks within projects
+- **Subtasks**: Break down complex tasks into manageable subtasks
+- **Task Linking**: Create dependencies between tasks (blocks/blocked by)
+- **Progress Tracking**: Monitor task completion and progress
+- **Priority & Estimation**: Set priorities and estimate effort
+- **Custom Fields**: Tags for categorization and filtering
 
-### Automatic Token Refresh
-The authentication middleware automatically refreshes tokens when:
-- Access token is expired
-- Access token is near expiration (< 5 minutes remaining)
+### ⏱️ Time Tracking
+- **Time Entries**: Log time spent on tasks and subtasks
+- **Time Summaries**: Calculate total time by task, project, or user
+- **Billable Hours**: Track billable vs non-billable time
+- **Time Reports**: Generate time reports for analysis
 
-When tokens are refreshed:
-- New access token is returned in \`X-Access-Token\` response header
-- New refresh token is set in HTTP-only cookie
-- Client should update stored access token from response header
+### 💬 Collaboration
+- **Comments**: Thread-based discussions on tasks and subtasks
+- **Mentions**: Notify team members with @mentions
+- **Notifications**: Real-time notifications for assignments and updates
+- **File Attachments**: Upload and manage files on tasks
 
-## Client-Side Implementation
+### 📊 Activity & Audit
+- **Activity Logs**: Complete history of all changes and actions
+- **Filtering**: Filter activities by entity, action type, or user
+- **Audit Trail**: Track who did what and when for compliance
 
-### Making Authenticated Requests
+## Authentication
+
+All endpoints (except auth registration/login) require authentication using JWT tokens.
+
+### Getting Started
+
+1. **Register or Login**: Obtain access token via \`/auth/register\` or \`/auth/login\`
+2. **Include Token**: Send access token in \`Authorization: Bearer <token>\` header
+3. **Auto-Refresh**: Tokens are automatically refreshed when near expiration
+
+### Token Types
+
+- **Access Token**: JWT valid for 15 minutes, sent in Authorization header
+- **Refresh Token**: HTTP-only cookie valid for 30 days, automatically sent
+
+### Example Request
 
 \`\`\`typescript
-async function apiRequest(url: string, options: RequestInit = {}) {
-  const response = await fetch(url, {
-    ...options,
-    credentials: 'include', // Important: Send cookies
-    headers: {
-      ...options.headers,
-      'Authorization': \`Bearer \${getAccessToken()}\`,
-    },
-  });
-
-  // Check for new access token in response
-  const newAccessToken = response.headers.get('X-Access-Token');
-  if (newAccessToken) {
-    setAccessToken(newAccessToken); // Update stored token
+const response = await fetch('/api/projects', {
+  method: 'GET',
+  credentials: 'include', // Important: Send cookies
+  headers: {
+    'Authorization': \`Bearer \${accessToken}\`,
+    'Content-Type': 'application/json'
   }
+});
 
-  return response;
+// Check for refreshed token
+const newToken = response.headers.get('X-Access-Token');
+if (newToken) {
+  // Update stored access token
+  accessToken = newToken;
 }
 \`\`\`
 
-### Token Storage Strategy
+## API Organization
 
-\`\`\`typescript
-// Store access token in memory or localStorage
-let accessToken: string | null = null;
+The API is organized into the following modules:
 
-function setAccessToken(token: string) {
-  accessToken = token;
-  // Optional: persist to localStorage for page refreshes
-  localStorage.setItem('accessToken', token);
-}
-
-function getAccessToken(): string | null {
-  if (!accessToken) {
-    // Try to restore from localStorage
-    accessToken = localStorage.getItem('accessToken');
-  }
-  return accessToken;
-}
-
-function clearAccessToken() {
-  accessToken = null;
-  localStorage.removeItem('accessToken');
-}
-\`\`\`
-
-### Handling Authentication
-
-\`\`\`typescript
-// Login
-async function login(email: string, password: string) {
-  const response = await fetch('/auth/login', {
-    method: 'POST',
-    credentials: 'include', // Important: Receive cookies
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-
-  const data = await response.json();
-  setAccessToken(data.accessToken);
-  return data.user;
-}
-
-// Logout
-async function logout() {
-  await fetch('/auth/logout', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Authorization': \`Bearer \${getAccessToken()}\` },
-  });
-  clearAccessToken();
-}
-\`\`\`
-
-## Security Considerations
-
-- **HTTPS Only**: All authentication endpoints must use HTTPS in production
-- **HTTP-Only Cookies**: Refresh tokens are stored in HTTP-only cookies to prevent XSS attacks
-- **Token Rotation**: Refresh tokens are rotated on every use to prevent replay attacks
-- **Reuse Detection**: If a refresh token is reused, all session tokens are revoked
-- **Rate Limiting**: Login endpoint is rate-limited to 5 attempts per 15 minutes
-- **CSRF Protection**: OAuth flows use state parameter for CSRF protection
-- **Password Security**: Passwords are hashed with bcrypt (work factor 12)
+- **/auth** - Authentication, registration, and session management
+- **/workflows** - Workflow and status management
+- **/projects** - Project CRUD and team management
+- **/tasks** - Task management and linking
+- **/subtasks** - Subtask management
+- **/time-entries** - Time tracking and summaries
+- **/comments** - Comments and discussions
+- **/attachments** - File uploads and downloads
+- **/activity-logs** - Activity history and audit trails
+- **/notifications** - User notifications
+- **/tags** - Tag management and associations
 
 ## Error Handling
 
@@ -201,14 +174,25 @@ All errors follow a consistent format:
 }
 \`\`\`
 
-Common error codes:
-- \`INVALID_CREDENTIALS\`: Invalid email or password
-- \`EMAIL_ALREADY_EXISTS\`: Email is already registered
-- \`INVALID_TOKEN\`: Token is invalid or expired
-- \`TOKEN_REUSE_DETECTED\`: Refresh token was reused (security violation)
-- \`SESSION_EXPIRED\`: Session has expired
-- \`OAUTH_ERROR\`: OAuth provider returned an error
-- \`OAUTH_STATE_MISMATCH\`: OAuth state parameter is invalid (CSRF protection)
+Common HTTP status codes:
+- **200**: Success
+- **201**: Created
+- **400**: Bad Request (validation error)
+- **401**: Unauthorized (authentication required)
+- **403**: Forbidden (insufficient permissions)
+- **404**: Not Found
+- **409**: Conflict (duplicate or constraint violation)
+- **429**: Too Many Requests (rate limit exceeded)
+- **500**: Internal Server Error
+
+## Security
+
+- **HTTPS Only**: All endpoints must use HTTPS in production
+- **CSRF Protection**: State parameter validation for OAuth flows
+- **Rate Limiting**: Protection against brute force attacks
+- **Input Validation**: All inputs are validated and sanitized
+- **SQL Injection Prevention**: Parameterized queries via Drizzle ORM
+- **XSS Prevention**: HTTP-only cookies for refresh tokens
           `,
         },
         tags: [
