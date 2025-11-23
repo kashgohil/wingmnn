@@ -17,6 +17,7 @@ import { commentRoutes } from "./routes/comments";
 import { notificationRoutes } from "./routes/notifications";
 import { projectRoutes } from "./routes/projects";
 import { subtaskRoutes } from "./routes/subtasks";
+import { tagRoutes, taskTagRoutes } from "./routes/tags";
 import { taskRoutes } from "./routes/tasks";
 import { timeEntryRoutes } from "./routes/time-entries";
 import { workflowRoutes } from "./routes/workflows";
@@ -319,6 +320,11 @@ Common error codes:
             description:
               "Notification management for assignments, status changes, and mentions",
           },
+          {
+            name: "Tags",
+            description:
+              "Tag management and task-tag associations for categorizing and filtering work items",
+          },
         ],
         components: {
           securitySchemes: {
@@ -388,6 +394,8 @@ Common error codes:
   .use(projectActivityRoutes)
   .use(taskActivityRoutes)
   .use(notificationRoutes)
+  .use(tagRoutes)
+  .use(taskTagRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
