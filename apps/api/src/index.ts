@@ -10,6 +10,7 @@ import { rateLimit } from "./middleware/rate-limit";
 import { projectRoutes } from "./routes/projects";
 import { subtaskRoutes } from "./routes/subtasks";
 import { taskRoutes } from "./routes/tasks";
+import { timeEntryRoutes } from "./routes/time-entries";
 import { workflowRoutes } from "./routes/workflows";
 import { AuthError, AuthErrorCode, authService } from "./services/auth.service";
 import { cleanupService } from "./services/cleanup.service";
@@ -285,6 +286,11 @@ Common error codes:
             description:
               "Subtask management, status updates, and assignment endpoints",
           },
+          {
+            name: "Time Tracking",
+            description:
+              "Time entry management and time summary calculation endpoints",
+          },
         ],
         components: {
           securitySchemes: {
@@ -347,6 +353,7 @@ Common error codes:
   .use(projectRoutes)
   .use(taskRoutes)
   .use(subtaskRoutes)
+  .use(timeEntryRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
