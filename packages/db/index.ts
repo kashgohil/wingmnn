@@ -9,19 +9,30 @@ const pool = new Pool({
 export const db = drizzle({ client: pool, schema });
 
 // Re-export commonly used drizzle-orm functions
-export { and, eq, lt, or, sql } from "drizzle-orm";
+export { and, eq, inArray, lt, or, sql } from "drizzle-orm";
 
 // Re-export schema tables
 export { audits } from "./schema/audits";
 export { projectMembers, projects, tags } from "./schema/projects";
 export { sessions, usedRefreshTokens } from "./schema/sessions";
-export { status, tasks, taskTags } from "./schema/tasks";
+export {
+  activityLogs,
+  attachments,
+  comments,
+  notifications,
+  subtasks,
+  taskLinks,
+  tasks,
+  taskTags,
+  timeEntries,
+} from "./schema/tasks";
 export {
   oauthAccounts,
   userGroupMembers,
   userGroups,
   users,
 } from "./schema/users";
+export { workflows, workflowStatuses } from "./schema/workflows";
 
 // Re-export schema and enums
 export { schema } from "./schema";
