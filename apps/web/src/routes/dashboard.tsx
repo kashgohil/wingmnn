@@ -110,12 +110,6 @@ function Dashboard() {
 										<p className="text-sm text-muted-foreground mb-1">Email</p>
 										<p className="font-medium">{user?.email}</p>
 									</div>
-									<div>
-										<p className="text-sm text-muted-foreground mb-1">
-											User ID
-										</p>
-										<p className="font-mono text-sm">{user?.id}</p>
-									</div>
 								</div>
 							</div>
 						</div>

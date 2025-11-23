@@ -4,7 +4,14 @@ import { modules } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import { catchError } from "@wingmnn/utils/catch-error";
-import { HelpCircle, Moon, Sun, User, UserCircle } from "lucide-react";
+import {
+	HelpCircle,
+	LayoutDashboard,
+	LogOut,
+	Moon,
+	Sun,
+	UserCircle,
+} from "lucide-react";
 import { WingmnnIcon } from "./icons/wingmnnIcon";
 import { Avatar } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -59,7 +66,7 @@ export function ModuleSidebar() {
 					</div>
 
 					{/* Module List */}
-					<nav className="flex-1 flex flex-col p-2 gap-1">
+					<nav className="flex-1 flex flex-col p-3 gap-1">
 						{modules.map((module) => {
 							const Icon = module.icon;
 							const isActive = location.pathname === `/${module.slug}`;
@@ -73,7 +80,7 @@ export function ModuleSidebar() {
 										>
 											<div
 												className={cn(
-													"w-full flex items-center justify-center px-3 py-2 retro-border rounded-none transition-all opacity-70",
+													"w-full flex items-center justify-center p-2 retro-border rounded-none transition-all opacity-70",
 													isActive && "opacity-100",
 												)}
 												style={{
@@ -107,7 +114,7 @@ export function ModuleSidebar() {
 								<Button
 									variant="menu"
 									asChild
-									className="justify-center"
+									className="justify-center p-2!"
 								>
 									<Link to="/help">
 										<HelpCircle className="h-5 w-5" />
@@ -125,7 +132,7 @@ export function ModuleSidebar() {
 								<Button
 									variant="menu"
 									onClick={cycleTheme}
-									className="justify-center"
+									className="justify-center p-2!"
 									aria-label={`Current theme: ${theme}. Click to switch to ${
 										theme === "light" ? "dark" : "light"
 									} mode.`}
@@ -139,74 +146,79 @@ export function ModuleSidebar() {
 						</Tooltip>
 
 						{/* Profile */}
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Popover>
+						<Popover>
+							<Tooltip>
+								<TooltipTrigger asChild>
 									<PopoverTrigger asChild>
 										<Button
 											variant="menu"
-											className="justify-center"
+											className="justify-center p-1!"
 										>
-											<User className="h-5 w-5" />
-										</Button>
-									</PopoverTrigger>
-
-									<PopoverContent
-										side="right"
-										align="start"
-										className="w-56 p-0"
-									>
-										<div className="p-4 border-b border-border flex items-center gap-3">
 											<Avatar
 												name={user?.name || "User"}
-												size="md"
+												size="sm"
+												style={{ border: "none", boxShadow: "none" }}
 											/>
-											<p className="font-semibold text-foreground font-mono uppercase tracking-wider">
-												{user?.name}
-											</p>
-										</div>
-										<div className="p-2">
-											<Button
-												variant="menu-item"
-												asChild
-												className="justify-start text-left"
-											>
-												<Link to="/dashboard">
-													<User className="h-4 w-4" />
-													Dashboard
-												</Link>
-											</Button>
-											<Button
-												variant="menu-item"
-												asChild
-												className="justify-start text-left"
-											>
-												<Link to="/profile">
-													<UserCircle className="h-4 w-4" />
-													Profile
-												</Link>
-											</Button>
-											<Button
-												variant="menu-item"
-												type="button"
-												className="justify-start text-left"
-												onClick={async () => {
-													const [, error] = await catchError(logout());
-													if (error) {
-														console.error("Logout failed:", error);
-													}
-												}}
-											>
-												<span>Logout</span>
-											</Button>
-										</div>
-									</PopoverContent>
-								</Popover>
-							</TooltipTrigger>
-							<TooltipContent side="right">
-								<p>{user?.name || "Profile"}</p>
-							</TooltipContent>
-						</Tooltip>
+										</Button>
+									</PopoverTrigger>
+								</TooltipTrigger>
+								<TooltipContent side="right">
+									<p>{user?.name || "Profile"}</p>
+								</TooltipContent>
+							</Tooltip>
+
+							<PopoverContent
+								side="right"
+								align="start"
+								className="w-56 p-0"
+							>
+								<div className="p-4 border-b border-border flex items-center gap-3">
+									<Avatar
+										name={user?.name || "User"}
+										size="md"
+									/>
+									<p className="font-semibold text-foreground font-mono uppercase tracking-wider">
+										{user?.name}
+									</p>
+								</div>
+								<div className="p-2">
+									<Button
+										variant="menu-item"
+										asChild
+										className="justify-start text-left"
+									>
+										<Link to="/dashboard">
+											<LayoutDashboard className="h-4 w-4" />
+											Dashboard
+										</Link>
+									</Button>
+									<Button
+										variant="menu-item"
+										asChild
+										className="justify-start text-left"
+									>
+										<Link to="/profile">
+											<UserCircle className="h-4 w-4" />
+											Profile
+										</Link>
+									</Button>
+									<Button
+										variant="menu-item"
+										type="button"
+										className="justify-start text-left"
+										onClick={async () => {
+											const [, error] = await catchError(logout());
+											if (error) {
+												console.error("Logout failed:", error);
+											}
+										}}
+									>
+										<LogOut className="h-4 w-4" />
+										Logout
+									</Button>
+								</div>
+							</PopoverContent>
+						</Popover>
 					</div>
 				</div>
 			</aside>

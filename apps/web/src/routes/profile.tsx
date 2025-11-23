@@ -1,6 +1,6 @@
 import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
-import { Key, Mail, User } from "lucide-react";
+import { Mail, User } from "lucide-react";
 import { AuthenticatedLayout } from "../components/AuthenticatedLayout";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { useAuth } from "../lib/auth/auth-context";
@@ -74,19 +74,6 @@ function Profile() {
 											<p className="font-medium text-lg">
 												{user?.email || "N/A"}
 											</p>
-										</div>
-									</div>
-
-									{/* User ID */}
-									<div className="flex items-start gap-4 p-4 retro-border bg-card/50 rounded-none">
-										<div className="p-2 retro-border rounded-none bg-primary/10">
-											<Key className="h-5 w-5 text-primary" />
-										</div>
-										<div className="flex-1">
-											<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
-												User ID
-											</p>
-											<p className="font-mono text-sm">{user?.id || "N/A"}</p>
 										</div>
 									</div>
 								</div>

@@ -2,6 +2,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { Link, useLocation } from "@tanstack/react-router";
 import { catchError } from "@wingmnn/utils/catch-error";
 import {
+	LayoutDashboard,
 	LogIn,
 	LogOut,
 	Moon,
@@ -194,7 +195,7 @@ export function FloatingHeader() {
 												className="justify-start text-left"
 											>
 												<Link to="/dashboard">
-													<User className="h-4 w-4" />
+													<LayoutDashboard className="h-4 w-4" />
 													Dashboard
 												</Link>
 											</Button>
