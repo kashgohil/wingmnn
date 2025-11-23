@@ -46,7 +46,7 @@ export function ModuleSidebar() {
 				{/* Sidebar Content */}
 				<div className="flex flex-col h-full overflow-y-auto">
 					{/* Header */}
-					<div className="p-4 flex items-center justify-center">
+					<div className="p-3 py-4 flex items-center justify-center">
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<Link
@@ -111,7 +111,7 @@ export function ModuleSidebar() {
 					</nav>
 
 					{/* Bottom Actions */}
-					<div className="p-2 space-y-1">
+					<div className="p-3 space-y-1">
 						{/* Help */}
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -160,11 +160,12 @@ export function ModuleSidebar() {
 									<PopoverTrigger asChild>
 										<Button
 											variant="menu"
-											className="justify-center p-1!"
+											className="justify-center p-0!"
 										>
 											<Avatar
 												name={user?.name || "User"}
 												size="sm"
+												className="w-full"
 												style={{ border: "none", boxShadow: "none" }}
 											/>
 										</Button>
