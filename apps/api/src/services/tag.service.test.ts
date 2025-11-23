@@ -112,17 +112,24 @@ describe("TagService", () => {
   });
 
   afterAll(async () => {
-    if (testTaskId) {
-      await db.delete(tasks).where(eq(tasks.id, testTaskId));
-    }
-    if (testProjectId) {
-      await db.delete(projects).where(eq(projects.id, testProjectId));
-    }
-    if (testWorkflowId) {
-      await db.delete(workflows).where(eq(workflows.id, testWorkflowId));
-    }
-    if (testUserId) {
-      await db.delete(users).where(eq(users.id, testUserId));
+    try {
+      // Clean up in reverse order of dependencies
+      await db.delete(tags);
+
+      if (testTaskId) {
+        await db.delete(tasks).where(eq(tasks.id, testTaskId));
+      }
+      if (testProjectId) {
+        await db.delete(projects).where(eq(projects.id, testProjectId));
+      }
+      if (testWorkflowId) {
+        await db.delete(workflows).where(eq(workflows.id, testWorkflowId));
+      }
+      if (testUserId) {
+        await db.delete(users).where(eq(users.id, testUserId));
+      }
+    } catch (error) {
+      console.error("Cleanup error in tag.service.test:", error);
     }
   });
 

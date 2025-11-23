@@ -1,5 +1,13 @@
-import { db, eq, projects, taskLinks, tasks, users } from "@wingmnn/db";
-import { beforeEach, describe, expect, test } from "bun:test";
+import {
+  db,
+  eq,
+  projects,
+  taskLinks,
+  tasks,
+  users,
+  workflows,
+} from "@wingmnn/db";
+import { afterAll, beforeEach, describe, expect, test } from "bun:test";
 import { projectService } from "./project.service";
 import {
   TaskLinkError,
@@ -130,6 +138,26 @@ describe("TaskLinkService", () => {
       testUserId
     );
     testTaskId2 = task2.id;
+  });
+
+  afterAll(async () => {
+    try {
+      // Clean up in reverse order of dependencies
+      await db.delete(taskLinks);
+      await db.delete(tasks);
+      await db.delete(projects);
+
+      // Delete workflows before users since workflows reference users
+      if (testUserId) {
+        await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
+        await db.delete(users).where(eq(users.id, testUserId));
+      }
+      if (testUser2Id) {
+        await db.delete(users).where(eq(users.id, testUser2Id));
+      }
+    } catch (error) {
+      console.error("Cleanup error in task-link.service.test:", error);
+    }
   });
 
   describe("createLink", () => {

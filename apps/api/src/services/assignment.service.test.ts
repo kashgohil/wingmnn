@@ -215,7 +215,7 @@ describe("AssignmentService", () => {
           .catch(() => {});
       }
     } catch (error) {
-      // Ignore cleanup errors
+      console.error("Cleanup error in assignment.service.test:", error);
     }
   });
 
