@@ -9,7 +9,7 @@ export const auditTypeEnum = pgEnum("audit_type", [
 ]);
 
 export const audits = pgTable("audits", {
-  id: text("id").primaryKey().default(crypto.randomUUID()),
+  id: text("id").primaryKey().$defaultFn(crypto.randomUUID),
   createdAt: timestamp("created_at").defaultNow(),
   userId: text("user_id")
     .notNull()

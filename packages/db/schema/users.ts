@@ -10,7 +10,7 @@ import {
 import { basicFields } from "./basic";
 
 export const users = pgTable("users", {
-  id: text("id").primaryKey().default(crypto.randomUUID()),
+  id: text("id").primaryKey().$defaultFn(crypto.randomUUID),
   name: text("name").notNull(),
   bio: text("bio").notNull(),
   email: text("email").unique(),
@@ -45,7 +45,7 @@ export const userGroupMembers = pgTable(
 export const oauthAccounts = pgTable(
   "oauth_accounts",
   {
-    id: text("id").primaryKey().default(crypto.randomUUID()),
+    id: text("id").primaryKey().$defaultFn(crypto.randomUUID),
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),

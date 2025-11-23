@@ -21,7 +21,7 @@ export const phaseEnum = pgEnum("phase", [
 ]);
 
 export const workflows = pgTable("workflows", {
-  id: text("id").primaryKey().default(crypto.randomUUID()),
+  id: text("id").primaryKey().$defaultFn(crypto.randomUUID),
   name: text("name").notNull(),
   description: text("description"),
   workflowType: workflowTypeEnum("workflow_type").notNull(),
@@ -36,7 +36,7 @@ export const workflows = pgTable("workflows", {
 export const workflowStatuses = pgTable(
   "workflow_statuses",
   {
-    id: text("id").primaryKey().default(crypto.randomUUID()),
+    id: text("id").primaryKey().$defaultFn(crypto.randomUUID),
     workflowId: text("workflow_id")
       .notNull()
       .references(() => workflows.id, { onDelete: "cascade" }),

@@ -3,7 +3,7 @@ import { boolean, text, timestamp } from "drizzle-orm/pg-core";
 import { users } from "./users";
 
 export const basicFields = {
-  id: text("id").primaryKey().default(crypto.randomUUID()),
+  id: text("id").primaryKey().$defaultFn(crypto.randomUUID),
   deleted: boolean("deleted").default(false),
   createdBy: text("created_by")
     .references(() => users.id)

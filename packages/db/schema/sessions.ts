@@ -6,7 +6,7 @@ import { users } from "./users";
 export const sessions = pgTable(
   "sessions",
   {
-    id: text("id").primaryKey().default(crypto.randomUUID()),
+    id: text("id").primaryKey().$defaultFn(crypto.randomUUID),
     userId: text("user_id")
       .notNull()
       .references(() => users.id),
