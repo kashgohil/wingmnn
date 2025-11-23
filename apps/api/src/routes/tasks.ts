@@ -1,4 +1,5 @@
 import { Elysia, t } from "elysia";
+import { subtaskService } from "../services/subtask.service";
 import {
   TaskLinkError,
   TaskLinkErrorCode,
@@ -983,6 +984,62 @@ Get all relationships for a task.
           },
           404: {
             description: "Task not found",
+          },
+        },
+      },
+    }
+  )
+  // GET /tasks/:taskId/subtasks - List subtasks for a task
+  .get(
+    "/:taskId/subtasks",
+    async ({ params, authenticated, userId }) => {
+      // Check authentication
+      if (!authenticated || !userId) {
+        throw new TaskError(
+          TaskErrorCode.UNAUTHORIZED,
+          "Authentication required",
+          401
+        );
+      }
+
+      const subtasks = await subtaskService.listSubtasks(params.taskId, userId);
+
+      return {
+        subtasks,
+      };
+    },
+    {
+      params: t.Object({
+        taskId: t.String(),
+      }),
+      detail: {
+        tags: ["Tasks", "Subtasks"],
+        summary: "List subtasks for a task",
+        description: `
+Get all subtasks for a specific parent task.
+
+**Authentication Required:**
+- Must include valid access token in Authorization header
+
+**Authorization:**
+- User must have access to the parent task's project
+- Returns empty array if task doesn't exist or user has no access
+
+**Filtering:**
+- Only returns non-deleted subtasks
+- Subtasks are ordered by creation date
+
+**Response:**
+- Array of subtask objects
+- Each subtask includes all metadata (title, description, status, priority, dates, etc.)
+        `,
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: "List of subtasks",
+          },
+          401: {
+            description: "Authentication required",
           },
         },
       },

@@ -8,6 +8,7 @@ import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { rateLimit } from "./middleware/rate-limit";
 import { projectRoutes } from "./routes/projects";
+import { subtaskRoutes } from "./routes/subtasks";
 import { taskRoutes } from "./routes/tasks";
 import { workflowRoutes } from "./routes/workflows";
 import { AuthError, AuthErrorCode, authService } from "./services/auth.service";
@@ -274,6 +275,16 @@ Common error codes:
             description:
               "Project management, status updates, and member management endpoints",
           },
+          {
+            name: "Tasks",
+            description:
+              "Task management, status updates, assignments, progress tracking, and task linking endpoints",
+          },
+          {
+            name: "Subtasks",
+            description:
+              "Subtask management, status updates, and assignment endpoints",
+          },
         ],
         components: {
           securitySchemes: {
@@ -335,6 +346,7 @@ Common error codes:
   .use(workflowRoutes)
   .use(projectRoutes)
   .use(taskRoutes)
+  .use(subtaskRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
