@@ -80,12 +80,16 @@ export function ModuleSidebar() {
 										>
 											<div
 												className={cn(
-													"w-full flex items-center justify-center p-2 retro-border rounded-none transition-all opacity-70",
-													isActive && "opacity-100",
+													"w-full flex items-center justify-center p-2 rounded-none transition-all opacity-70",
+													isActive && "opacity-100 retro-border",
 												)}
-												style={{
-													background: `var(${module.colorVar})`,
-												}}
+												style={
+													isActive
+														? {
+																background: `var(${module.colorVar})`,
+														  }
+														: undefined
+												}
 											>
 												<Icon
 													className={cn(
@@ -116,7 +120,10 @@ export function ModuleSidebar() {
 									asChild
 									className="justify-center p-2!"
 								>
-									<Link to="/help">
+									<Link
+										target="_blank"
+										to="/help"
+									>
 										<HelpCircle className="h-5 w-5" />
 									</Link>
 								</Button>
