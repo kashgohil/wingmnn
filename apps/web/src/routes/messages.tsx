@@ -40,7 +40,7 @@ function MessagesModule() {
 											backgroundColor: `var(${module?.colorVar})`,
 										}}
 									>
-										<Icon className="h-12 w-12" />
+										<Icon className="h-12 w-12 text-primary-foreground" />
 									</div>
 								)}
 								<div>
