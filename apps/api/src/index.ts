@@ -7,6 +7,7 @@ import { config, isProduction } from "./config";
 import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { rateLimit } from "./middleware/rate-limit";
+import { commentRoutes } from "./routes/comments";
 import { projectRoutes } from "./routes/projects";
 import { subtaskRoutes } from "./routes/subtasks";
 import { taskRoutes } from "./routes/tasks";
@@ -291,6 +292,11 @@ Common error codes:
             description:
               "Time entry management and time summary calculation endpoints",
           },
+          {
+            name: "Comments",
+            description:
+              "Comment management with threading support for tasks and subtasks",
+          },
         ],
         components: {
           securitySchemes: {
@@ -354,6 +360,7 @@ Common error codes:
   .use(taskRoutes)
   .use(subtaskRoutes)
   .use(timeEntryRoutes)
+  .use(commentRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
