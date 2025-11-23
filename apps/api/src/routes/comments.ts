@@ -1,4 +1,6 @@
 import { Elysia, t } from "elysia";
+import { config } from "../config";
+import { rateLimit } from "../middleware/rate-limit";
 import {
   CommentError,
   CommentErrorCode,
@@ -14,6 +16,14 @@ export const commentRoutes = new Elysia({ prefix: "/comments" })
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to all comment endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "comments",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle CommentError
     if (error instanceof CommentError) {

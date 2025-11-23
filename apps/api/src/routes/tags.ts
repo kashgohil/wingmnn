@@ -1,4 +1,6 @@
 import { Elysia, t } from "elysia";
+import { config } from "../config";
+import { rateLimit } from "../middleware/rate-limit";
 import { TagError, TagErrorCode, tagService } from "../services/tag.service";
 
 /**
@@ -10,6 +12,14 @@ export const tagRoutes = new Elysia({ prefix: "/projects" })
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to all tag endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "tags",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle TagError
     if (error instanceof TagError) {
@@ -429,6 +439,14 @@ export const taskTagRoutes = new Elysia({ prefix: "/tasks" })
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to task-tag endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "task-tags",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle TagError
     if (error instanceof TagError) {

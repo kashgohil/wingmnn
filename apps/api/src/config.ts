@@ -27,6 +27,10 @@ const envSchema = z.object({
   // Rate Limiting
   LOGIN_RATE_LIMIT: z.coerce.number().default(5),
   LOGIN_RATE_WINDOW: z.string().default("15m"),
+  API_RATE_LIMIT: z.coerce.number().default(100),
+  API_RATE_WINDOW: z.string().default("15m"),
+  WRITE_RATE_LIMIT: z.coerce.number().default(50),
+  WRITE_RATE_WINDOW: z.string().default("15m"),
 
   // Server
   PORT: z.coerce.number().default(3000),

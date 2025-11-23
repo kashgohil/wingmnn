@@ -1,4 +1,6 @@
 import { Elysia, t } from "elysia";
+import { config } from "../config";
+import { rateLimit } from "../middleware/rate-limit";
 import {
   AttachmentError,
   AttachmentErrorCode,
@@ -14,6 +16,14 @@ export const attachmentRoutes = new Elysia({ prefix: "/attachments" })
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to all attachment endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "attachments",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle AttachmentError
     if (error instanceof AttachmentError) {

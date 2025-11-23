@@ -1,4 +1,6 @@
 import { Elysia, t } from "elysia";
+import { config } from "../config";
+import { rateLimit } from "../middleware/rate-limit";
 import {
   TimeTrackingError,
   TimeTrackingErrorCode,
@@ -14,6 +16,14 @@ export const timeEntryRoutes = new Elysia({ prefix: "/time-entries" })
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to all time entry endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "time-entries",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle TimeTrackingError
     if (error instanceof TimeTrackingError) {

@@ -126,3 +126,28 @@ export function rateLimit(config: RateLimitConfig) {
     set.headers["X-RateLimit-Reset"] = entry.resetAt.toString();
   };
 }
+
+/**
+ * Create a user-based rate limiter (uses userId instead of IP)
+ * @param config - Rate limit configuration
+ * @returns Elysia middleware function
+ */
+export function userRateLimit(config: Omit<RateLimitConfig, "identifier">) {
+  return rateLimit({
+    ...config,
+    identifier: (request: Request) => {
+      // Extract userId from Authorization header
+      const authHeader = request.headers.get("authorization");
+      if (!authHeader) return "anonymous";
+
+      // Parse JWT to get userId (simplified - in production use proper JWT verification)
+      try {
+        const token = authHeader.replace("Bearer ", "");
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return payload.userId || "anonymous";
+      } catch {
+        return "anonymous";
+      }
+    },
+  });
+}

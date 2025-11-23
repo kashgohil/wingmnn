@@ -1,4 +1,6 @@
 import { Elysia, t } from "elysia";
+import { config } from "../config";
+import { rateLimit } from "../middleware/rate-limit";
 import {
   NotificationError,
   NotificationErrorCode,
@@ -14,6 +16,14 @@ export const notificationRoutes = new Elysia({ prefix: "/notifications" })
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to all notification endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "notifications",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle NotificationError
     if (error instanceof NotificationError) {

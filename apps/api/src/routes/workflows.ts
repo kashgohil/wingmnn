@@ -1,4 +1,6 @@
 import { Elysia, t } from "elysia";
+import { config } from "../config";
+import { rateLimit } from "../middleware/rate-limit";
 import {
   WorkflowError,
   WorkflowErrorCode,
@@ -14,6 +16,14 @@ export const workflowRoutes = new Elysia({ prefix: "/workflows" })
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to all workflow endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "workflows",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle WorkflowError
     if (error instanceof WorkflowError) {

@@ -1,4 +1,6 @@
 import { Elysia, t } from "elysia";
+import { config } from "../config";
+import { rateLimit } from "../middleware/rate-limit";
 import {
   ActivityLogError,
   ActivityLogErrorCode,
@@ -14,6 +16,14 @@ export const activityLogRoutes = new Elysia({ prefix: "/activity-logs" })
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to all activity log endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "activity-logs",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle ActivityLogError
     if (error instanceof ActivityLogError) {
@@ -197,6 +207,14 @@ export const projectActivityRoutes = new Elysia()
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to project activity endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "project-activity",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle ActivityLogError
     if (error instanceof ActivityLogError) {
@@ -333,6 +351,14 @@ export const taskActivityRoutes = new Elysia()
   .decorate("userId", null as string | null)
   .decorate("sessionId", null as string | null)
   .decorate("accessToken", null as string | null)
+  // Apply rate limiting to task activity endpoints
+  .onBeforeHandle(
+    rateLimit({
+      max: config.API_RATE_LIMIT,
+      window: config.API_RATE_WINDOW,
+      endpoint: "task-activity",
+    })
+  )
   .onError(({ code, error, set }) => {
     // Handle ActivityLogError
     if (error instanceof ActivityLogError) {
