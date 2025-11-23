@@ -14,6 +14,7 @@ import {
 } from "./routes/activity-logs";
 import { attachmentRoutes } from "./routes/attachments";
 import { commentRoutes } from "./routes/comments";
+import { notificationRoutes } from "./routes/notifications";
 import { projectRoutes } from "./routes/projects";
 import { subtaskRoutes } from "./routes/subtasks";
 import { taskRoutes } from "./routes/tasks";
@@ -313,6 +314,11 @@ Common error codes:
             description:
               "Activity log viewing and filtering for audit trails and change history",
           },
+          {
+            name: "Notifications",
+            description:
+              "Notification management for assignments, status changes, and mentions",
+          },
         ],
         components: {
           securitySchemes: {
@@ -381,6 +387,7 @@ Common error codes:
   .use(activityLogRoutes)
   .use(projectActivityRoutes)
   .use(taskActivityRoutes)
+  .use(notificationRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
