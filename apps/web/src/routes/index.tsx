@@ -32,7 +32,6 @@ import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatterns";
 import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
 import {
 	Card,
 	CardContent,
@@ -40,6 +39,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "../components/ui/card";
+import { Input } from "../components/ui/input";
 
 export const Route = createFileRoute("/")({
 	component: App,
@@ -312,7 +312,10 @@ function Hero() {
 	return (
 		<section className="flex flex-col gap-12 text-center">
 			{/* Badge */}
-			<Card padding="sm" className="inline-flex items-center gap-3 mx-auto backdrop-blur-sm bg-card/80">
+			<Card
+				padding="sm"
+				className="inline-flex items-center gap-3 mx-auto backdrop-blur-sm bg-card/80"
+			>
 				<CardContent className="p-0">
 					<span className="text-sm font-semibold text-foreground font-mono uppercase tracking-wider">
 						Human-centered ops stack
@@ -1236,10 +1239,13 @@ function PricingPreview() {
 									variant={plan.highlight ? "default" : "outline"}
 									type="button"
 								>
-									{plan.price === "Custom" ? "Contact Sales" : "Start Free Trial"}
+									{plan.price === "Custom"
+										? "Contact Sales"
+										: "Start Free Trial"}
 								</Button>
 							</CardContent>
 						</Card>
+					</div>
 				))}
 			</div>
 			<div className="text-center">
@@ -1248,9 +1254,12 @@ function PricingPreview() {
 					type="button"
 					asChild
 				>
-					<Link to="/pricing">
+					<Link
+						to="/pricing"
+						className="inline-flex items-center gap-2"
+					>
 						View Full Pricing
-						<ArrowRight className="h-4 w-4 ml-2" />
+						<ArrowRight className="h-4 w-4" />
 					</Link>
 				</Button>
 			</div>
@@ -1412,7 +1421,9 @@ function SocialProofBadges() {
 								>
 									<Icon className="h-6 w-6 text-foreground" />
 								</div>
-								<p className="text-sm font-mono text-foreground">{badge.name}</p>
+								<p className="text-sm font-mono text-foreground">
+									{badge.name}
+								</p>
 							</CardContent>
 						</Card>
 					);
@@ -1427,7 +1438,10 @@ function NewsletterSignup() {
 
 	return (
 		<section className="py-16">
-			<Card padding="lg" className="backdrop-blur-sm bg-card/80 p-12 md:p-16">
+			<Card
+				padding="lg"
+				className="backdrop-blur-sm bg-card/80 p-12 md:p-16"
+			>
 				<CardContent className="max-w-2xl mx-auto text-center space-y-6 p-0">
 					<Mail className="h-12 w-12 text-primary mx-auto" />
 					<h2 className="text-3xl md:text-4xl font-bold text-foreground">
@@ -1540,7 +1554,10 @@ function ResourceLinks() {
 function FinalCTA() {
 	return (
 		<section className="py-16">
-			<Card padding="lg" className="backdrop-blur-sm bg-card/80 p-12 md:p-16 text-center">
+			<Card
+				padding="lg"
+				className="backdrop-blur-sm bg-card/80 p-12 md:p-16 text-center"
+			>
 				<CardContent className="p-0">
 					<CardTitle className="text-4xl md:text-5xl font-bold mb-4">
 						Ready to streamline your team?

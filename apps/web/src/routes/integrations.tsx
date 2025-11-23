@@ -194,7 +194,10 @@ function IntegrationsPage() {
 				</section>
 
 				<section>
-					<Card padding="lg" className="backdrop-blur-sm bg-card/80 text-center">
+					<Card
+						padding="lg"
+						className="backdrop-blur-sm bg-card/80 text-center"
+					>
 						<CardHeader>
 							<CardTitle className="text-3xl md:text-4xl font-bold">
 								Need a specific integration?
@@ -202,36 +205,38 @@ function IntegrationsPage() {
 						</CardHeader>
 						<CardContent>
 							<CardDescription className="max-w-2xl mx-auto">
-								We build enterprise integrations on request and support custom APIs,
-								webhooks, and on-prem deployments.
+								We build enterprise integrations on request and support custom
+								APIs, webhooks, and on-prem deployments.
 							</CardDescription>
 							<div className="flex flex-wrap gap-4 justify-center mt-6">
-						<Button
-							variant="default"
-							size="xl"
-							asChild
-						>
-							<Link
-								to="/contact"
-								className="inline-flex items-center gap-2"
-							>
-								Chat with us
-								<ArrowRight className="h-4 w-4" />
-							</Link>
-						</Button>
-						<Button
-							variant="outline"
-							size="xl"
-							asChild
-						>
-							<Link
-								to="/help"
-								className="inline-flex items-center gap-2"
-							>
-								Visit API docs
-							</Link>
-						</Button>
-					</div>
+								<Button
+									variant="default"
+									size="xl"
+									asChild
+								>
+									<Link
+										to="/contact"
+										className="inline-flex items-center gap-2"
+									>
+										Chat with us
+										<ArrowRight className="h-4 w-4" />
+									</Link>
+								</Button>
+								<Button
+									variant="outline"
+									size="xl"
+									asChild
+								>
+									<Link
+										to="/help"
+										className="inline-flex items-center gap-2"
+									>
+										Visit API docs
+									</Link>
+								</Button>
+							</div>
+						</CardContent>
+					</Card>
 				</section>
 			</div>
 

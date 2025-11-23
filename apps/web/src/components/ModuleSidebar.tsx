@@ -120,12 +120,13 @@ export function ModuleSidebar() {
 									asChild
 									className="justify-center p-2!"
 								>
-									<Link
+									<a
+										href="/help"
 										target="_blank"
-										to="/help"
+										rel="noopener noreferrer"
 									>
 										<HelpCircle className="h-5 w-5" />
-									</Link>
+									</a>
 								</Button>
 							</TooltipTrigger>
 							<TooltipContent side="right">

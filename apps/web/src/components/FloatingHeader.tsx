@@ -35,7 +35,12 @@ function isProtectedRoute(pathname: string): boolean {
 export function FloatingHeader() {
 	const { theme, setTheme } = useTheme();
 	const { isAuthenticated, user, logout } = useAuth();
+
+	// Get location - useLocation() should work in route components
+	// If router context isn't available, this will throw, but that's expected
+	// as these components should only be used within route components
 	const location = useLocation();
+
 	const [authDialogOpen, setAuthDialogOpen] = useState(false);
 	const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 

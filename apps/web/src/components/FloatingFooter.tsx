@@ -19,6 +19,9 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 export function FloatingFooter() {
+	// Get location - useLocation() should work in route components
+	// If router context isn't available, this will throw, but that's expected
+	// as these components should only be used within route components
 	const location = useLocation();
 	const currentYear = new Date().getFullYear();
 
