@@ -7,6 +7,7 @@ import { config, isProduction } from "./config";
 import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { rateLimit } from "./middleware/rate-limit";
+import { workflowRoutes } from "./routes/workflows";
 import { AuthError, AuthErrorCode, authService } from "./services/auth.service";
 import { cleanupService } from "./services/cleanup.service";
 import { initializeOAuthProviders } from "./services/oauth.service";
@@ -320,6 +321,7 @@ Common error codes:
   .use(cookie())
   .use(csrf())
   .use(auth())
+  .use(workflowRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
