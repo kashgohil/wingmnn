@@ -80,6 +80,8 @@ export interface TaskFilters {
   includeDeleted?: boolean;
   limit?: number;
   offset?: number;
+  sortBy?: string;
+  sortDirection?: "asc" | "desc";
 }
 
 /**
@@ -370,6 +372,22 @@ export class TaskService {
       .select()
       .from(tasks)
       .where(and(...conditions));
+
+    // Apply sorting
+    if (filters.sortBy) {
+      const sortDir = filters.sortDirection || "asc";
+
+      // Map sort field to column
+      const sortColumn = (tasks as any)[filters.sortBy];
+      if (sortColumn) {
+        if (sortDir === "asc") {
+          query = query.orderBy(sortColumn) as any;
+        } else {
+          query = query.orderBy(sql`${sortColumn} DESC`) as any;
+        }
+      }
+      // If invalid field, just skip sorting (no default)
+    }
 
     // Apply pagination
     if (filters.limit) {

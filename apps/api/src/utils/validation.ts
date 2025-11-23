@@ -124,6 +124,7 @@ export function validateMimeType(
 
 /**
  * Validate pagination parameters
+ * @deprecated Use validatePaginationParams from pagination.ts instead
  */
 export function validatePagination(
   limit?: number,

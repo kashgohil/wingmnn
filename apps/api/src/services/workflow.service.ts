@@ -166,11 +166,18 @@ export class WorkflowService {
    * List workflows accessible to a user
    * @param userId - User ID
    * @param type - Optional filter by workflow type
+   * @param options - Pagination and sorting options
    * @returns List of workflows
    */
   async listWorkflows(
     userId: string,
-    type?: "task" | "subtask"
+    type?: "task" | "subtask",
+    options?: {
+      limit?: number;
+      offset?: number;
+      sortBy?: string;
+      sortDirection?: "asc" | "desc";
+    }
   ): Promise<Workflow[]> {
     const conditions = [
       or(eq(workflows.isTemplate, true), eq(workflows.createdBy, userId)),
@@ -180,12 +187,40 @@ export class WorkflowService {
       conditions.push(eq(workflows.workflowType, type));
     }
 
-    const result = await db
+    let query = db
       .select()
       .from(workflows)
-      .where(and(...conditions))
-      .orderBy(workflows.name);
+      .where(and(...conditions));
 
+    // Apply sorting
+    if (options?.sortBy) {
+      const sortDir = options.sortDirection || "asc";
+
+      // Map sort field to column
+      const sortColumn = (workflows as any)[options.sortBy];
+      if (sortColumn) {
+        if (sortDir === "asc") {
+          query = query.orderBy(sortColumn) as any;
+        } else {
+          query = query.orderBy(sql`${sortColumn} DESC`) as any;
+        }
+      } else {
+        // Default to name if invalid field
+        query = query.orderBy(workflows.name) as any;
+      }
+    } else {
+      query = query.orderBy(workflows.name) as any;
+    }
+
+    // Apply pagination
+    if (options?.limit) {
+      query = query.limit(options.limit) as any;
+    }
+    if (options?.offset) {
+      query = query.offset(options.offset) as any;
+    }
+
+    const result = await query;
     return result;
   }
 

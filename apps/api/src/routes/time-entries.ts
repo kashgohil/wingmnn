@@ -158,6 +158,8 @@ Create a new time entry for a task or subtask.
         relatedEntityId: query.relatedEntityId,
         limit: query.limit ? parseInt(query.limit) : undefined,
         offset: query.offset ? parseInt(query.offset) : undefined,
+        sortBy: query.sortBy,
+        sortDirection: query.sortDirection,
       };
 
       // Parse date filters
@@ -188,6 +190,10 @@ Create a new time entry for a task or subtask.
         dateTo: t.Optional(t.String()),
         limit: t.Optional(t.String()),
         offset: t.Optional(t.String()),
+        sortBy: t.Optional(t.String()),
+        sortDirection: t.Optional(
+          t.Union([t.Literal("asc"), t.Literal("desc")])
+        ),
       }),
       detail: {
         tags: ["Time Tracking"],
@@ -206,16 +212,17 @@ List time entries with optional filtering.
 - \`dateTo\`: Filter by date (entries on or before this date)
 
 **Pagination:**
-- \`limit\`: Maximum number of entries to return
-- \`offset\`: Number of entries to skip
+- \`limit\`: Maximum number of entries to return (default: 50, max: 100)
+- \`offset\`: Number of entries to skip (default: 0)
+
+**Sorting:**
+- \`sortBy\`: Field to sort by (e.g., 'date', 'durationMinutes', 'createdAt')
+- \`sortDirection\`: Sort direction ('asc' or 'desc', default: 'desc' for date)
 
 **Authorization:**
 - Only returns time entries for tasks/subtasks the user has access to
 - If userId is specified, returns entries for that user (if accessible)
 - Entries are automatically filtered by project access
-
-**Ordering:**
-- Results are ordered by date in descending order (most recent first)
 
 **Requirements:**
 - Validates: Requirements 7.4

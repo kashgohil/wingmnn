@@ -165,8 +165,13 @@ Create a new custom workflow for tasks or subtasks.
         );
       }
 
-      const { type } = query;
-      const workflows = await workflowService.listWorkflows(userId, type);
+      const { type, limit, offset, sortBy, sortDirection } = query;
+      const workflows = await workflowService.listWorkflows(userId, type, {
+        limit: limit ? parseInt(limit) : undefined,
+        offset: offset ? parseInt(offset) : undefined,
+        sortBy,
+        sortDirection,
+      });
 
       return {
         workflows,
@@ -175,6 +180,12 @@ Create a new custom workflow for tasks or subtasks.
     {
       query: t.Object({
         type: t.Optional(t.Union([t.Literal("task"), t.Literal("subtask")])),
+        limit: t.Optional(t.String()),
+        offset: t.Optional(t.String()),
+        sortBy: t.Optional(t.String()),
+        sortDirection: t.Optional(
+          t.Union([t.Literal("asc"), t.Literal("desc")])
+        ),
       }),
       detail: {
         tags: ["Workflows"],
@@ -193,6 +204,14 @@ List all workflows accessible to the authenticated user.
 **Filtering:**
 - Use \`type\` query parameter to filter by workflow type (task or subtask)
 - Omit \`type\` to get all workflows
+
+**Pagination:**
+- \`limit\`: Maximum number of workflows to return (default: 50, max: 100)
+- \`offset\`: Number of workflows to skip (default: 0)
+
+**Sorting:**
+- \`sortBy\`: Field to sort by (e.g., 'name', 'createdAt', 'workflowType')
+- \`sortDirection\`: Sort direction ('asc' or 'desc', default: 'asc')
 
 **Response:**
 - Array of workflow objects

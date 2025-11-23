@@ -171,11 +171,18 @@ export class ProjectService {
    * List projects accessible to a user
    * @param userId - User ID
    * @param status - Optional filter by project status (defaults to "active" if not provided, use null to get all)
+   * @param options - Pagination and sorting options
    * @returns List of projects
    */
   async listProjects(
     userId: string,
-    status?: "active" | "archived" | "on_hold" | "completed" | null
+    status?: "active" | "archived" | "on_hold" | "completed" | null,
+    options?: {
+      limit?: number;
+      offset?: number;
+      sortBy?: string;
+      sortDirection?: "asc" | "desc";
+    }
   ): Promise<Project[]> {
     // Default to active projects if no status specified (Requirement 14.1)
     // Use null to get all projects regardless of status
@@ -255,6 +262,33 @@ export class ProjectService {
     const uniqueProjects = Array.from(
       new Map(allProjects.map((p) => [p.id, p])).values()
     );
+
+    // Apply sorting if specified
+    if (options?.sortBy) {
+      const sortField = options.sortBy as keyof Project;
+      const sortDir = options.sortDirection || "asc";
+
+      uniqueProjects.sort((a, b) => {
+        const aVal = a[sortField];
+        const bVal = b[sortField];
+
+        if (aVal === null || aVal === undefined) return 1;
+        if (bVal === null || bVal === undefined) return -1;
+
+        let comparison = 0;
+        if (aVal < bVal) comparison = -1;
+        if (aVal > bVal) comparison = 1;
+
+        return sortDir === "asc" ? comparison : -comparison;
+      });
+    }
+
+    // Apply pagination if specified
+    if (options?.limit !== undefined || options?.offset !== undefined) {
+      const limit = options.limit || 50;
+      const offset = options.offset || 0;
+      return uniqueProjects.slice(offset, offset + limit);
+    }
 
     return uniqueProjects;
   }

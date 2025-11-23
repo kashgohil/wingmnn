@@ -172,12 +172,17 @@ Create a new project with a selected workflow.
         );
       }
 
-      const { status } = query;
+      const { status, limit, offset, sortBy, sortDirection } = query;
 
       // Convert status to the correct type or null for all projects
       const statusFilter = status === "all" ? null : status;
 
-      const projects = await projectService.listProjects(userId, statusFilter);
+      const projects = await projectService.listProjects(userId, statusFilter, {
+        limit: limit ? parseInt(limit) : undefined,
+        offset: offset ? parseInt(offset) : undefined,
+        sortBy,
+        sortDirection,
+      });
 
       return {
         projects,
@@ -193,6 +198,12 @@ Create a new project with a selected workflow.
             t.Literal("completed"),
             t.Literal("all"),
           ])
+        ),
+        limit: t.Optional(t.String()),
+        offset: t.Optional(t.String()),
+        sortBy: t.Optional(t.String()),
+        sortDirection: t.Optional(
+          t.Union([t.Literal("asc"), t.Literal("desc")])
         ),
       }),
       detail: {
@@ -221,6 +232,14 @@ List all projects accessible to the authenticated user.
 - \`on_hold\`: Projects temporarily paused
 - \`completed\`: Completed projects
 - \`all\`: All projects regardless of status
+
+**Pagination:**
+- \`limit\`: Maximum number of projects to return (default: 50, max: 100)
+- \`offset\`: Number of projects to skip (default: 0)
+
+**Sorting:**
+- \`sortBy\`: Field to sort by (e.g., 'name', 'createdAt', 'updatedAt')
+- \`sortDirection\`: Sort direction ('asc' or 'desc', default: 'asc')
 
 **Response:**
 - Array of project objects

@@ -56,6 +56,8 @@ export interface TimeEntryFilters {
   dateTo?: Date;
   limit?: number;
   offset?: number;
+  sortBy?: string;
+  sortDirection?: "asc" | "desc";
 }
 
 /**
@@ -403,8 +405,27 @@ export class TimeTrackingService {
     let query = db
       .select()
       .from(timeEntries)
-      .where(and(...conditions))
-      .orderBy(sql`${timeEntries.date} DESC`);
+      .where(and(...conditions));
+
+    // Apply sorting
+    if (filters.sortBy) {
+      const sortDir = filters.sortDirection || "desc";
+
+      // Map sort field to column
+      const sortColumn = (timeEntries as any)[filters.sortBy];
+      if (sortColumn) {
+        if (sortDir === "asc") {
+          query = query.orderBy(sortColumn) as any;
+        } else {
+          query = query.orderBy(sql`${sortColumn} DESC`) as any;
+        }
+      } else {
+        // Default to date DESC if invalid field
+        query = query.orderBy(sql`${timeEntries.date} DESC`) as any;
+      }
+    } else {
+      query = query.orderBy(sql`${timeEntries.date} DESC`) as any;
+    }
 
     // Apply pagination
     if (filters.limit) {

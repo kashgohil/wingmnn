@@ -195,6 +195,8 @@ Create a new task within a project.
         includeDeleted: query.includeDeleted === "true",
         limit: query.limit ? parseInt(query.limit) : undefined,
         offset: query.offset ? parseInt(query.offset) : undefined,
+        sortBy: query.sortBy,
+        sortDirection: query.sortDirection,
       };
 
       // Parse date filters
@@ -237,6 +239,10 @@ Create a new task within a project.
         includeDeleted: t.Optional(t.String()),
         limit: t.Optional(t.String()),
         offset: t.Optional(t.String()),
+        sortBy: t.Optional(t.String()),
+        sortDirection: t.Optional(
+          t.Union([t.Literal("asc"), t.Literal("desc")])
+        ),
       }),
       detail: {
         tags: ["Tasks"],
@@ -259,8 +265,12 @@ List tasks with optional filtering.
 - \`includeDeleted\`: Include soft-deleted tasks (default: false)
 
 **Pagination:**
-- \`limit\`: Maximum number of tasks to return
-- \`offset\`: Number of tasks to skip
+- \`limit\`: Maximum number of tasks to return (default: 50, max: 100)
+- \`offset\`: Number of tasks to skip (default: 0)
+
+**Sorting:**
+- \`sortBy\`: Field to sort by (e.g., 'title', 'priority', 'createdAt', 'dueDate')
+- \`sortDirection\`: Sort direction ('asc' or 'desc', default: 'asc')
 
 **Authorization:**
 - Only returns tasks from projects the user has access to
