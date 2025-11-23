@@ -170,13 +170,17 @@ export class ProjectService {
   /**
    * List projects accessible to a user
    * @param userId - User ID
-   * @param status - Optional filter by project status
+   * @param status - Optional filter by project status (defaults to "active" if not provided, use null to get all)
    * @returns List of projects
    */
   async listProjects(
     userId: string,
-    status?: "active" | "archived" | "on_hold" | "completed"
+    status?: "active" | "archived" | "on_hold" | "completed" | null
   ): Promise<Project[]> {
+    // Default to active projects if no status specified (Requirement 14.1)
+    // Use null to get all projects regardless of status
+    const statusFilter = status !== undefined ? status : "active";
+
     // Get all user's group IDs
     const userGroupsResult = await db
       .select({ groupId: userGroupMembers.groupId })
@@ -207,10 +211,9 @@ export class ProjectService {
     // Query projects with access check
     const conditions = [or(...accessConditions)];
 
-    // Add status filter if provided
-    if (status) {
-      conditions.push(eq(projects.status, status));
-    }
+    // Add status filter if not null
+    const statusCondition =
+      statusFilter !== null ? eq(projects.status, statusFilter) : sql`true`;
 
     // Get projects where user is owner or member
     const ownedOrDirectMember = await db
@@ -222,7 +225,7 @@ export class ProjectService {
             eq(projects.ownerId, userId),
             sql`${projects.id} IN (SELECT ${projectMembers.projectId} FROM ${projectMembers} WHERE ${projectMembers.userId} = ${userId})`
           ),
-          status ? eq(projects.status, status) : sql`true`
+          statusCondition
         )
       );
 
@@ -242,7 +245,7 @@ export class ProjectService {
               userGroupIds.map((id) => sql`${id}`),
               sql`, `
             )}))`,
-            status ? eq(projects.status, status) : sql`true`
+            statusCondition
           )
         );
     }
