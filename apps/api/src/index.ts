@@ -7,6 +7,7 @@ import { config, isProduction } from "./config";
 import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { rateLimit } from "./middleware/rate-limit";
+import { attachmentRoutes } from "./routes/attachments";
 import { commentRoutes } from "./routes/comments";
 import { projectRoutes } from "./routes/projects";
 import { subtaskRoutes } from "./routes/subtasks";
@@ -297,6 +298,11 @@ Common error codes:
             description:
               "Comment management with threading support for tasks and subtasks",
           },
+          {
+            name: "Attachments",
+            description:
+              "File attachment management for tasks and subtasks with secure download URLs",
+          },
         ],
         components: {
           securitySchemes: {
@@ -361,6 +367,7 @@ Common error codes:
   .use(subtaskRoutes)
   .use(timeEntryRoutes)
   .use(commentRoutes)
+  .use(attachmentRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
