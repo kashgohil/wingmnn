@@ -46,9 +46,46 @@ export function ModuleSidebar() {
 		setTheme(theme === "light" ? "dark" : "light");
 	};
 
+	// All module colors
+	const allModuleColors = [
+		"var(--module-mail)",
+		"var(--module-notes)",
+		"var(--module-finance)",
+		"var(--module-feeds)",
+		"var(--module-messages)",
+		"var(--module-calendar)",
+		"var(--module-wellness)",
+		"var(--module-projects)",
+		"var(--module-files)",
+		"var(--module-fun)",
+	];
+
+	// Shuffle function
+	const shuffle = <T,>(array: T[]): T[] => {
+		const shuffled = [...array];
+		for (let i = shuffled.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+		}
+		return shuffled;
+	};
+
+	// Shuffled module colors for right border
+	const rightBorderColors = shuffle(allModuleColors);
+
 	return (
 		<TooltipProvider>
-			<aside className="h-screen bg-card/80 backdrop-blur-sm border-r-2 z-40 flex flex-col">
+			<aside className="h-screen bg-card/80 backdrop-blur-sm z-40 flex flex-col relative">
+				{/* Color accent bars on right - using all module colors */}
+				<div className="absolute left-full top-0 bottom-0 flex flex-col w-1">
+					{rightBorderColors.map((color, idx) => (
+						<div
+							key={`right-${idx}`}
+							className="flex-1"
+							style={{ backgroundColor: color }}
+						/>
+					))}
+				</div>
 				{/* Sidebar Content */}
 				<div className="flex flex-col h-full overflow-y-auto">
 					{/* Header */}
