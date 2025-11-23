@@ -85,7 +85,11 @@ function IntegrationsPage() {
 						</div>
 					</div>
 					<div className="flex flex-wrap gap-4 justify-center">
-						<Button className="retro-button retro-button-primary px-8 py-3 text-base font-mono uppercase tracking-wider">
+						<Button
+							variant="default"
+							size="xl"
+							asChild
+						>
 							<Link
 								to="/contact"
 								className="inline-flex items-center gap-2"
@@ -94,7 +98,11 @@ function IntegrationsPage() {
 								<ArrowRight className="h-4 w-4" />
 							</Link>
 						</Button>
-						<Button className="retro-button retro-button-outline px-8 py-3 text-base font-mono uppercase tracking-wider">
+						<Button
+							variant="outline"
+							size="xl"
+							asChild
+						>
 							<Link
 								to="/security"
 								className="inline-flex items-center gap-2"
@@ -183,7 +191,11 @@ function IntegrationsPage() {
 						webhooks, and on-prem deployments.
 					</p>
 					<div className="flex flex-wrap gap-4 justify-center">
-						<Button className="retro-button retro-button-primary px-8 py-3 text-base font-mono uppercase tracking-wider">
+						<Button
+							variant="default"
+							size="xl"
+							asChild
+						>
 							<Link
 								to="/contact"
 								className="inline-flex items-center gap-2"
@@ -192,7 +204,11 @@ function IntegrationsPage() {
 								<ArrowRight className="h-4 w-4" />
 							</Link>
 						</Button>
-						<Button className="retro-button retro-button-outline px-8 py-3 text-base font-mono uppercase tracking-wider">
+						<Button
+							variant="outline"
+							size="xl"
+							asChild
+						>
 							<Link
 								to="/help"
 								className="inline-flex items-center gap-2"

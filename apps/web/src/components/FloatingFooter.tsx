@@ -1,5 +1,4 @@
-import { useAuth } from "@/lib/auth/auth-context";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import {
 	Copyright,
 	Facebook,
@@ -9,14 +8,22 @@ import {
 	Mail,
 	Twitter,
 } from "lucide-react";
+import { getAllModuleSlugs } from "../lib/modules";
 import { TiktokIcon } from "./icons/TiktokIcon";
 
+// Protected routes that should not show header/footer
+const PROTECTED_ROUTES = ["/dashboard", ...getAllModuleSlugs().map((slug) => `/${slug}`)];
+
+function isProtectedRoute(pathname: string): boolean {
+	return PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+}
+
 export function FloatingFooter() {
-	const { isAuthenticated } = useAuth();
+	const location = useLocation();
 	const currentYear = new Date().getFullYear();
 
-	// Don't show footer when authenticated
-	if (isAuthenticated) {
+	// Don't show footer on protected routes
+	if (isProtectedRoute(location.pathname)) {
 		return null;
 	}
 

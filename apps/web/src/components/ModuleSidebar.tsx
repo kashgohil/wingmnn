@@ -1,101 +1,215 @@
+import { useTheme } from "@/hooks/use-theme";
+import { useAuth } from "@/lib/auth/auth-context";
 import { modules } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { catchError } from "@wingmnn/utils/catch-error";
+import { HelpCircle, Moon, Sun, User, UserCircle } from "lucide-react";
+import { WingmnnIcon } from "./icons/wingmnnIcon";
+import { Avatar } from "./ui/avatar";
+import { Button } from "./ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "./ui/tooltip";
 
-interface ModuleSidebarProps {
-	isCollapsed: boolean;
-	onToggleCollapse: () => void;
-}
-
-export function ModuleSidebar({
-	isCollapsed,
-	onToggleCollapse,
-}: ModuleSidebarProps) {
+export function ModuleSidebar() {
 	const location = useLocation();
+	const { user, logout } = useAuth();
+	const { theme, setTheme } = useTheme();
+
+	const getThemeIcon = () => {
+		return theme === "light" ? (
+			<Sun className="h-5 w-5" />
+		) : (
+			<Moon className="h-5 w-5" />
+		);
+	};
+
+	const cycleTheme = () => {
+		setTheme(theme === "light" ? "dark" : "light");
+	};
 
 	return (
-		<aside
-			className={cn(
-				"fixed left-0 top-0 h-screen bg-card/80 backdrop-blur-sm retro-border border-r-2 transition-all duration-300 z-40 flex flex-col",
-				isCollapsed ? "w-16" : "w-64",
-			)}
-		>
-			{/* Collapse/Expand Button */}
-			<button
-				onClick={onToggleCollapse}
-				className="absolute -right-3 top-4 z-50 h-6 w-6 rounded-full retro-border bg-card flex items-center justify-center hover:bg-accent transition-colors"
-				aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-			>
-				{isCollapsed ? (
-					<ChevronRight className="h-4 w-4" />
-				) : (
-					<ChevronDown className="h-4 w-4 -rotate-90" />
-				)}
-			</button>
-
-			{/* Sidebar Content */}
-			<div className="flex flex-col h-full overflow-y-auto">
-				{/* Header */}
-				<div className="p-4 border-b border-border">
-					{!isCollapsed && (
-						<h2 className="text-lg font-bold font-mono uppercase tracking-wider">
-							Modules
-						</h2>
-					)}
-				</div>
-
-				{/* Module List */}
-				<nav className="flex-1 p-2 space-y-1">
-					{modules.map((module) => {
-						const Icon = module.icon;
-						const isActive = location.pathname === `/${module.slug}`;
-
-						return (
-							<Link
-								key={module.slug}
-								to={`/${module.slug}` as any}
-								className={cn(
-									"flex items-center gap-3 px-3 py-2 rounded-none retro-border transition-all group relative",
-									"hover:bg-accent/50",
-									isActive && "bg-accent",
-									isCollapsed && "justify-center",
-								)}
-								style={{
-									borderLeftColor: `var(${module.colorVar})`,
-									borderLeftWidth: isActive ? "4px" : "2px",
-								}}
-								title={isCollapsed ? module.name : undefined}
-							>
-								<div
-									className={cn(
-										"p-2 retro-border rounded-none shrink-0 transition-all",
-										isActive && "opacity-100",
-									)}
-									style={{
-										backgroundColor: isActive
-											? `var(${module.colorVar})`
-											: `var(${module.colorVar})`,
-										opacity: isActive ? 1 : 0.3,
-									}}
+		<TooltipProvider>
+			<aside className="h-screen bg-card/80 backdrop-blur-sm border-r-2 z-40 flex flex-col">
+				{/* Sidebar Content */}
+				<div className="flex flex-col h-full overflow-y-auto">
+					{/* Header */}
+					<div className="p-4 flex items-center justify-center">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Link
+									to="/dashboard"
+									className="cursor-pointer flex items-center justify-center"
 								>
-									<Icon
-										className={cn(
-											"h-5 w-5 transition-colors",
-											isActive ? "text-primary-foreground" : "text-foreground",
-										)}
+									<WingmnnIcon
+										color="var(--primary)"
+										className="h-10 w-10"
 									/>
-								</div>
-								{!isCollapsed && (
-									<span className="font-mono text-sm uppercase tracking-wider truncate">
-										{module.name}
-									</span>
-								)}
-							</Link>
-						);
-					})}
-				</nav>
-			</div>
-		</aside>
+								</Link>
+							</TooltipTrigger>
+							<TooltipContent side="right">
+								<p>Go to Dashboard</p>
+							</TooltipContent>
+						</Tooltip>
+					</div>
+
+					{/* Module List */}
+					<nav className="flex-1 flex flex-col p-2 gap-1">
+						{modules.map((module) => {
+							const Icon = module.icon;
+							const isActive = location.pathname === `/${module.slug}`;
+
+							return (
+								<Tooltip key={module.slug}>
+									<TooltipTrigger asChild>
+										<Link
+											to={`/${module.slug}` as any}
+											className="w-full"
+										>
+											<div
+												className={cn(
+													"w-full flex items-center justify-center px-3 py-2 retro-border rounded-none transition-all opacity-70",
+													isActive && "opacity-100",
+												)}
+												style={{
+													background: `var(${module.colorVar})`,
+												}}
+											>
+												<Icon
+													className={cn(
+														"h-5 w-5 transition-colors",
+														isActive
+															? "text-primary-foreground"
+															: "text-foreground",
+													)}
+												/>
+											</div>
+										</Link>
+									</TooltipTrigger>
+									<TooltipContent side="right">
+										<p>{module.name}</p>
+									</TooltipContent>
+								</Tooltip>
+							);
+						})}
+					</nav>
+
+					{/* Bottom Actions */}
+					<div className="p-2 space-y-1">
+						{/* Help */}
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="menu"
+									asChild
+									className="justify-center"
+								>
+									<Link to="/help">
+										<HelpCircle className="h-5 w-5" />
+									</Link>
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent side="right">
+								<p>Help</p>
+							</TooltipContent>
+						</Tooltip>
+
+						{/* Theme Switcher */}
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="menu"
+									onClick={cycleTheme}
+									className="justify-center"
+									aria-label={`Current theme: ${theme}. Click to switch to ${
+										theme === "light" ? "dark" : "light"
+									} mode.`}
+								>
+									{getThemeIcon()}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent side="right">
+								<p>Switch to {theme === "light" ? "dark" : "light"} mode</p>
+							</TooltipContent>
+						</Tooltip>
+
+						{/* Profile */}
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Popover>
+									<PopoverTrigger asChild>
+										<Button
+											variant="menu"
+											className="justify-center"
+										>
+											<User className="h-5 w-5" />
+										</Button>
+									</PopoverTrigger>
+
+									<PopoverContent
+										side="right"
+										align="start"
+										className="w-56 p-0"
+									>
+										<div className="p-4 border-b border-border flex items-center gap-3">
+											<Avatar
+												name={user?.name || "User"}
+												size="md"
+											/>
+											<p className="font-semibold text-foreground font-mono uppercase tracking-wider">
+												{user?.name}
+											</p>
+										</div>
+										<div className="p-2">
+											<Button
+												variant="menu-item"
+												asChild
+												className="justify-start text-left"
+											>
+												<Link to="/dashboard">
+													<User className="h-4 w-4" />
+													Dashboard
+												</Link>
+											</Button>
+											<Button
+												variant="menu-item"
+												asChild
+												className="justify-start text-left"
+											>
+												<Link to="/profile">
+													<UserCircle className="h-4 w-4" />
+													Profile
+												</Link>
+											</Button>
+											<Button
+												variant="menu-item"
+												type="button"
+												className="justify-start text-left"
+												onClick={async () => {
+													const [, error] = await catchError(logout());
+													if (error) {
+														console.error("Logout failed:", error);
+													}
+												}}
+											>
+												<span>Logout</span>
+											</Button>
+										</div>
+									</PopoverContent>
+								</Popover>
+							</TooltipTrigger>
+							<TooltipContent side="right">
+								<p>{user?.name || "Profile"}</p>
+							</TooltipContent>
+						</Tooltip>
+					</div>
+				</div>
+			</aside>
+		</TooltipProvider>
 	);
 }

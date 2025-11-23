@@ -15,6 +15,7 @@ import { Route as StatusRouteImport } from './routes/status'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as NotesRouteImport } from './routes/notes'
@@ -65,6 +66,11 @@ const RoadmapRoute = RoadmapRouteImport.update({
 const ProjectsRoute = ProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -193,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/notes': typeof NotesRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsRoute
   '/roadmap': typeof RoadmapRoute
   '/security': typeof SecurityRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByTo {
   '/notes': typeof NotesRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsRoute
   '/roadmap': typeof RoadmapRoute
   '/security': typeof SecurityRoute
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/notes': typeof NotesRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/profile': typeof ProfileRoute
   '/projects': typeof ProjectsRoute
   '/roadmap': typeof RoadmapRoute
   '/security': typeof SecurityRoute
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/notes'
     | '/pricing'
     | '/privacy'
+    | '/profile'
     | '/projects'
     | '/roadmap'
     | '/security'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/notes'
     | '/pricing'
     | '/privacy'
+    | '/profile'
     | '/projects'
     | '/roadmap'
     | '/security'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/notes'
     | '/pricing'
     | '/privacy'
+    | '/profile'
     | '/projects'
     | '/roadmap'
     | '/security'
@@ -371,6 +383,7 @@ export interface RootRouteChildren {
   NotesRoute: typeof NotesRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  ProfileRoute: typeof ProfileRoute
   ProjectsRoute: typeof ProjectsRoute
   RoadmapRoute: typeof RoadmapRoute
   SecurityRoute: typeof SecurityRoute
@@ -423,6 +436,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -595,6 +615,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotesRoute: NotesRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  ProfileRoute: ProfileRoute,
   ProjectsRoute: ProjectsRoute,
   RoadmapRoute: RoadmapRoute,
   SecurityRoute: SecurityRoute,

@@ -1,36 +1,45 @@
 import { useAuth } from "@/lib/auth/auth-context";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { catchError } from "@wingmnn/utils/catch-error";
-import { LogIn, LogOut, Moon, Sun, User, UserPlus } from "lucide-react";
+import {
+	LogIn,
+	LogOut,
+	Moon,
+	Sun,
+	User,
+	UserCircle,
+	UserPlus,
+} from "lucide-react";
 import { useState } from "react";
 import { useTheme } from "../hooks/use-theme";
+import { getAllModuleSlugs } from "../lib/modules";
 import { AuthDialog } from "./AuthDialog";
+import { WingmnnIcon } from "./icons/wingmnnIcon";
+import { Avatar } from "./ui/avatar";
 import { Button } from "./ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
-function LogoIcon({ color }: { color: string }) {
-	return (
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			viewBox="0 0 24 24"
-			fill={color}
-			className="h-6 w-6"
-		>
-			<title>Wingmnn Logo</title>
-			<path d="M2 3 L8 3 L12 12 L8 21 L2 21 Z" />
-			<path d="M22 3 L16 3 L12 12 L16 21 L22 21 Z" />
-		</svg>
+// Protected routes that should not show header/footer
+const PROTECTED_ROUTES = [
+	"/dashboard",
+	...getAllModuleSlugs().map((slug) => `/${slug}`),
+];
+
+function isProtectedRoute(pathname: string): boolean {
+	return PROTECTED_ROUTES.some(
+		(route) => pathname === route || pathname.startsWith(`${route}/`),
 	);
 }
 
 export function FloatingHeader() {
 	const { theme, setTheme } = useTheme();
 	const { isAuthenticated, user, logout } = useAuth();
+	const location = useLocation();
 	const [authDialogOpen, setAuthDialogOpen] = useState(false);
 	const [authMode, setAuthMode] = useState<"login" | "signup">("login");
-	const [showUserMenu, setShowUserMenu] = useState(false);
 
-	// Don't show header when authenticated
-	if (isAuthenticated) {
+	// Don't show header on protected routes
+	if (isProtectedRoute(location.pathname)) {
 		return null;
 	}
 
@@ -137,7 +146,7 @@ export function FloatingHeader() {
 						to="/"
 						className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
 					>
-						<LogoIcon color={logoColor} />
+						<WingmnnIcon color={logoColor} />
 						<h1
 							className="text-xl font-bold font-mono uppercase tracking-wider relative"
 							style={{ color: logoColor }}
@@ -153,64 +162,69 @@ export function FloatingHeader() {
 						{isAuthenticated ? (
 							<>
 								{/* User Profile Menu */}
-								<div className="relative">
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => setShowUserMenu(!showUserMenu)}
-										className="flex items-center gap-2"
+								<Popover>
+									<PopoverTrigger asChild>
+										<Button
+											variant="outline"
+											size="sm"
+											className="flex items-center gap-2"
+										>
+											<User className="h-4 w-4" />
+											<span className="hidden md:inline">{user?.name}</span>
+										</Button>
+									</PopoverTrigger>
+
+									<PopoverContent
+										align="end"
+										className="w-56 p-0"
 									>
-										<User className="h-4 w-4" />
-										<span className="hidden md:inline">{user?.name}</span>
-									</Button>
-
-									{/* Dropdown Menu */}
-									{showUserMenu && (
-										<>
-											{/* Backdrop to close menu */}
-											<div
-												className="fixed inset-0 z-40"
-												onClick={() => setShowUserMenu(false)}
+										<div className="p-4 border-b border-border flex items-center gap-3">
+											<Avatar
+												name={user?.name || "User"}
+												size="md"
 											/>
-
-											{/* Menu */}
-											<div className="absolute right-0 mt-2 w-56 retro-border bg-card rounded-none shadow-lg z-50">
-												<div className="p-4 border-b border-border">
-													<p className="font-semibold text-foreground">
-														{user?.name}
-													</p>
-													<p className="text-sm text-muted-foreground truncate">
-														{user?.email}
-													</p>
-												</div>
-												<div className="p-2">
-													<Link
-														to="/dashboard"
-														className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent rounded-none transition-colors"
-														onClick={() => setShowUserMenu(false)}
-													>
-														<User className="h-4 w-4" />
-														Dashboard
-													</Link>
-													<button
-														type="button"
-														onClick={async () => {
-															const [, error] = await catchError(logout());
-															if (error) {
-																console.error("Logout failed:", error);
-															}
-															setShowUserMenu(false);
-														}}
-														className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent rounded-none transition-colors text-left"
-													>
-														<LogOut className="h-4 w-4" />
-														Logout
-													</button>
-												</div>
-											</div>
-										</>
-									)}
-								</div>
+											<p className="font-semibold text-foreground font-mono uppercase tracking-wider">
+												{user?.name}
+											</p>
+										</div>
+										<div className="p-2">
+											<Button
+												variant="menu-item"
+												asChild
+												className="justify-start text-left"
+											>
+												<Link to="/dashboard">
+													<User className="h-4 w-4" />
+													Dashboard
+												</Link>
+											</Button>
+											<Button
+												variant="menu-item"
+												asChild
+												className="justify-start text-left"
+											>
+												<Link to="/profile">
+													<UserCircle className="h-4 w-4" />
+													Profile
+												</Link>
+											</Button>
+											<Button
+												variant="menu-item"
+												type="button"
+												className="justify-start text-left"
+												onClick={async () => {
+													const [, error] = await catchError(logout());
+													if (error) {
+														console.error("Logout failed:", error);
+													}
+												}}
+											>
+												<LogOut className="h-4 w-4" />
+												Logout
+											</Button>
+										</div>
+									</PopoverContent>
+								</Popover>
 							</>
 						) : (
 							<>

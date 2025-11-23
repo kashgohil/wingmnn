@@ -506,7 +506,8 @@ function ModulePage() {
 					</p>
 					<div className="flex flex-wrap gap-4 justify-center">
 						<Button
-							className="retro-button retro-button-primary px-8 py-3 text-base font-mono uppercase tracking-wider"
+							variant="default"
+							size="xl"
 							asChild
 						>
 							<a href="/pricing">
@@ -515,7 +516,8 @@ function ModulePage() {
 							</a>
 						</Button>
 						<Button
-							className="retro-button retro-button-outline px-8 py-3 text-base font-mono uppercase tracking-wider"
+							variant="outline"
+							size="xl"
 							asChild
 						>
 							<a href="/contact">
