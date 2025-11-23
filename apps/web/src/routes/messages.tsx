@@ -8,7 +8,7 @@ export const Route = createFileRoute("/messages")({
 	component: MessagesModule,
 	head: () =>
 		generateMetadata({
-			title: "Messages Module",
+			title: "Messages",
 			description: "Secure DMs plus async voice & video drops.",
 			noindex: true,
 		}),

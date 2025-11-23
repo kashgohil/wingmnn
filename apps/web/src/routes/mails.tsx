@@ -8,7 +8,7 @@ export const Route = createFileRoute("/mails")({
 	component: MailsModule,
 	head: () =>
 		generateMetadata({
-			title: "Mails Module",
+			title: "Mails",
 			description: "Unified inbox, priority sorting, follow-up nudges.",
 			noindex: true,
 		}),

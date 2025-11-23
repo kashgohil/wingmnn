@@ -8,7 +8,7 @@ export const Route = createFileRoute("/calendar")({
 	component: CalendarModule,
 	head: () =>
 		generateMetadata({
-			title: "Calendar Module",
+			title: "Calendar",
 			description:
 				"Schedule meetings, track deadlines, and sync team availability.",
 			noindex: true,

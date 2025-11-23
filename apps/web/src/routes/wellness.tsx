@@ -8,7 +8,7 @@ export const Route = createFileRoute("/wellness")({
 	component: WellnessModule,
 	head: () =>
 		generateMetadata({
-			title: "Wellness Module",
+			title: "Wellness",
 			description: "Micro-check-ins, focus playlists, burnout alerts.",
 			noindex: true,
 		}),

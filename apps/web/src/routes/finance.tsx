@@ -8,7 +8,7 @@ export const Route = createFileRoute("/finance")({
 	component: FinanceModule,
 	head: () =>
 		generateMetadata({
-			title: "Finance Module",
+			title: "Finance",
 			description: "Cashflow, invoices, and approvals in one stream.",
 			noindex: true,
 		}),

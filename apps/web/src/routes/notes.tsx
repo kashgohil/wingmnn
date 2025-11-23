@@ -8,7 +8,7 @@ export const Route = createFileRoute("/notes")({
 	component: NotesModule,
 	head: () =>
 		generateMetadata({
-			title: "Notes Module",
+			title: "Notes",
 			description: "Lightweight docs with AI summaries and backlinks.",
 			noindex: true,
 		}),

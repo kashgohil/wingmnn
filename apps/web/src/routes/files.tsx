@@ -8,7 +8,7 @@ export const Route = createFileRoute("/files")({
 	component: FilesModule,
 	head: () =>
 		generateMetadata({
-			title: "Files Module",
+			title: "Files",
 			description: "Versioned handoffs with smart organization.",
 			noindex: true,
 		}),
