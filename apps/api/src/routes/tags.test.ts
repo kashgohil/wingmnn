@@ -4,7 +4,7 @@ describe("Tag Routes", () => {
   // Note: These tests require full integration setup with database, auth, and services
   // They are placeholders for future implementation
 
-  describe("POST /projects/:projectId/tags", () => {
+  describe("POST /projects/:id/tags", () => {
     it("should create a new tag", async () => {
       // This test would require proper setup of user, project, and authentication
       // Skipping implementation as it requires full integration setup
@@ -37,7 +37,7 @@ describe("Tag Routes", () => {
     });
   });
 
-  describe("GET /projects/:projectId/tags", () => {
+  describe("GET /projects/:id/tags", () => {
     it("should list all tags for a project", async () => {
       // This test would require proper setup
       expect(true).toBe(true);
@@ -54,7 +54,7 @@ describe("Tag Routes", () => {
     });
   });
 
-  describe("PUT /projects/:projectId/tags/:tagId", () => {
+  describe("PUT /projects/:id/tags/:tagId", () => {
     it("should update a tag", async () => {
       // This test would require proper setup
       expect(true).toBe(true);
@@ -81,7 +81,7 @@ describe("Tag Routes", () => {
     });
   });
 
-  describe("DELETE /projects/:projectId/tags/:tagId", () => {
+  describe("DELETE /projects/:id/tags/:tagId", () => {
     it("should delete a tag", async () => {
       // This test would require proper setup
       expect(true).toBe(true);
@@ -103,7 +103,7 @@ describe("Tag Routes", () => {
     });
   });
 
-  describe("POST /tasks/:taskId/tags", () => {
+  describe("POST /tasks/:id/tags", () => {
     it("should add a tag to a task", async () => {
       // This test would require proper setup
       expect(true).toBe(true);
@@ -130,7 +130,7 @@ describe("Tag Routes", () => {
     });
   });
 
-  describe("GET /tasks/:taskId/tags", () => {
+  describe("GET /tasks/:id/tags", () => {
     it("should list all tags for a task", async () => {
       // This test would require proper setup
       expect(true).toBe(true);
@@ -152,7 +152,7 @@ describe("Tag Routes", () => {
     });
   });
 
-  describe("DELETE /tasks/:taskId/tags/:tagId", () => {
+  describe("DELETE /tasks/:id/tags/:tagId", () => {
     it("should remove a tag from a task", async () => {
       // This test would require proper setup
       expect(true).toBe(true);

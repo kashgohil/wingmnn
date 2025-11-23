@@ -46,9 +46,9 @@ export const tagRoutes = new Elysia({ prefix: "/projects" })
       message: "An unexpected error occurred",
     };
   })
-  // POST /projects/:projectId/tags - Create a new tag
+  // POST /projects/:id/tags - Create a new tag
   .post(
-    "/:projectId/tags",
+    "/:id/tags",
     async ({ params, body, authenticated, userId }) => {
       // Check authentication
       if (!authenticated || !userId) {
@@ -62,7 +62,7 @@ export const tagRoutes = new Elysia({ prefix: "/projects" })
       const tag = await tagService.createTag(
         {
           ...body,
-          projectId: params.projectId,
+          projectId: params.id,
         },
         userId
       );
@@ -73,7 +73,7 @@ export const tagRoutes = new Elysia({ prefix: "/projects" })
     },
     {
       params: t.Object({
-        projectId: t.String(),
+        id: t.String(),
       }),
       body: t.Object({
         name: t.String({ minLength: 1, maxLength: 100 }),
@@ -163,9 +163,9 @@ Create a new tag within a project.
       },
     }
   )
-  // GET /projects/:projectId/tags - List tags for a project
+  // GET /projects/:id/tags - List tags for a project
   .get(
-    "/:projectId/tags",
+    "/:id/tags",
     async ({ params, authenticated, userId }) => {
       // Check authentication
       if (!authenticated || !userId) {
@@ -176,7 +176,7 @@ Create a new tag within a project.
         );
       }
 
-      const tags = await tagService.listTags(params.projectId, userId);
+      const tags = await tagService.listTags(params.id, userId);
 
       return {
         tags,
@@ -184,7 +184,7 @@ Create a new tag within a project.
     },
     {
       params: t.Object({
-        projectId: t.String(),
+        id: t.String(),
       }),
       detail: {
         tags: ["Tags"],
@@ -244,9 +244,9 @@ Get all tags for a specific project.
       },
     }
   )
-  // PUT /projects/:projectId/tags/:tagId - Update a tag
+  // PUT /projects/:id/tags/:tagId - Update a tag
   .put(
-    "/:projectId/tags/:tagId",
+    "/:id/tags/:tagId",
     async ({ params, body, authenticated, userId }) => {
       // Check authentication
       if (!authenticated || !userId) {
@@ -265,7 +265,7 @@ Get all tags for a specific project.
     },
     {
       params: t.Object({
-        projectId: t.String(),
+        id: t.String(),
         tagId: t.String(),
       }),
       body: t.Object({
@@ -341,9 +341,9 @@ Update tag properties.
       },
     }
   )
-  // DELETE /projects/:projectId/tags/:tagId - Delete a tag
+  // DELETE /projects/:id/tags/:tagId - Delete a tag
   .delete(
-    "/:projectId/tags/:tagId",
+    "/:id/tags/:tagId",
     async ({ params, authenticated, userId }) => {
       // Check authentication
       if (!authenticated || !userId) {
@@ -362,7 +362,7 @@ Update tag properties.
     },
     {
       params: t.Object({
-        projectId: t.String(),
+        id: t.String(),
         tagId: t.String(),
       }),
       detail: {
@@ -465,9 +465,9 @@ export const taskTagRoutes = new Elysia({ prefix: "/tasks" })
       message: "An unexpected error occurred",
     };
   })
-  // POST /tasks/:taskId/tags - Add a tag to a task
+  // POST /tasks/:id/tags - Add a tag to a task
   .post(
-    "/:taskId/tags",
+    "/:id/tags",
     async ({ params, body, authenticated, userId }) => {
       // Check authentication
       if (!authenticated || !userId) {
@@ -478,7 +478,7 @@ export const taskTagRoutes = new Elysia({ prefix: "/tasks" })
         );
       }
 
-      await tagService.addTagToTask(params.taskId, body.tagId, userId);
+      await tagService.addTagToTask(params.id, body.tagId, userId);
 
       return {
         message: "Tag added to task successfully",
@@ -486,7 +486,7 @@ export const taskTagRoutes = new Elysia({ prefix: "/tasks" })
     },
     {
       params: t.Object({
-        taskId: t.String(),
+        id: t.String(),
       }),
       body: t.Object({
         tagId: t.String(),
@@ -553,9 +553,9 @@ Associate a tag with a task.
       },
     }
   )
-  // DELETE /tasks/:taskId/tags/:tagId - Remove a tag from a task
+  // DELETE /tasks/:id/tags/:tagId - Remove a tag from a task
   .delete(
-    "/:taskId/tags/:tagId",
+    "/:id/tags/:tagId",
     async ({ params, authenticated, userId }) => {
       // Check authentication
       if (!authenticated || !userId) {
@@ -566,7 +566,7 @@ Associate a tag with a task.
         );
       }
 
-      await tagService.removeTagFromTask(params.taskId, params.tagId, userId);
+      await tagService.removeTagFromTask(params.id, params.tagId, userId);
 
       return {
         message: "Tag removed from task successfully",
@@ -574,7 +574,7 @@ Associate a tag with a task.
     },
     {
       params: t.Object({
-        taskId: t.String(),
+        id: t.String(),
         tagId: t.String(),
       }),
       detail: {
@@ -631,9 +631,9 @@ Remove the association between a tag and a task.
       },
     }
   )
-  // GET /tasks/:taskId/tags - List tags for a task
+  // GET /tasks/:id/tags - List tags for a task
   .get(
-    "/:taskId/tags",
+    "/:id/tags",
     async ({ params, authenticated, userId }) => {
       // Check authentication
       if (!authenticated || !userId) {
@@ -644,7 +644,7 @@ Remove the association between a tag and a task.
         );
       }
 
-      const tags = await tagService.listTaskTags(params.taskId, userId);
+      const tags = await tagService.listTaskTags(params.id, userId);
 
       return {
         tags,
@@ -652,7 +652,7 @@ Remove the association between a tag and a task.
     },
     {
       params: t.Object({
-        taskId: t.String(),
+        id: t.String(),
       }),
       detail: {
         tags: ["Tags"],
