@@ -32,6 +32,7 @@ describe("AttachmentService", () => {
   let taskId: string;
   let subtaskId: string;
   let workflowId: string;
+  let subtaskWorkflowId: string;
 
   beforeAll(async () => {
     // Create test users
@@ -67,6 +68,19 @@ describe("AttachmentService", () => {
       await db.delete(subtasks);
       await db.delete(tasks);
       await db.delete(projects);
+
+      // Clean up workflow statuses first, then workflows
+      const userWorkflows = await db
+        .select()
+        .from(workflows)
+        .where(eq(workflows.createdBy, testUserId));
+
+      for (const workflow of userWorkflows) {
+        await db
+          .delete(workflowStatuses)
+          .where(eq(workflowStatuses.workflowId, workflow.id));
+      }
+
       await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
       await db.delete(users).where(eq(users.id, testUserId));
     }
@@ -81,7 +95,18 @@ describe("AttachmentService", () => {
     await db.delete(subtasks);
     await db.delete(tasks);
     await db.delete(projects);
-    await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
+
+    // Clean up ALL workflows and their statuses (including templates)
+    // This ensures we have a clean slate for each test
+    const allWorkflows = await db.select().from(workflows);
+
+    for (const workflow of allWorkflows) {
+      await db
+        .delete(workflowStatuses)
+        .where(eq(workflowStatuses.workflowId, workflow.id));
+    }
+
+    await db.delete(workflows);
 
     // Create task workflow directly
     const workflow = await db
@@ -114,6 +139,50 @@ describe("AttachmentService", () => {
         position: 1,
       },
     ]);
+
+    // Create subtask workflow
+    const subtaskWorkflow = await db
+      .insert(workflows)
+      .values({
+        id: crypto.randomUUID(),
+        name: "Test Subtask Workflow",
+        workflowType: "subtask",
+        createdBy: testUserId,
+        isTemplate: false,
+      })
+      .returning();
+    subtaskWorkflowId = subtaskWorkflow[0].id;
+
+    await db.insert(workflowStatuses).values([
+      {
+        id: crypto.randomUUID(),
+        workflowId: subtaskWorkflowId,
+        name: "Backlog",
+        phase: "backlog",
+        colorCode: "#gray",
+        position: 0,
+      },
+      {
+        id: crypto.randomUUID(),
+        workflowId: subtaskWorkflowId,
+        name: "Done",
+        phase: "closed",
+        colorCode: "#green",
+        position: 1,
+      },
+    ]);
+
+    // Verify subtask workflow was created with statuses
+    const verifyStatuses = await db
+      .select()
+      .from(workflowStatuses)
+      .where(eq(workflowStatuses.workflowId, subtaskWorkflowId));
+
+    if (verifyStatuses.length === 0) {
+      throw new Error(
+        `No statuses found for subtask workflow ${subtaskWorkflowId}`
+      );
+    }
 
     // Create project
     const project = await projectService.createProject(
