@@ -61,14 +61,19 @@ describe("TaskService", () => {
 
   // Clean up test users after all tests
   afterAll(async () => {
-    if (testUserId) {
-      await db.delete(tasks).where(eq(tasks.createdBy, testUserId));
-      await db.delete(projects).where(eq(projects.ownerId, testUserId));
-      await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
-      await db.delete(users).where(eq(users.id, testUserId));
-    }
-    if (testUserId2) {
-      await db.delete(users).where(eq(users.id, testUserId2));
+    try {
+      // Clean up in reverse order of dependencies
+      if (testUserId) {
+        await db.delete(tasks).where(eq(tasks.createdBy, testUserId));
+        await db.delete(projects).where(eq(projects.ownerId, testUserId));
+        await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
+        await db.delete(users).where(eq(users.id, testUserId));
+      }
+      if (testUserId2) {
+        await db.delete(users).where(eq(users.id, testUserId2));
+      }
+    } catch (error) {
+      console.error("Cleanup error in task.service.test:", error);
     }
   });
 

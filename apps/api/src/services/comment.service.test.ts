@@ -61,17 +61,22 @@ describe("CommentService", () => {
   });
 
   afterAll(async () => {
-    // Clean up test users
-    if (testUserId) {
+    try {
+      // Clean up in reverse order of dependencies
       await db.delete(comments);
       await db.delete(subtasks);
       await db.delete(tasks);
       await db.delete(projects);
-      await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
-      await db.delete(users).where(eq(users.id, testUserId));
-    }
-    if (otherUserId) {
-      await db.delete(users).where(eq(users.id, otherUserId));
+
+      if (testUserId) {
+        await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
+        await db.delete(users).where(eq(users.id, testUserId));
+      }
+      if (otherUserId) {
+        await db.delete(users).where(eq(users.id, otherUserId));
+      }
+    } catch (error) {
+      console.error("Cleanup error in comment.service.test:", error);
     }
   });
 

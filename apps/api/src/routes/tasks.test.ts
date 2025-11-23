@@ -91,29 +91,33 @@ describe("Task Routes", () => {
   });
 
   afterAll(async () => {
-    // Clean up test data
-    if (testLinkId) {
-      await db.delete(taskLinks).where(eq(taskLinks.id, testLinkId));
-    }
-    if (testTaskId) {
-      await db.delete(tasks).where(eq(tasks.id, testTaskId));
-    }
-    if (testTaskId2) {
-      await db.delete(tasks).where(eq(tasks.id, testTaskId2));
-    }
-    if (testProjectId) {
-      await db.delete(projects).where(eq(projects.id, testProjectId));
-    }
-    if (testStatusId) {
-      await db
-        .delete(workflowStatuses)
-        .where(eq(workflowStatuses.id, testStatusId));
-    }
-    if (testWorkflowId) {
-      await db.delete(workflows).where(eq(workflows.id, testWorkflowId));
-    }
-    if (testUserId) {
-      await db.delete(users).where(eq(users.id, testUserId));
+    try {
+      // Clean up test data in reverse order of dependencies
+      if (testLinkId) {
+        await db.delete(taskLinks).where(eq(taskLinks.id, testLinkId));
+      }
+      if (testTaskId) {
+        await db.delete(tasks).where(eq(tasks.id, testTaskId));
+      }
+      if (testTaskId2) {
+        await db.delete(tasks).where(eq(tasks.id, testTaskId2));
+      }
+      if (testProjectId) {
+        await db.delete(projects).where(eq(projects.id, testProjectId));
+      }
+      if (testStatusId) {
+        await db
+          .delete(workflowStatuses)
+          .where(eq(workflowStatuses.id, testStatusId));
+      }
+      if (testWorkflowId) {
+        await db.delete(workflows).where(eq(workflows.id, testWorkflowId));
+      }
+      if (testUserId) {
+        await db.delete(users).where(eq(users.id, testUserId));
+      }
+    } catch (error) {
+      console.error("Cleanup error in tasks.test:", error);
     }
   });
 

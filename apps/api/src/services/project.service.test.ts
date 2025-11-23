@@ -46,12 +46,17 @@ describe("ProjectService", () => {
 
   // Clean up test user after all tests
   afterAll(async () => {
-    if (testUserId) {
-      await db
-        .delete(projectsTable)
-        .where(eq(projectsTable.ownerId, testUserId));
-      await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
-      await db.delete(users).where(eq(users.id, testUserId));
+    try {
+      // Clean up in reverse order of dependencies
+      if (testUserId) {
+        await db
+          .delete(projectsTable)
+          .where(eq(projectsTable.ownerId, testUserId));
+        await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
+        await db.delete(users).where(eq(users.id, testUserId));
+      }
+    } catch (error) {
+      console.error("Cleanup error in project.service.test:", error);
     }
   });
 

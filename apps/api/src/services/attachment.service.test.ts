@@ -62,30 +62,34 @@ describe("AttachmentService", () => {
   });
 
   afterAll(async () => {
-    // Clean up test data
-    if (testUserId) {
+    try {
+      // Clean up in reverse order of dependencies
       await db.delete(attachments);
       await db.delete(subtasks);
       await db.delete(tasks);
       await db.delete(projects);
 
       // Clean up workflow statuses first, then workflows
-      const userWorkflows = await db
-        .select()
-        .from(workflows)
-        .where(eq(workflows.createdBy, testUserId));
+      if (testUserId) {
+        const userWorkflows = await db
+          .select()
+          .from(workflows)
+          .where(eq(workflows.createdBy, testUserId));
 
-      for (const workflow of userWorkflows) {
-        await db
-          .delete(workflowStatuses)
-          .where(eq(workflowStatuses.workflowId, workflow.id));
+        for (const workflow of userWorkflows) {
+          await db
+            .delete(workflowStatuses)
+            .where(eq(workflowStatuses.workflowId, workflow.id));
+        }
+
+        await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
+        await db.delete(users).where(eq(users.id, testUserId));
       }
-
-      await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
-      await db.delete(users).where(eq(users.id, testUserId));
-    }
-    if (otherUserId) {
-      await db.delete(users).where(eq(users.id, otherUserId));
+      if (otherUserId) {
+        await db.delete(users).where(eq(users.id, otherUserId));
+      }
+    } catch (error) {
+      console.error("Cleanup error in attachment.service.test:", error);
     }
   });
 

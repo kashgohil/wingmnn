@@ -35,11 +35,12 @@ describe("NotificationService", () => {
 
   // Create test users before all tests
   beforeAll(async () => {
+    const uniqueId = crypto.randomUUID();
     const result1 = await db
       .insert(users)
       .values({
         id: crypto.randomUUID(),
-        email: "notification-test@example.com",
+        email: `notification-test-${uniqueId}@example.com`,
         name: "Notification Test User",
         bio: "",
         passwordHash: null,
@@ -51,7 +52,7 @@ describe("NotificationService", () => {
       .insert(users)
       .values({
         id: crypto.randomUUID(),
-        email: "notification-test2@example.com",
+        email: `notification-test2-${uniqueId}@example.com`,
         name: "Notification Test User 2",
         bio: "",
         passwordHash: null,
@@ -62,22 +63,23 @@ describe("NotificationService", () => {
 
   // Clean up test users after all tests
   afterAll(async () => {
-    if (testUserId) {
-      await db
-        .delete(notifications)
-        .where(eq(notifications.userId, testUserId));
+    try {
+      // Clean up in reverse order of dependencies
+      await db.delete(notifications);
       await db.delete(subtasks);
-      await db.delete(tasks).where(eq(tasks.createdBy, testUserId));
-      await db.delete(projects).where(eq(projects.ownerId, testUserId));
-      await db.delete(workflowStatuses);
-      await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
-      await db.delete(users).where(eq(users.id, testUserId));
-    }
-    if (testUserId2) {
-      await db
-        .delete(notifications)
-        .where(eq(notifications.userId, testUserId2));
-      await db.delete(users).where(eq(users.id, testUserId2));
+
+      if (testUserId) {
+        await db.delete(tasks).where(eq(tasks.createdBy, testUserId));
+        await db.delete(projects).where(eq(projects.ownerId, testUserId));
+        await db.delete(workflowStatuses);
+        await db.delete(workflows).where(eq(workflows.createdBy, testUserId));
+        await db.delete(users).where(eq(users.id, testUserId));
+      }
+      if (testUserId2) {
+        await db.delete(users).where(eq(users.id, testUserId2));
+      }
+    } catch (error) {
+      console.error("Cleanup error in notification.service.test:", error);
     }
   });
 
