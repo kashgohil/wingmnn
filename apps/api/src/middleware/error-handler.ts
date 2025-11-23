@@ -1,6 +1,19 @@
 import { Elysia } from "elysia";
 import { ZodError } from "zod";
-import { AuthError, AuthErrorCode } from "../services/auth.service";
+import { isDomainError } from "../errors/domain-errors";
+import { ActivityLogError } from "../services/activity-log.service";
+import { AssignmentError } from "../services/assignment.service";
+import { AttachmentError } from "../services/attachment.service";
+import { AuthError } from "../services/auth.service";
+import { CommentError } from "../services/comment.service";
+import { NotificationError } from "../services/notification.service";
+import { ProjectError } from "../services/project.service";
+import { SubtaskError } from "../services/subtask.service";
+import { TagError } from "../services/tag.service";
+import { TaskLinkError } from "../services/task-link.service";
+import { TaskError } from "../services/task.service";
+import { TimeTrackingError } from "../services/time-tracking.service";
+import { WorkflowError } from "../services/workflow.service";
 
 /**
  * Error response format
@@ -29,71 +42,156 @@ function formatZodError(error: ZodError): ErrorResponse {
 }
 
 /**
+ * Log error with context for debugging and monitoring
+ */
+function logError(error: any, context?: any) {
+  const timestamp = new Date().toISOString();
+  const errorInfo = {
+    timestamp,
+    name: error.name,
+    message: error.message,
+    code: error.code,
+    statusCode: error.statusCode,
+    stack: error.stack,
+    ...context,
+  };
+
+  // In production, this should use a proper logging service (e.g., Winston, Pino)
+  // For now, we'll use console.error with structured logging
+  if (error.statusCode >= 500) {
+    console.error("[ERROR]", JSON.stringify(errorInfo, null, 2));
+  } else if (error.statusCode >= 400) {
+    console.warn("[WARN]", JSON.stringify(errorInfo, null, 2));
+  } else {
+    console.log("[INFO]", JSON.stringify(errorInfo, null, 2));
+  }
+}
+
+/**
+ * Check if error is a service error (any of the custom service error classes)
+ */
+function isServiceError(error: any): boolean {
+  return (
+    error instanceof AuthError ||
+    error instanceof ProjectError ||
+    error instanceof WorkflowError ||
+    error instanceof TaskError ||
+    error instanceof SubtaskError ||
+    error instanceof TaskLinkError ||
+    error instanceof AssignmentError ||
+    error instanceof TimeTrackingError ||
+    error instanceof CommentError ||
+    error instanceof AttachmentError ||
+    error instanceof ActivityLogError ||
+    error instanceof NotificationError ||
+    error instanceof TagError
+  );
+}
+
+/**
  * Global error handling middleware
  * Catches and formats all errors with appropriate status codes and user-friendly messages
+ * Implements Properties 87-92 from the design document
  */
 export const errorHandler = () =>
-  new Elysia({ name: "errorHandler" }).onError(({ code, error, set }) => {
-    // Handle AuthError
-    if (error instanceof AuthError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
+  new Elysia({ name: "errorHandler" }).onError(
+    ({ code, error, set, request }) => {
+      // Extract request context for logging
+      const requestContext = {
+        method: request.method,
+        url: request.url,
+        headers: {
+          userAgent: request.headers.get("user-agent"),
+          referer: request.headers.get("referer"),
+        },
       };
-    }
 
-    // Handle Zod validation errors
-    if (error instanceof ZodError) {
-      set.status = 400;
-      return formatZodError(error);
-    }
+      // Handle DomainError (base class for all domain errors)
+      if (isDomainError(error)) {
+        set.status = error.statusCode;
+        logError(error, requestContext);
+        const response = {
+          error: error.code,
+          message: error.message,
+          ...(error.details && { details: error.details }),
+        };
+        return response;
+      }
 
-    // Handle Elysia validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-        details: error.message,
-      };
-    }
+      // Handle service-specific errors (AuthError, ProjectError, etc.)
+      if (isServiceError(error)) {
+        const serviceError = error as any;
+        set.status = serviceError.statusCode || 400;
+        logError(serviceError, requestContext);
+        return {
+          error: serviceError.code,
+          message: serviceError.message,
+          ...(serviceError.details && { details: serviceError.details }),
+        };
+      }
 
-    // Handle NOT_FOUND errors
-    if (code === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+      // Handle Zod validation errors (Property 87: Invalid requests return 400)
+      if (error instanceof ZodError) {
+        set.status = 400;
+        const formattedError = formatZodError(error);
+        logError(error, {
+          ...requestContext,
+          validationErrors: formattedError.details,
+        });
+        return formattedError;
+      }
 
-    // Handle PARSE errors (invalid JSON, etc.)
-    if (code === "PARSE") {
-      set.status = 400;
-      return {
-        error: "PARSE_ERROR",
-        message: "Invalid request format",
-      };
-    }
+      // Handle Elysia validation errors (Property 87: Invalid requests return 400)
+      if (code === "VALIDATION") {
+        set.status = 400;
+        const errorResponse = {
+          error: "VALIDATION_ERROR",
+          message: "Invalid request data",
+          details: error.message,
+        };
+        logError(error, requestContext);
+        return errorResponse;
+      }
 
-    // Handle UNKNOWN errors (catch-all)
-    if (code === "UNKNOWN") {
-      // Log the error for debugging (in production, use proper logging)
-      console.error("Unexpected error:", error);
+      // Handle NOT_FOUND errors (Property 90: Non-existent resources return 404)
+      if (code === "NOT_FOUND") {
+        set.status = 404;
+        const errorResponse = {
+          error: "NOT_FOUND",
+          message: "Resource not found",
+        };
+        logError(error, requestContext);
+        return errorResponse;
+      }
 
+      // Handle PARSE errors (invalid JSON, etc.) (Property 87: Invalid requests return 400)
+      if (code === "PARSE") {
+        set.status = 400;
+        const errorResponse = {
+          error: "PARSE_ERROR",
+          message: "Invalid request format",
+        };
+        logError(error, requestContext);
+        return errorResponse;
+      }
+
+      // Handle UNKNOWN errors (catch-all for unexpected errors)
+      if (code === "UNKNOWN") {
+        set.status = 500;
+        const errorResponse = {
+          error: "INTERNAL_ERROR",
+          message: "An unexpected error occurred",
+        };
+        logError(error, { ...requestContext, originalError: error });
+        return errorResponse;
+      }
+
+      // Default error response for any unhandled error types
+      console.error("Unhandled error type:", { code, error, requestContext });
       set.status = 500;
       return {
-        error: AuthErrorCode.INTERNAL_ERROR,
+        error: "INTERNAL_ERROR",
         message: "An unexpected error occurred",
       };
     }
-
-    // Default error response
-    console.error("Unhandled error:", error);
-    set.status = 500;
-    return {
-      error: AuthErrorCode.INTERNAL_ERROR,
-      message: "An unexpected error occurred",
-    };
-  });
+  );

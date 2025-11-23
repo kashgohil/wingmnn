@@ -6,6 +6,7 @@ import { Elysia, t } from "elysia";
 import { config, isProduction } from "./config";
 import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
+import { errorHandler } from "./middleware/error-handler";
 import { rateLimit } from "./middleware/rate-limit";
 import {
   activityLogRoutes,
@@ -383,6 +384,7 @@ Common error codes:
   .use(cookie())
   .use(csrf())
   .use(auth())
+  .use(errorHandler())
   .use(workflowRoutes)
   .use(projectRoutes)
   .use(taskRoutes)
@@ -396,52 +398,6 @@ Common error codes:
   .use(notificationRoutes)
   .use(tagRoutes)
   .use(taskTagRoutes)
-  .onError(({ code, error, set }) => {
-    // Handle AuthError
-    if ((error as any) instanceof AuthError) {
-      const authError = error as unknown as AuthError;
-      set.status = authError.statusCode;
-      return {
-        error: authError.code,
-        message: authError.message,
-      };
-    }
-
-    // Handle Elysia validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
-
-    // Handle NOT_FOUND errors (using string comparison to avoid type issues)
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
-
-    // Handle PARSE errors (invalid JSON, etc.)
-    if (String(code) === "PARSE") {
-      set.status = 400;
-      return {
-        error: "PARSE_ERROR",
-        message: "Invalid request format",
-      };
-    }
-
-    // Log unexpected errors
-    console.error("Unexpected error:", error);
-    set.status = 500;
-    return {
-      error: AuthErrorCode.INTERNAL_ERROR,
-      message: "An unexpected error occurred",
-    };
-  })
   .get("/", () => "Hello Elysia")
   // POST /auth/register - Register new user with email/password
   .post(
