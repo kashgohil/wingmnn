@@ -33,6 +33,13 @@ import { FloatingHeader } from "../components/FloatingHeader";
 import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatterns";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "../components/ui/card";
 
 export const Route = createFileRoute("/")({
 	component: App,
@@ -305,11 +312,13 @@ function Hero() {
 	return (
 		<section className="flex flex-col gap-12 text-center">
 			{/* Badge */}
-			<div className="inline-flex items-center gap-3 mx-auto px-4 py-2 retro-border bg-card/80 backdrop-blur-sm rounded-none">
-				<span className="text-sm font-semibold text-foreground font-mono uppercase tracking-wider">
-					Human-centered ops stack
-				</span>
-			</div>
+			<Card padding="sm" className="inline-flex items-center gap-3 mx-auto backdrop-blur-sm bg-card/80">
+				<CardContent className="p-0">
+					<span className="text-sm font-semibold text-foreground font-mono uppercase tracking-wider">
+						Human-centered ops stack
+					</span>
+				</CardContent>
+			</Card>
 
 			{/* Main heading */}
 			<div className="space-y-6 max-w-5xl mx-auto">
@@ -382,21 +391,27 @@ function Features() {
 				].map((feature) => {
 					const Icon = feature.icon;
 					return (
-						<div
+						<Card
 							key={feature.title}
-							className="group relative retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none hover:shadow-lg transition-all duration-300"
+							padding="lg"
+							variant="interactive"
+							className="group relative backdrop-blur-sm bg-card/80 hover:shadow-lg"
 						>
 							<div className="absolute inset-0 bg-linear-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 							<div className="relative">
 								<div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-none retro-border bg-primary/10 text-primary">
 									<Icon className="h-6 w-6" />
 								</div>
-								<h3 className="text-xl font-semibold mb-2 font-mono uppercase tracking-wider">
-									{feature.title}
-								</h3>
-								<p className="text-muted-foreground">{feature.description}</p>
+								<CardHeader className="p-0 mb-2">
+									<CardTitle className="text-xl font-semibold font-mono uppercase tracking-wider">
+										{feature.title}
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="p-0">
+									<CardDescription>{feature.description}</CardDescription>
+								</CardContent>
 							</div>
-						</div>
+						</Card>
 					);
 				})}
 			</div>
@@ -651,23 +666,26 @@ function Stats() {
 				{stats.map((stat, idx) => {
 					const Icon = stat.icon;
 					return (
-						<div
+						<Card
 							key={idx}
-							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none text-center"
+							padding="md"
+							className="backdrop-blur-sm bg-card/80 text-center"
 						>
-							<div
-								className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4"
-								style={{ backgroundColor: stat.color }}
-							>
-								<Icon className="h-6 w-6 text-foreground" />
-							</div>
-							<div className="text-4xl font-bold font-mono mb-2 text-foreground">
-								{stat.value}
-							</div>
-							<div className="text-sm text-muted-foreground font-mono uppercase tracking-wider">
-								{stat.label}
-							</div>
-						</div>
+							<CardContent className="p-0">
+								<div
+									className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4"
+									style={{ backgroundColor: stat.color }}
+								>
+									<Icon className="h-6 w-6 text-foreground" />
+								</div>
+								<div className="text-4xl font-bold font-mono mb-2 text-foreground">
+									{stat.value}
+								</div>
+								<CardDescription className="text-sm font-mono uppercase tracking-wider">
+									{stat.label}
+								</CardDescription>
+							</CardContent>
+						</Card>
 					);
 				})}
 			</div>
@@ -734,41 +752,45 @@ function Testimonials() {
 
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				{testimonials.map((testimonial, idx) => (
-					<div
+					<Card
 						key={idx}
-						className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none flex flex-col gap-4 hover:shadow-lg transition-all duration-300"
+						padding="md"
+						variant="interactive"
+						className="backdrop-blur-sm bg-card/80 flex flex-col gap-4 hover:shadow-lg"
 					>
-						<div className="flex items-start gap-4">
-							<div
-								className="w-12 h-12 rounded-none retro-border flex items-center justify-center shrink-0 font-bold text-foreground"
-								style={{
-									backgroundColor: `var(--module-${
-										[
-											"mail",
-											"notes",
-											"finance",
-											"feeds",
-											"messages",
-											"calendar",
-										][idx % 6]
-									})`,
-								}}
-							>
-								{testimonial.avatar}
+						<CardContent className="p-0 flex flex-col gap-4">
+							<div className="flex items-start gap-4">
+								<div
+									className="w-12 h-12 rounded-none retro-border flex items-center justify-center shrink-0 font-bold text-foreground"
+									style={{
+										backgroundColor: `var(--module-${
+											[
+												"mail",
+												"notes",
+												"finance",
+												"feeds",
+												"messages",
+												"calendar",
+											][idx % 6]
+										})`,
+									}}
+								>
+									{testimonial.avatar}
+								</div>
+								<div className="flex-1">
+									<h4 className="font-semibold text-foreground mb-1">
+										{testimonial.name}
+									</h4>
+									<p className="text-sm text-muted-foreground font-mono">
+										{testimonial.role}
+									</p>
+								</div>
 							</div>
-							<div className="flex-1">
-								<h4 className="font-semibold text-foreground mb-1">
-									{testimonial.name}
-								</h4>
-								<p className="text-sm text-muted-foreground font-mono">
-									{testimonial.role}
-								</p>
-							</div>
-						</div>
-						<p className="text-foreground leading-relaxed flex-1">
-							"{testimonial.quote}"
-						</p>
-					</div>
+							<p className="text-foreground leading-relaxed flex-1">
+								"{testimonial.quote}"
+							</p>
+						</CardContent>
+					</Card>
 				))}
 			</div>
 		</section>
@@ -994,21 +1016,27 @@ function UseCases() {
 				{useCases.map((useCase, idx) => {
 					const Icon = useCase.icon;
 					return (
-						<div
+						<Card
 							key={idx}
-							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none hover:shadow-lg transition-all duration-300"
+							padding="md"
+							variant="interactive"
+							className="backdrop-blur-sm bg-card/80 hover:shadow-lg"
 						>
-							<div
-								className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4"
-								style={{ backgroundColor: useCase.color }}
-							>
-								<Icon className="h-6 w-6 text-foreground" />
-							</div>
-							<h3 className="text-xl font-bold font-mono uppercase mb-2">
-								{useCase.title}
-							</h3>
-							<p className="text-muted-foreground">{useCase.description}</p>
-						</div>
+							<CardContent className="p-0">
+								<div
+									className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4"
+									style={{ backgroundColor: useCase.color }}
+								>
+									<Icon className="h-6 w-6 text-foreground" />
+								</div>
+								<CardHeader className="p-0 mb-2">
+									<CardTitle className="text-xl font-bold font-mono uppercase">
+										{useCase.title}
+									</CardTitle>
+								</CardHeader>
+								<CardDescription>{useCase.description}</CardDescription>
+							</CardContent>
+						</Card>
 					);
 				})}
 			</div>
@@ -1031,20 +1059,24 @@ function IntegrationShowcase() {
 				{spotlightIntegrations.map((integration, idx) => {
 					const Icon = integration.icon;
 					return (
-						<div
+						<Card
 							key={idx}
-							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none flex flex-col items-center justify-center gap-3 hover:shadow-lg transition-all duration-300"
+							padding="md"
+							variant="interactive"
+							className="backdrop-blur-sm bg-card/80 flex flex-col items-center justify-center gap-3 hover:shadow-lg"
 						>
-							<div
-								className="w-12 h-12 rounded-none retro-border flex items-center justify-center"
-								style={{ backgroundColor: integration.color }}
-							>
-								<Icon className="h-6 w-6 text-foreground" />
-							</div>
-							<span className="text-xs font-mono text-center text-foreground">
-								{integration.name}
-							</span>
-						</div>
+							<CardContent className="p-0 flex flex-col items-center justify-center gap-3">
+								<div
+									className="w-12 h-12 rounded-none retro-border flex items-center justify-center"
+									style={{ backgroundColor: integration.color }}
+								>
+									<Icon className="h-6 w-6 text-foreground" />
+								</div>
+								<span className="text-xs font-mono text-center text-foreground">
+									{integration.name}
+								</span>
+							</CardContent>
+						</Card>
 					);
 				})}
 			</div>
@@ -1116,34 +1148,39 @@ function CaseStudies() {
 			</div>
 			<div className="grid md:grid-cols-3 gap-6">
 				{caseStudies.map((study, idx) => (
-					<div
+					<Card
 						key={idx}
-						className="retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none"
+						padding="lg"
+						className="backdrop-blur-sm bg-card/80"
 					>
-						<div className="mb-6">
-							<div
-								className="w-3 h-3 shrink-0 mb-2"
-								style={{ backgroundColor: study.color }}
-							/>
-							<h3 className="text-2xl font-bold font-mono uppercase mb-2">
-								{study.company}
-							</h3>
-							<p className="text-sm text-muted-foreground font-mono">
-								{study.industry} • {study.teamSize}
-							</p>
-						</div>
-						<ul className="space-y-3">
-							{study.results.map((result, i) => (
-								<li
-									key={i}
-									className="flex items-start gap-3 text-sm text-foreground"
-								>
-									<Check className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
-									<span>{result}</span>
-								</li>
-							))}
-						</ul>
-					</div>
+						<CardHeader>
+							<div className="mb-2">
+								<div
+									className="w-3 h-3 shrink-0 mb-2"
+									style={{ backgroundColor: study.color }}
+								/>
+								<CardTitle className="text-2xl font-bold font-mono uppercase mb-2">
+									{study.company}
+								</CardTitle>
+								<CardDescription className="text-sm font-mono">
+									{study.industry} • {study.teamSize}
+								</CardDescription>
+							</div>
+						</CardHeader>
+						<CardContent>
+							<ul className="space-y-3">
+								{study.results.map((result, i) => (
+									<li
+										key={i}
+										className="flex items-start gap-3 text-sm text-foreground"
+									>
+										<Check className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+										<span>{result}</span>
+									</li>
+								))}
+							</ul>
+						</CardContent>
+					</Card>
 				))}
 			</div>
 		</section>
@@ -1173,34 +1210,36 @@ function PricingPreview() {
 								Popular
 							</span>
 						)}
-						<div
+						<Card
+							padding="lg"
 							className={cn(
-								"retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none",
+								"backdrop-blur-sm bg-card/80",
 								plan.highlight && "ring-2 ring-primary",
 							)}
 						>
-							<div className="text-center mb-6">
-								<h3 className="text-xl font-bold font-mono uppercase mb-2">
-									{plan.name}
-								</h3>
-								<div className="flex items-baseline justify-center gap-2">
-									<span className="text-4xl font-bold">{plan.price}</span>
-									{plan.price !== "Custom" && (
-										<span className="text-sm text-muted-foreground">
-											{plan.period}
-										</span>
-									)}
+							<CardContent className="p-0">
+								<div className="text-center mb-6">
+									<CardTitle className="text-xl font-bold font-mono uppercase mb-2">
+										{plan.name}
+									</CardTitle>
+									<div className="flex items-baseline justify-center gap-2">
+										<span className="text-4xl font-bold">{plan.price}</span>
+										{plan.price !== "Custom" && (
+											<span className="text-sm text-muted-foreground">
+												{plan.period}
+											</span>
+										)}
+									</div>
 								</div>
-							</div>
-							<Button
-								className="w-full"
-								variant={plan.highlight ? "default" : "outline"}
-								type="button"
-							>
-								{plan.price === "Custom" ? "Contact Sales" : "Start Free Trial"}
-							</Button>
-						</div>
-					</div>
+								<Button
+									className="w-full"
+									variant={plan.highlight ? "default" : "outline"}
+									type="button"
+								>
+									{plan.price === "Custom" ? "Contact Sales" : "Start Free Trial"}
+								</Button>
+							</CardContent>
+						</Card>
 				))}
 			</div>
 			<div className="text-center">
@@ -1361,18 +1400,21 @@ function SocialProofBadges() {
 				{badges.map((badge, idx) => {
 					const Icon = badge.icon;
 					return (
-						<div
+						<Card
 							key={idx}
-							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none text-center"
+							padding="md"
+							className="backdrop-blur-sm bg-card/80 text-center"
 						>
-							<div
-								className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4"
-								style={{ backgroundColor: badge.color }}
-							>
-								<Icon className="h-6 w-6 text-foreground" />
-							</div>
-							<p className="text-sm font-mono text-foreground">{badge.name}</p>
-						</div>
+							<CardContent className="p-0">
+								<div
+									className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4"
+									style={{ backgroundColor: badge.color }}
+								>
+									<Icon className="h-6 w-6 text-foreground" />
+								</div>
+								<p className="text-sm font-mono text-foreground">{badge.name}</p>
+							</CardContent>
+						</Card>
 					);
 				})}
 			</div>
@@ -1385,8 +1427,8 @@ function NewsletterSignup() {
 
 	return (
 		<section className="py-16">
-			<div className="retro-border bg-card/80 backdrop-blur-sm p-12 md:p-16 rounded-none">
-				<div className="max-w-2xl mx-auto text-center space-y-6">
+			<Card padding="lg" className="backdrop-blur-sm bg-card/80 p-12 md:p-16">
+				<CardContent className="max-w-2xl mx-auto text-center space-y-6 p-0">
 					<Mail className="h-12 w-12 text-primary mx-auto" />
 					<h2 className="text-3xl md:text-4xl font-bold text-foreground">
 						Stay in the loop
@@ -1420,8 +1462,8 @@ function NewsletterSignup() {
 					<p className="text-xs text-muted-foreground font-mono">
 						No spam. Unsubscribe anytime.
 					</p>
-				</div>
-			</div>
+				</CardContent>
+			</Card>
 		</section>
 	);
 }
@@ -1468,17 +1510,25 @@ function ResourceLinks() {
 						<a
 							key={idx}
 							href={resource.href}
-							className="retro-border bg-card/80 backdrop-blur-sm p-6 rounded-none hover:shadow-lg transition-all duration-300 text-center group"
+							className="block"
 						>
-							<div
-								className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4 group-hover:scale-110 transition-transform"
-								style={{ backgroundColor: resource.color }}
+							<Card
+								padding="md"
+								variant="interactive"
+								className="backdrop-blur-sm bg-card/80 hover:shadow-lg text-center group"
 							>
-								<Icon className="h-6 w-6 text-foreground" />
-							</div>
-							<p className="font-mono text-foreground font-semibold">
-								{resource.name}
-							</p>
+								<CardContent className="p-0">
+									<div
+										className="inline-flex items-center justify-center w-12 h-12 rounded-none retro-border mb-4 group-hover:scale-110 transition-transform"
+										style={{ backgroundColor: resource.color }}
+									>
+										<Icon className="h-6 w-6 text-foreground" />
+									</div>
+									<p className="font-mono text-foreground font-semibold">
+										{resource.name}
+									</p>
+								</CardContent>
+							</Card>
 						</a>
 					);
 				})}
@@ -1490,36 +1540,38 @@ function ResourceLinks() {
 function FinalCTA() {
 	return (
 		<section className="py-16">
-			<div className="retro-border bg-card/80 backdrop-blur-sm p-12 md:p-16 rounded-none text-center">
-				<h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-					Ready to streamline your team?
-				</h2>
-				<p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-					Join thousands of teams who've transformed their workflow with
-					Wingmnn. Start your free 14-day trial today.
-				</p>
-				<div className="flex flex-wrap items-center justify-center gap-4">
-					<Button
-						className="flex items-center gap-2"
-						type="button"
-						size="lg"
-					>
-						Start Free Trial
-						<ArrowRight className="h-4 w-4" />
-					</Button>
-					<Button
-						className=""
-						type="button"
-						variant="outline"
-						size="lg"
-					>
-						Schedule a Demo
-					</Button>
-				</div>
-				<p className="text-sm text-muted-foreground mt-6 font-mono">
-					No credit card required • Cancel anytime
-				</p>
-			</div>
+			<Card padding="lg" className="backdrop-blur-sm bg-card/80 p-12 md:p-16 text-center">
+				<CardContent className="p-0">
+					<CardTitle className="text-4xl md:text-5xl font-bold mb-4">
+						Ready to streamline your team?
+					</CardTitle>
+					<CardDescription className="text-xl mb-8 max-w-2xl mx-auto">
+						Join thousands of teams who've transformed their workflow with
+						Wingmnn. Start your free 14-day trial today.
+					</CardDescription>
+					<div className="flex flex-wrap items-center justify-center gap-4">
+						<Button
+							className="flex items-center gap-2"
+							type="button"
+							size="lg"
+						>
+							Start Free Trial
+							<ArrowRight className="h-4 w-4" />
+						</Button>
+						<Button
+							className=""
+							type="button"
+							variant="outline"
+							size="lg"
+						>
+							Schedule a Demo
+						</Button>
+					</div>
+					<p className="text-sm text-muted-foreground mt-6 font-mono">
+						No credit card required • Cancel anytime
+					</p>
+				</CardContent>
+			</Card>
 		</section>
 	);
 }

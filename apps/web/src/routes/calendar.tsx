@@ -3,6 +3,13 @@ import { getModuleBySlug } from "@/lib/modules";
 import { createFileRoute } from "@tanstack/react-router";
 import { AuthenticatedLayout } from "../components/AuthenticatedLayout";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "../components/ui/card";
 
 export const Route = createFileRoute("/calendar")({
 	component: CalendarModule,
@@ -48,14 +55,21 @@ function CalendarModule() {
 							</div>
 
 							{/* Content */}
-							<div className="retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none">
-								<h2 className="text-2xl font-bold font-mono uppercase tracking-wider mb-4">
-									Welcome to {module?.name}
-								</h2>
-								<p className="text-muted-foreground">
-									{module?.detailedDescription}
-								</p>
-							</div>
+							<Card
+								padding="lg"
+								className="backdrop-blur-sm bg-card/80"
+							>
+								<CardHeader>
+									<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider">
+										Welcome to {module?.name}
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<CardDescription className="text-base">
+										{module?.detailedDescription}
+									</CardDescription>
+								</CardContent>
+							</Card>
 						</div>
 					</div>
 				</div>

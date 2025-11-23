@@ -6,6 +6,13 @@ import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "../components/ui/card";
 
 export const Route = createFileRoute("/integrations")({
 	component: IntegrationsPage,
@@ -117,9 +124,10 @@ function IntegrationsPage() {
 					{integrationCategories.map((category, idx) => {
 						const Icon = category.icon;
 						return (
-							<div
+							<Card
 								key={category.title}
-								className="retro-border bg-card/80 backdrop-blur-sm p-8 md:p-10 rounded-none space-y-8 relative overflow-hidden"
+								padding="lg"
+								className="backdrop-blur-sm bg-card/80 space-y-8 relative overflow-hidden"
 							>
 								<div
 									className="absolute inset-0 opacity-5"
@@ -131,7 +139,7 @@ function IntegrationsPage() {
 										backgroundSize: "30px 30px",
 									}}
 								/>
-								<div className="relative space-y-4">
+								<CardHeader className="relative">
 									<div className="flex flex-wrap items-center gap-4">
 										<div
 											className="p-3 retro-border rounded-none"
@@ -140,57 +148,64 @@ function IntegrationsPage() {
 											<Icon className="h-6 w-6 text-foreground" />
 										</div>
 										<div>
-											<p className="text-xs font-mono uppercase tracking-[0.4em] text-muted-foreground">
+											<CardDescription className="text-xs font-mono uppercase tracking-[0.4em]">
 												Category #{idx + 1}
-											</p>
-											<h2 className="text-3xl font-bold font-mono uppercase tracking-wider">
+											</CardDescription>
+											<CardTitle className="text-3xl font-bold font-mono uppercase tracking-wider">
 												{category.title}
-											</h2>
+											</CardTitle>
 										</div>
 									</div>
-									<p className="text-muted-foreground max-w-2xl">
+									<CardDescription className="max-w-2xl">
 										{category.description}
-									</p>
-								</div>
-								<div className="relative grid gap-4 md:grid-cols-2">
-									{category.integrations.map((integration) => (
-										<div
-											key={integration.name}
-											className="retro-border bg-card/90 backdrop-blur-sm p-6 rounded-none"
-										>
-											<div className="flex items-center justify-between">
-												<div>
-													<h3 className="font-semibold text-lg">
-														{integration.name}
-													</h3>
-													<p className="text-sm text-muted-foreground">
-														{integration.description}
-													</p>
-												</div>
-												<Badge
-													variant="secondary"
-													className="rounded-none"
-												>
-													{integration.tag}
-												</Badge>
-											</div>
-										</div>
-									))}
-								</div>
-							</div>
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="relative">
+									<div className="grid gap-4 md:grid-cols-2">
+										{category.integrations.map((integration) => (
+											<Card
+												key={integration.name}
+												padding="md"
+												className="bg-card/90"
+											>
+												<CardContent className="p-0 flex items-center justify-between">
+													<div>
+														<CardTitle className="font-semibold text-lg">
+															{integration.name}
+														</CardTitle>
+														<CardDescription className="text-sm">
+															{integration.description}
+														</CardDescription>
+													</div>
+													<Badge
+														variant="secondary"
+														className="rounded-none"
+													>
+														{integration.tag}
+													</Badge>
+												</CardContent>
+											</Card>
+										))}
+									</div>
+								</CardContent>
+							</Card>
 						);
 					})}
 				</section>
 
-				<section className="retro-border bg-card/80 backdrop-blur-sm p-10 rounded-none text-center space-y-4">
-					<h2 className="text-3xl md:text-4xl font-bold">
-						Need a specific integration?
-					</h2>
-					<p className="text-muted-foreground max-w-2xl mx-auto">
-						We build enterprise integrations on request and support custom APIs,
-						webhooks, and on-prem deployments.
-					</p>
-					<div className="flex flex-wrap gap-4 justify-center">
+				<section>
+					<Card padding="lg" className="backdrop-blur-sm bg-card/80 text-center">
+						<CardHeader>
+							<CardTitle className="text-3xl md:text-4xl font-bold">
+								Need a specific integration?
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<CardDescription className="max-w-2xl mx-auto">
+								We build enterprise integrations on request and support custom APIs,
+								webhooks, and on-prem deployments.
+							</CardDescription>
+							<div className="flex flex-wrap gap-4 justify-center mt-6">
 						<Button
 							variant="default"
 							size="xl"

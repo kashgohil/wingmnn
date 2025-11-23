@@ -4,6 +4,13 @@ import { CheckCircle2, Circle, Clock } from "lucide-react";
 import { FloatingFooter } from "../components/FloatingFooter";
 import { FloatingHeader } from "../components/FloatingHeader";
 import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatterns";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "../components/ui/card";
 
 export const Route = createFileRoute("/roadmap")({
   component: RoadmapPage,
@@ -108,43 +115,51 @@ function RoadmapPage() {
 
           <div className="space-y-8">
             {roadmapItems.map((item) => (
-              <div
+              <Card
                 key={item.quarter}
-                className="retro-border bg-card/80 backdrop-blur-sm p-8 rounded-none"
+                padding="lg"
+                className="backdrop-blur-sm bg-card/80"
               >
-                <div className="flex items-center gap-4 mb-6">
-                  <div
-                    className="w-12 h-12 rounded-none retro-border flex items-center justify-center"
-                    style={{ backgroundColor: item.color }}
-                  >
-                    {getStatusIcon(item.status)}
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold font-mono uppercase">
-                      {item.quarter}
-                    </h3>
-                    <p className="text-sm text-muted-foreground capitalize">
-                      {item.status.replace("-", " ")}
-                    </p>
-                  </div>
-                </div>
-                <ul className="grid md:grid-cols-2 gap-3">
-                  {item.items.map((roadmapItem) => (
-                    <li
-                      key={roadmapItem}
-                      className="flex items-center gap-3 p-3 retro-border bg-card/50 rounded-none"
+                <CardHeader>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div
+                      className="w-12 h-12 rounded-none retro-border flex items-center justify-center"
+                      style={{ backgroundColor: item.color }}
                     >
-                      <div
-                        className="w-2 h-2 shrink-0"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="text-sm text-foreground font-mono">
-                        {roadmapItem}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                      {getStatusIcon(item.status)}
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-bold font-mono uppercase">
+                        {item.quarter}
+                      </CardTitle>
+                      <CardDescription className="text-sm capitalize">
+                        {item.status.replace("-", " ")}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <ul className="grid md:grid-cols-2 gap-3">
+                    {item.items.map((roadmapItem) => (
+                      <Card
+                        key={roadmapItem}
+                        padding="sm"
+                        className="bg-card/50 flex items-center gap-3"
+                      >
+                        <CardContent className="p-0 flex items-center gap-3">
+                          <div
+                            className="w-2 h-2 shrink-0"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="text-sm text-foreground font-mono">
+                            {roadmapItem}
+                          </span>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
