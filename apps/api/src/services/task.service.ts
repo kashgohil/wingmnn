@@ -668,6 +668,34 @@ export class TaskService {
 
     return averageProgress;
   }
+
+  /**
+   * Update task progress automatically based on subtasks
+   * This should be called whenever a subtask's progress changes
+   * @param taskId - Task ID
+   * @param userId - User ID making the change
+   * @returns Updated task
+   */
+  async updateProgressFromSubtasks(
+    taskId: string,
+    userId: string
+  ): Promise<Task> {
+    // Calculate progress from subtasks
+    const calculatedProgress = await this.calculateProgress(taskId);
+
+    // Update the task with calculated progress
+    const result = await db
+      .update(tasks)
+      .set({
+        progress: calculatedProgress,
+        updatedAt: new Date(),
+        updatedBy: userId,
+      })
+      .where(eq(tasks.id, taskId))
+      .returning();
+
+    return result[0];
+  }
 }
 
 // Export singleton instance

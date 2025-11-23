@@ -595,7 +595,49 @@ export class SubtaskService {
       .where(eq(subtasks.id, subtaskId))
       .returning();
 
+    // Automatically update parent task progress based on subtasks
+    await this.updateParentTaskProgress(subtask.taskId, userId);
+
     return result[0];
+  }
+
+  /**
+   * Update parent task progress based on all subtasks
+   * @param taskId - Parent task ID
+   * @param userId - User ID making the change
+   */
+  private async updateParentTaskProgress(
+    taskId: string,
+    userId: string
+  ): Promise<void> {
+    // Get all non-deleted subtasks for this task
+    const subtaskResults = await db
+      .select({ progress: subtasks.progress })
+      .from(subtasks)
+      .where(
+        and(eq(subtasks.taskId, taskId), sql`${subtasks.deletedAt} IS NULL`)
+      );
+
+    if (subtaskResults.length === 0) {
+      return;
+    }
+
+    // Calculate average progress
+    const totalProgress = subtaskResults.reduce(
+      (sum, subtask) => sum + (subtask.progress || 0),
+      0
+    );
+    const averageProgress = Math.round(totalProgress / subtaskResults.length);
+
+    // Update the parent task with calculated progress
+    await db
+      .update(tasks)
+      .set({
+        progress: averageProgress,
+        updatedAt: new Date(),
+        updatedBy: userId,
+      })
+      .where(eq(tasks.id, taskId));
   }
 }
 

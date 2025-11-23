@@ -7,6 +7,7 @@ import {
   projectMembers,
   projects,
   sql,
+  tasks,
   userGroupMembers,
   workflows,
 } from "@wingmnn/db";
@@ -561,6 +562,64 @@ export class ProjectService {
     }
 
     return result[0].status === "archived";
+  }
+
+  /**
+   * Calculate project progress as weighted average of all task progress
+   * @param projectId - Project ID
+   * @param userId - User ID requesting the calculation
+   * @returns Progress percentage (0-100)
+   */
+  async calculateProjectProgress(
+    projectId: string,
+    userId: string
+  ): Promise<number> {
+    // Check access
+    const hasAccess = await this.checkAccess(projectId, userId);
+    if (!hasAccess) {
+      throw new ProjectError(
+        ProjectErrorCode.FORBIDDEN,
+        "You do not have access to this project",
+        403
+      );
+    }
+
+    // Get all non-deleted tasks with their estimated points/hours and progress
+    const taskResults = await db
+      .select({
+        progress: tasks.progress,
+        estimatedPoints: tasks.estimatedPoints,
+        estimatedHours: tasks.estimatedHours,
+      })
+      .from(tasks)
+      .where(
+        and(eq(tasks.projectId, projectId), sql`${tasks.deletedAt} IS NULL`)
+      );
+
+    if (taskResults.length === 0) {
+      return 0;
+    }
+
+    // Calculate weighted average based on estimates
+    // If a task has estimatedPoints, use that as weight
+    // Otherwise, if it has estimatedHours, use that as weight
+    // Otherwise, treat all tasks equally (weight = 1)
+    let totalWeightedProgress = 0;
+    let totalWeight = 0;
+
+    for (const task of taskResults) {
+      const progress = task.progress || 0;
+      const weight = task.estimatedPoints || task.estimatedHours || 1;
+
+      totalWeightedProgress += progress * weight;
+      totalWeight += weight;
+    }
+
+    // Calculate weighted average
+    const weightedAverage =
+      totalWeight > 0 ? Math.round(totalWeightedProgress / totalWeight) : 0;
+
+    return weightedAverage;
   }
 }
 
