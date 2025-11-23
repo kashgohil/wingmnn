@@ -8,6 +8,7 @@ import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { rateLimit } from "./middleware/rate-limit";
 import { projectRoutes } from "./routes/projects";
+import { taskRoutes } from "./routes/tasks";
 import { workflowRoutes } from "./routes/workflows";
 import { AuthError, AuthErrorCode, authService } from "./services/auth.service";
 import { cleanupService } from "./services/cleanup.service";
@@ -333,6 +334,7 @@ Common error codes:
   .use(auth())
   .use(workflowRoutes)
   .use(projectRoutes)
+  .use(taskRoutes)
   .onError(({ code, error, set }) => {
     // Handle AuthError
     if ((error as any) instanceof AuthError) {
