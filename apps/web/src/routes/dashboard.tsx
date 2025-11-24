@@ -12,7 +12,6 @@ import { ProtectedRoute } from "../components/ProtectedRoute";
 import {
 	Card,
 	CardContent,
-	CardDescription,
 	CardHeader,
 	CardTitle,
 } from "../components/ui/card";
@@ -114,9 +113,6 @@ function Dashboard() {
 
 						{/* Module Summary Widgets */}
 						<div>
-							<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider mb-6">
-								Overview
-							</CardTitle>
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 								{modules.map((module) => {
 									const Icon = module.icon;
@@ -176,49 +172,6 @@ function Dashboard() {
 									);
 								})}
 							</div>
-						</div>
-
-						{/* Quick Stats */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							<Card
-								padding="md"
-								className="backdrop-blur-sm bg-card/80"
-							>
-								<CardHeader className="mb-2 p-0">
-									<CardDescription className="text-sm font-mono uppercase tracking-wider">
-										Active Projects
-									</CardDescription>
-								</CardHeader>
-								<CardContent className="p-0">
-									<p className="text-3xl font-bold">{activeProjects}</p>
-								</CardContent>
-							</Card>
-							<Card
-								padding="md"
-								className="backdrop-blur-sm bg-card/80"
-							>
-								<CardHeader className="mb-2 p-0">
-									<CardDescription className="text-sm font-mono uppercase tracking-wider">
-										Unread Notifications
-									</CardDescription>
-								</CardHeader>
-								<CardContent className="p-0">
-									<p className="text-3xl font-bold">{unreadNotifications}</p>
-								</CardContent>
-							</Card>
-							<Card
-								padding="md"
-								className="backdrop-blur-sm bg-card/80"
-							>
-								<CardHeader className="mb-2 p-0">
-									<CardDescription className="text-sm font-mono uppercase tracking-wider">
-										Tasks Due Today
-									</CardDescription>
-								</CardHeader>
-								<CardContent className="p-0">
-									<p className="text-3xl font-bold">{tasksDueToday}</p>
-								</CardContent>
-							</Card>
 						</div>
 
 						{/* Recent Activity */}
