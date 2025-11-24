@@ -10,6 +10,7 @@
 
 import { treaty } from "@elysiajs/eden";
 import type { App } from "@wingmnn/types";
+import { getApiBaseUrl } from "./api/base-url";
 import { tokenManager } from "./auth/token-manager";
 
 /**
@@ -56,6 +57,4 @@ const createEdenClient = (baseURL: string) => {
 };
 
 // Export configured client instance
-export const api = createEdenClient(
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000"
-);
+export const api = createEdenClient(getApiBaseUrl());
