@@ -15,31 +15,60 @@ import {
 	CardTitle,
 } from "../components/ui/card";
 
+const integrationsDescription =
+	"Browse 60+ Wingmnn integrations spanning CRM, support, storage, and automation. Connect Slack, HubSpot, Linear, Google Workspace, and 5,000+ more tools through Zapier, Make, or n8n.";
+
+const flattenedIntegrations = integrationCategories.flatMap((category) =>
+	category.integrations.map((integration) => ({
+		...integration,
+		category: category.title,
+	})),
+);
+
+const totalIntegrations = flattenedIntegrations.length;
+
+const integrationStructuredData = {
+	"@context": "https://schema.org",
+	"@type": "ItemList",
+	name: "Wingmnn integrations library",
+	description: integrationsDescription,
+	url: "https://wingmnn.com/integrations",
+	numberOfItems: totalIntegrations,
+	itemListElement: flattenedIntegrations.map((integration, index) => ({
+		"@type": "ListItem",
+		position: index + 1,
+		name: integration.name,
+		description: integration.description,
+		item: {
+			"@type": "SoftwareApplication",
+			name: integration.name,
+			applicationCategory: integration.category,
+		},
+	})),
+};
+
 export const Route = createFileRoute("/integrations")({
 	component: IntegrationsPage,
 	head: () =>
 		generateMetadata({
-			title: "Wingmnn Integrations",
-			description:
-				"Connect Wingmnn with every tool your team already uses. CRM, communication, storage, automation, and more.",
+			title: "Integrations & Automations",
+			description: integrationsDescription,
 			path: "/integrations",
 			keywords: [
-				"integrations",
-				"crm integrations",
 				"wingmnn integrations",
-				"slack integration",
-				"google workspace integration",
-				"microsoft 365 integration",
+				"wingmnn zapier",
+				"zapier integration",
+				"make integration",
+				"n8n integration",
+				"crm integrations",
+				"slack automation",
+				"hubspot integration",
 			],
+			structuredData: integrationStructuredData,
 		}),
 });
 
 function IntegrationsPage() {
-	const totalIntegrations = integrationCategories.reduce(
-		(acc, category) => acc + category.integrations.length,
-		0,
-	);
-
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
 			<SoftRetroGridBackground className="absolute inset-0 overflow-hidden opacity-40" />
