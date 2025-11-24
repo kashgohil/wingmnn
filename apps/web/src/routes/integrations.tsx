@@ -1,3 +1,4 @@
+import { SoftRetroGridBackground } from "@/components/backgrounds/RetroGridPatterns";
 import { generateMetadata } from "@/lib/metadata";
 import { integrationCategories } from "@/lib/site-data";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -41,6 +42,8 @@ function IntegrationsPage() {
 
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
+			<SoftRetroGridBackground className="absolute inset-0 overflow-hidden opacity-40" />
+
 			<div className="fixed inset-0 -z-10 overflow-hidden opacity-5">
 				<div
 					className="absolute inset-0"
