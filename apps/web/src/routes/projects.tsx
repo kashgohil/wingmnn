@@ -1,17 +1,29 @@
 import { generateMetadata } from "@/lib/metadata";
 import { getModuleBySlug } from "@/lib/modules";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { Settings, Workflow } from "lucide-react";
-import { ProtectedRoute } from "../components/ProtectedRoute";
-import { Button } from "../components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { lazy, Suspense, useState } from "react";
 import { ProjectsList } from "../components/projects/ProjectsList";
-import { TasksList } from "../components/projects/TasksList";
 import { SpotlightStats } from "../components/projects/SpotlightStats";
+import { TasksList } from "../components/projects/TasksList";
 import { WidgetSettings } from "../components/projects/WidgetSettings";
 import { WorkflowManager } from "../components/projects/WorkflowManager";
-import { AnalyticsTab } from "../components/projects/AnalyticsTab";
+import { ProtectedRoute } from "../components/ProtectedRoute";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "../components/ui/tabs";
+
+// Lazy load AnalyticsTab to reduce initial bundle size
+const AnalyticsTab = lazy(() =>
+	import("../components/projects/AnalyticsTab").then((module) => ({
+		default: module.AnalyticsTab,
+	})),
+);
 
 export const Route = createFileRoute("/projects")({
 	component: ProjectsModule,
@@ -78,13 +90,19 @@ function ProjectsModule() {
 						</div>
 
 						{/* Tabs */}
-						<Tabs value={activeTab} onValueChange={setActiveTab}>
+						<Tabs
+							value={activeTab}
+							onValueChange={setActiveTab}
+						>
 							<TabsList>
 								<TabsTrigger value="overview">Overview</TabsTrigger>
 								<TabsTrigger value="analytics">Analytics</TabsTrigger>
 							</TabsList>
 
-							<TabsContent value="overview" className="space-y-6">
+							<TabsContent
+								value="overview"
+								className="space-y-6"
+							>
 								{/* Spotlight Stats */}
 								<SpotlightStats />
 
@@ -96,7 +114,19 @@ function ProjectsModule() {
 							</TabsContent>
 
 							<TabsContent value="analytics">
-								<AnalyticsTab />
+								<Suspense
+									fallback={
+										<Card>
+											<CardContent className="py-8">
+												<div className="text-center text-muted-foreground">
+													Loading analytics...
+												</div>
+											</CardContent>
+										</Card>
+									}
+								>
+									<AnalyticsTab />
+								</Suspense>
 							</TabsContent>
 						</Tabs>
 					</div>
