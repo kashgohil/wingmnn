@@ -13,7 +13,7 @@ import {
  * Provides endpoints for file upload, download, and management
  */
 export const attachmentRoutes = new Elysia({ prefix: "/attachments" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all attachment endpoints
 	.onBeforeHandle(
 		rateLimit({

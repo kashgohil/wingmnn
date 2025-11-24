@@ -13,7 +13,7 @@ import {
  * Provides endpoints for comment management with threading support
  */
 export const commentRoutes = new Elysia({ prefix: "/comments" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all comment endpoints
 	.onBeforeHandle(
 		rateLimit({

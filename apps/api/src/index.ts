@@ -4,6 +4,7 @@ import { jwt } from "@elysiajs/jwt";
 import { swagger } from "@elysiajs/swagger";
 import { Elysia } from "elysia";
 import { config, isProduction } from "./config";
+import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { errorHandler } from "./middleware/error-handler";
 import {
@@ -23,6 +24,38 @@ import { timeEntryRoutes } from "./routes/time-entries";
 import { workflowRoutes } from "./routes/workflows";
 import { cleanupService } from "./services/cleanup.service";
 import { initializeOAuthProviders } from "./services/oauth.service";
+
+// Global error handlers for uncaught exceptions and unhandled promise rejections
+process.on("uncaughtException", (error: Error) => {
+	console.error("\n[FATAL] Uncaught Exception:", {
+		name: error.name,
+		message: error.message,
+		stack: error.stack,
+		timestamp: new Date().toISOString(),
+	});
+	console.error("[FATAL] Stack Trace:", error.stack);
+	// In production, you might want to gracefully shutdown
+	// For now, we'll log and continue
+});
+
+process.on("unhandledRejection", (reason: any, promise: Promise<any>) => {
+	console.error("\n[FATAL] Unhandled Promise Rejection:", {
+		reason:
+			reason instanceof Error
+				? {
+						name: reason.name,
+						message: reason.message,
+						stack: reason.stack,
+				  }
+				: reason,
+		timestamp: new Date().toISOString(),
+	});
+	if (reason instanceof Error && reason.stack) {
+		console.error("[FATAL] Stack Trace:", reason.stack);
+	}
+	// In production, you might want to gracefully shutdown
+	// For now, we'll log and continue
+});
 
 // Initialize OAuth providers (async)
 await initializeOAuthProviders({
@@ -53,6 +86,23 @@ setInterval(async () => {
 		console.error("[Cleanup] Error running scheduled cleanup:", error);
 	}
 }, CLEANUP_INTERVAL_MS);
+
+const apiRoutes = new Elysia({ prefix: "/api" })
+	.use(authRoutes)
+	.use(workflowRoutes)
+	.use(projectRoutes)
+	.use(taskRoutes)
+	.use(subtaskRoutes)
+	.use(timeEntryRoutes)
+	.use(commentRoutes)
+	.use(attachmentRoutes)
+	.use(activityLogRoutes)
+	.use(projectActivityRoutes)
+	.use(taskActivityRoutes)
+	.use(notificationRoutes)
+	.use(tagRoutes)
+	.use(taskTagRoutes)
+	.get("/", () => "Hello Elysia");
 
 const app = new Elysia()
 	.use(
@@ -313,22 +363,9 @@ Common HTTP status codes:
 	)
 	.use(cookie())
 	.use(csrf())
+	.use(auth())
 	.use(errorHandler())
-	.use(authRoutes)
-	.use(workflowRoutes)
-	.use(projectRoutes)
-	.use(taskRoutes)
-	.use(subtaskRoutes)
-	.use(timeEntryRoutes)
-	.use(commentRoutes)
-	.use(attachmentRoutes)
-	.use(activityLogRoutes)
-	.use(projectActivityRoutes)
-	.use(taskActivityRoutes)
-	.use(notificationRoutes)
-	.use(tagRoutes)
-	.use(taskTagRoutes)
-	.get("/", () => "Hello Elysia")
+	.use(apiRoutes)
 	.listen(config.PORT);
 
 console.log(

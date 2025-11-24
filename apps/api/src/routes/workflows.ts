@@ -13,7 +13,7 @@ import {
  * Provides endpoints for workflow and status management
  */
 export const workflowRoutes = new Elysia({ prefix: "/workflows" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all workflow endpoints
 	.onBeforeHandle(
 		rateLimit({

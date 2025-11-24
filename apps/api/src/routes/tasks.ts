@@ -19,7 +19,7 @@ import {
  * Provides endpoints for task management, status updates, assignments, progress tracking, and task linking
  */
 export const taskRoutes = new Elysia({ prefix: "/tasks" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all task endpoints
 	.onBeforeHandle(
 		rateLimit({
@@ -29,6 +29,7 @@ export const taskRoutes = new Elysia({ prefix: "/tasks" })
 		}),
 	)
 	.onError(({ code, error, set }) => {
+		console.log("tasks error", error);
 		// Handle TaskError
 		if (error instanceof TaskError) {
 			set.status = error.statusCode;

@@ -13,7 +13,7 @@ import {
  * Provides endpoints for time tracking, including creating, updating, deleting time entries and generating summaries
  */
 export const timeEntryRoutes = new Elysia({ prefix: "/time-entries" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all time entry endpoints
 	.onBeforeHandle(
 		rateLimit({

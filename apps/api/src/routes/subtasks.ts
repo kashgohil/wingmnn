@@ -13,7 +13,7 @@ import {
  * Provides endpoints for subtask management, status updates, and assignments
  */
 export const subtaskRoutes = new Elysia({ prefix: "/subtasks" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all subtask endpoints
 	.onBeforeHandle(
 		rateLimit({

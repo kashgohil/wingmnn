@@ -13,7 +13,7 @@ import {
  * Provides endpoints for viewing activity logs across projects, tasks, and subtasks
  */
 export const activityLogRoutes = new Elysia({ prefix: "/activity-logs" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all activity log endpoints
 	.onBeforeHandle(
 		rateLimit({

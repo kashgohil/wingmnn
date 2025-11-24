@@ -13,7 +13,7 @@ import {
  * Provides endpoints for notification management
  */
 export const notificationRoutes = new Elysia({ prefix: "/notifications" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all notification endpoints
 	.onBeforeHandle(
 		rateLimit({

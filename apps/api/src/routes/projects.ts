@@ -13,7 +13,7 @@ import {
  * Provides endpoints for project management, status updates, and member management
  */
 export const projectRoutes = new Elysia({ prefix: "/projects" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all project endpoints
 	.onBeforeHandle(
 		rateLimit({

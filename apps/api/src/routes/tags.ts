@@ -9,7 +9,7 @@ import { TagError, TagErrorCode, tagService } from "../services/tag.service";
  * Provides endpoints for tag management and task-tag associations
  */
 export const tagRoutes = new Elysia({ prefix: "/projects" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to all tag endpoints
 	.onBeforeHandle(
 		rateLimit({
@@ -433,7 +433,7 @@ Delete a tag from a project.
  * Provides endpoints for managing task-tag associations
  */
 export const taskTagRoutes = new Elysia({ prefix: "/tasks" })
-	.derive(auth)
+	.use(auth())
 	// Apply rate limiting to task-tag endpoints
 	.onBeforeHandle(
 		rateLimit({

@@ -46,24 +46,29 @@ function formatZodError(error: ZodError): ErrorResponse {
  */
 function logError(error: any, context?: any) {
   const timestamp = new Date().toISOString();
+  const statusCode = error.statusCode || error.status || 500;
   const errorInfo = {
     timestamp,
-    name: error.name,
-    message: error.message,
+    name: error.name || "Error",
+    message: error.message || "Unknown error",
     code: error.code,
-    statusCode: error.statusCode,
+    statusCode,
     stack: error.stack,
     ...context,
   };
 
+  // Always log errors to console for visibility
   // In production, this should use a proper logging service (e.g., Winston, Pino)
-  // For now, we'll use console.error with structured logging
-  if (error.statusCode >= 500) {
-    console.error("[ERROR]", JSON.stringify(errorInfo, null, 2));
-  } else if (error.statusCode >= 400) {
-    console.warn("[WARN]", JSON.stringify(errorInfo, null, 2));
+  if (statusCode >= 500) {
+    console.error("\n[ERROR] Server Error:", JSON.stringify(errorInfo, null, 2));
+    // Also log stack trace separately for better readability
+    if (error.stack) {
+      console.error("[ERROR] Stack Trace:", error.stack);
+    }
+  } else if (statusCode >= 400) {
+    console.warn("\n[WARN] Client Error:", JSON.stringify(errorInfo, null, 2));
   } else {
-    console.log("[INFO]", JSON.stringify(errorInfo, null, 2));
+    console.log("\n[INFO] Error:", JSON.stringify(errorInfo, null, 2));
   }
 }
 
@@ -187,11 +192,19 @@ export const errorHandler = () =>
       }
 
       // Default error response for any unhandled error types
-      console.error("Unhandled error type:", { code, error, requestContext });
       set.status = 500;
-      return {
+      const errorResponse = {
         error: "INTERNAL_ERROR",
         message: "An unexpected error occurred",
       };
+      logError(
+        error,
+        {
+          ...requestContext,
+          code,
+          unhandledErrorType: true,
+        },
+      );
+      return errorResponse;
     }
   );
