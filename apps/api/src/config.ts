@@ -2,57 +2,60 @@ import { z } from "zod";
 
 // Environment variable schema
 const envSchema = z.object({
-  // Database
-  DATABASE_URL: z.string(),
+	// URL
+	API_URL: z.url().default("http://localhost:3000"),
 
-  // JWT Configuration
-  JWT_SECRET: z.string().min(32),
-  JWT_EXPIRATION: z.string().default("15m"),
+	// Frontend URL for OAuth redirects
+	WEB_URL: z.url().default("http://localhost:3001"),
 
-  // Encryption
-  ENCRYPTION_KEY: z.string().min(32),
+	// Database
+	DATABASE_URL: z.string(),
 
-  // OAuth Providers
-  GOOGLE_CLIENT_ID: z.string(),
-  GOOGLE_CLIENT_SECRET: z.string(),
-  GOOGLE_REDIRECT_URI: z.url(),
+	// JWT Configuration
+	JWT_SECRET: z.string().min(32),
+	JWT_EXPIRATION: z.string().default("15m"),
 
-  // Frontend URL for OAuth redirects
-  FRONTEND_URL: z.url().default("http://localhost:3001"),
+	// Encryption
+	ENCRYPTION_KEY: z.string().min(32),
 
-  // Session Configuration
-  SESSION_EXPIRATION_DAYS: z.coerce.number().default(30),
-  SESSION_EXTENSION_THRESHOLD_DAYS: z.coerce.number().default(7),
+	// OAuth Providers
+	GOOGLE_CLIENT_ID: z.string(),
+	GOOGLE_CLIENT_SECRET: z.string(),
+	GOOGLE_REDIRECT_URI: z.url(),
 
-  // Rate Limiting
-  LOGIN_RATE_LIMIT: z.coerce.number().default(5),
-  LOGIN_RATE_WINDOW: z.string().default("15m"),
-  API_RATE_LIMIT: z.coerce.number().default(100),
-  API_RATE_WINDOW: z.string().default("15m"),
-  WRITE_RATE_LIMIT: z.coerce.number().default(50),
-  WRITE_RATE_WINDOW: z.string().default("15m"),
+	// Session Configuration
+	SESSION_EXPIRATION_DAYS: z.coerce.number().default(30),
+	SESSION_EXTENSION_THRESHOLD_DAYS: z.coerce.number().default(7),
 
-  // Server
-  PORT: z.coerce.number().default(3000),
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
+	// Rate Limiting
+	LOGIN_RATE_LIMIT: z.coerce.number().default(5),
+	LOGIN_RATE_WINDOW: z.string().default("15m"),
+	API_RATE_LIMIT: z.coerce.number().default(100),
+	API_RATE_WINDOW: z.string().default("15m"),
+	WRITE_RATE_LIMIT: z.coerce.number().default(50),
+	WRITE_RATE_WINDOW: z.string().default("15m"),
+
+	// Server
+	PORT: z.coerce.number().default(3000),
+	NODE_ENV: z
+		.enum(["development", "production", "test"])
+		.default("development"),
 });
 
 // Parse and validate environment variables
 const parseEnv = () => {
-  try {
-    return envSchema.parse(process.env);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      console.error("❌ Invalid environment variables:");
-      error.issues.forEach((issue) => {
-        console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
-      });
-      process.exit(1);
-    }
-    throw error;
-  }
+	try {
+		return envSchema.parse(process.env);
+	} catch (error) {
+		if (error instanceof z.ZodError) {
+			console.error("❌ Invalid environment variables:");
+			error.issues.forEach((issue) => {
+				console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
+			});
+			process.exit(1);
+		}
+		throw error;
+	}
 };
 
 export const config = parseEnv();
