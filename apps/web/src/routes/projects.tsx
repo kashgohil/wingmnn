@@ -1,14 +1,17 @@
 import { generateMetadata } from "@/lib/metadata";
 import { getModuleBySlug } from "@/lib/modules";
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Settings, Workflow } from "lucide-react";
 import { ProtectedRoute } from "../components/ProtectedRoute";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { ProjectsList } from "../components/projects/ProjectsList";
+import { TasksList } from "../components/projects/TasksList";
+import { SpotlightStats } from "../components/projects/SpotlightStats";
+import { WidgetSettings } from "../components/projects/WidgetSettings";
+import { WorkflowManager } from "../components/projects/WorkflowManager";
+import { AnalyticsTab } from "../components/projects/AnalyticsTab";
 
 export const Route = createFileRoute("/projects")({
 	component: ProjectsModule,
@@ -23,6 +26,9 @@ export const Route = createFileRoute("/projects")({
 function ProjectsModule() {
 	const module = getModuleBySlug("projects");
 	const Icon = module?.icon;
+	const [activeTab, setActiveTab] = useState("overview");
+	const [widgetSettingsOpen, setWidgetSettingsOpen] = useState(false);
+	const [workflowManagerOpen, setWorkflowManagerOpen] = useState(false);
 
 	return (
 		<ProtectedRoute>
@@ -30,45 +36,83 @@ function ProjectsModule() {
 				<div className="max-w-7xl mx-auto">
 					<div className="space-y-8">
 						{/* Header */}
-						<div className="flex items-center gap-4">
-							{Icon && (
-								<div
-									className="p-6 retro-border rounded-none"
-									style={{
-										backgroundColor: `var(${module?.colorVar})`,
-									}}
-								>
-									<Icon className="h-12 w-12 text-primary-foreground" />
+						<div className="flex items-center justify-between gap-4">
+							<div className="flex items-center gap-4">
+								{Icon && (
+									<div
+										className="p-6 retro-border rounded-none"
+										style={{
+											backgroundColor: `var(${module?.colorVar})`,
+										}}
+									>
+										<Icon className="h-12 w-12 text-primary-foreground" />
+									</div>
+								)}
+								<div>
+									<h1 className="text-4xl font-bold font-mono uppercase tracking-wider">
+										{module?.name}
+									</h1>
+									<p className="text-muted-foreground mt-2">
+										{module?.description}
+									</p>
 								</div>
-							)}
-							<div>
-								<h1 className="text-4xl font-bold font-mono uppercase tracking-wider">
-									{module?.name}
-								</h1>
-								<p className="text-muted-foreground mt-2">
-									{module?.description}
-								</p>
+							</div>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="icon"
+									onClick={() => setWorkflowManagerOpen(true)}
+									title="Manage Workflows"
+								>
+									<Workflow className="h-4 w-4" />
+								</Button>
+								<Button
+									variant="outline"
+									size="icon"
+									onClick={() => setWidgetSettingsOpen(true)}
+									title="Widget Settings"
+								>
+									<Settings className="h-4 w-4" />
+								</Button>
 							</div>
 						</div>
 
-						{/* Content */}
-						<Card
-							padding="lg"
-							className="backdrop-blur-sm bg-card/80"
-						>
-							<CardHeader>
-								<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider">
-									Welcome to {module?.name}
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<CardDescription className="text-base">
-									{module?.detailedDescription}
-								</CardDescription>
-							</CardContent>
-						</Card>
+						{/* Tabs */}
+						<Tabs value={activeTab} onValueChange={setActiveTab}>
+							<TabsList>
+								<TabsTrigger value="overview">Overview</TabsTrigger>
+								<TabsTrigger value="analytics">Analytics</TabsTrigger>
+							</TabsList>
+
+							<TabsContent value="overview" className="space-y-6">
+								{/* Spotlight Stats */}
+								<SpotlightStats />
+
+								{/* Projects List */}
+								<ProjectsList />
+
+								{/* Tasks List */}
+								<TasksList />
+							</TabsContent>
+
+							<TabsContent value="analytics">
+								<AnalyticsTab />
+							</TabsContent>
+						</Tabs>
 					</div>
 				</div>
+
+				{/* Widget Settings Dialog */}
+				<WidgetSettings
+					open={widgetSettingsOpen}
+					onOpenChange={setWidgetSettingsOpen}
+				/>
+
+				{/* Workflow Manager Dialog */}
+				<WorkflowManager
+					open={workflowManagerOpen}
+					onOpenChange={setWorkflowManagerOpen}
+				/>
 			</div>
 		</ProtectedRoute>
 	);

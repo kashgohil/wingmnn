@@ -64,14 +64,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
 	// Render authenticated layout with sidebar and grid background
 	return (
-		<div className="flex min-h-screen bg-background">
+		<div className="flex h-screen bg-background">
 			<ModuleSidebar />
 			<SoftRetroGridBackground
 				className="z-0 opacity-40"
 				lineColor="var(--border)"
 				backgroundSize="40px 40px"
 			/>
-			<main className="flex-1 relative">{children}</main>
+			<main className="flex-1 overflow-y-auto relative">{children}</main>
 		</div>
 	);
 }

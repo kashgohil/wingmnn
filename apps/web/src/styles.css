@@ -154,6 +154,12 @@ code {
 	* {
 		@apply border-border outline-ring/50;
 	}
+	/* Exclude SVG elements from global border/outline rules */
+	svg,
+	svg * {
+		border: none !important;
+		outline: none !important;
+	}
 	body {
 		@apply bg-background text-foreground;
 	}
@@ -447,5 +453,37 @@ code {
 		image-rendering: pixelated;
 		image-rendering: -moz-crisp-edges;
 		image-rendering: crisp-edges;
+	}
+
+	/* Recharts container fixes - prevent CSS conflicts */
+	.recharts-wrapper {
+		position: relative !important;
+		display: inline-block !important;
+		width: 100% !important;
+		max-width: 100% !important;
+	}
+
+	.recharts-surface {
+		overflow: visible !important;
+	}
+
+	/* Ensure recharts doesn't break layout */
+	.recharts-responsive-container {
+		width: 100% !important;
+		height: 100% !important;
+		position: relative !important;
+	}
+
+	/* Prevent recharts SVG from affecting parent layout */
+	.recharts-wrapper svg {
+		display: block !important;
+		max-width: 100% !important;
+		height: auto !important;
+	}
+
+	/* Reset any conflicting styles on recharts elements */
+	.recharts-wrapper *,
+	.recharts-responsive-container * {
+		box-sizing: border-box;
 	}
 }

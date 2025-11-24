@@ -1,0 +1,173 @@
+/**
+ * Projects API Service
+ * 
+ * Type-safe API calls for project-related operations
+ */
+
+import { catchError } from "@wingmnn/utils/catch-error";
+import { api } from "../eden-client";
+
+export interface Project {
+	id: string;
+	name: string;
+	description: string | null;
+	ownerId: string;
+	workflowId: string;
+	status: "active" | "archived" | "on_hold" | "completed";
+	statusUpdatedAt: string | null;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ListProjectsParams {
+	status?: "active" | "archived" | "on_hold" | "completed" | "all";
+	limit?: number;
+	offset?: number;
+	sortBy?: string;
+	sortDirection?: "asc" | "desc";
+}
+
+export interface CreateProjectParams {
+	name: string;
+	description?: string;
+	workflowId: string;
+}
+
+export interface UpdateProjectParams {
+	name?: string;
+	description?: string;
+}
+
+/**
+ * List all projects accessible to the authenticated user
+ */
+export async function listProjects(params?: ListProjectsParams) {
+	const query: Record<string, string> = {};
+	
+	if (params?.status) {
+		query.status = params.status;
+	}
+	if (params?.limit !== undefined) {
+		query.limit = params.limit.toString();
+	}
+	if (params?.offset !== undefined) {
+		query.offset = params.offset.toString();
+	}
+	if (params?.sortBy) {
+		query.sortBy = params.sortBy;
+	}
+	if (params?.sortDirection) {
+		query.sortDirection = params.sortDirection;
+	}
+
+	const [response, error] = await catchError(
+		api.projects.get(query)
+	);
+
+	if (error) {
+		throw new Error(error instanceof Error ? error.message : "Failed to fetch projects");
+	}
+
+	if (response?.error) {
+		throw new Error(
+			typeof response.error === "object" && "message" in response.error
+				? String(response.error.message)
+				: "Failed to fetch projects"
+		);
+	}
+
+	return (response?.data as { projects?: Project[] })?.projects || [];
+}
+
+/**
+ * Get a single project by ID
+ */
+export async function getProject(id: string) {
+	const [response, error] = await catchError(
+		api.projects({ id }).get()
+	);
+
+	if (error) {
+		throw new Error(error instanceof Error ? error.message : "Failed to fetch project");
+	}
+
+	if (response?.error) {
+		throw new Error(
+			typeof response.error === "object" && "message" in response.error
+				? String(response.error.message)
+				: "Failed to fetch project"
+		);
+	}
+
+	return (response?.data as { project?: Project })?.project;
+}
+
+/**
+ * Create a new project
+ */
+export async function createProject(params: CreateProjectParams) {
+	const [response, error] = await catchError(
+		api.projects.post(params)
+	);
+
+	if (error) {
+		throw new Error(error instanceof Error ? error.message : "Failed to create project");
+	}
+
+	if (response?.error) {
+		throw new Error(
+			typeof response.error === "object" && "message" in response.error
+				? String(response.error.message)
+				: "Failed to create project"
+		);
+	}
+
+	return (response?.data as { project?: Project })?.project;
+}
+
+/**
+ * Update a project
+ */
+export async function updateProject(id: string, params: UpdateProjectParams) {
+	const [response, error] = await catchError(
+		api.projects({ id }).put(params)
+	);
+
+	if (error) {
+		throw new Error(error instanceof Error ? error.message : "Failed to update project");
+	}
+
+	if (response?.error) {
+		throw new Error(
+			typeof response.error === "object" && "message" in response.error
+				? String(response.error.message)
+				: "Failed to update project"
+		);
+	}
+
+	return (response?.data as { project?: Project })?.project;
+}
+
+/**
+ * Delete a project
+ */
+export async function deleteProject(id: string) {
+	const [response, error] = await catchError(
+		api.projects({ id }).delete()
+	);
+
+	if (error) {
+		throw new Error(error instanceof Error ? error.message : "Failed to delete project");
+	}
+
+	if (response?.error) {
+		throw new Error(
+			typeof response.error === "object" && "message" in response.error
+				? String(response.error.message)
+				: "Failed to delete project"
+		);
+	}
+
+	return response?.data;
+}
+
