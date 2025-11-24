@@ -287,6 +287,25 @@ export class AuthService {
 	}
 
 	/**
+	 * Find user by ID
+	 * @param userId - User ID
+	 * @returns User profile or null if not found
+	 */
+	async getUserById(userId: string): Promise<UserProfile | null> {
+		const result = await db
+			.select()
+			.from(users)
+			.where(eq(users.id, userId))
+			.limit(1);
+
+		if (!result[0]) {
+			return null;
+		}
+
+		return this.toUserProfile(result[0]);
+	}
+
+	/**
 	 * Find user by OAuth provider and provider account ID
 	 * @param provider - OAuth provider name
 	 * @param providerAccountId - User ID from the OAuth provider

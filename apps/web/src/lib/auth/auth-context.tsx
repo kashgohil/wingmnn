@@ -64,40 +64,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const { data: user, isLoading } = useQuery({
 		queryKey: ["auth", "user"],
 		queryFn: async () => {
-			const token = tokenManager.getAccessToken();
-			const storedUser = tokenManager.getUserData();
-
-			// If no token at all, check if we might have a refresh token cookie
-			// by making a request anyway - the backend will refresh if possible
-			if (!token) {
-				// Try to verify with backend using refresh token cookie
-				const [response, responseError] = await catchError(
-					api.auth.sessions.get(),
-				);
-
-				if (responseError || response?.error) {
-					// No valid session
-					return null;
-				}
-
-				// Backend refreshed the token via X-Access-Token header
-				// The Eden client onResponse interceptor already stored it
-				const newToken = tokenManager.getAccessToken();
-				if (newToken && storedUser) {
-					return storedUser;
-				}
-
-				return null;
-			}
-
-			// If token is expired, don't clear it yet - make a request to trigger refresh
-			// The backend will automatically refresh using the refresh token cookie
-			// and send a new access token in the X-Access-Token header
-
-			// Verify token with backend (will trigger refresh if expired)
-			const [response, responseError] = await catchError(
-				api.auth.sessions.get(),
-			);
+			// Try to get current user from /me endpoint
+			// This will trigger token refresh if needed via the auth middleware
+			const [response, responseError] = await catchError(api.auth.me.get());
 
 			if (responseError || response?.error) {
 				// Token refresh failed or no valid session
@@ -105,22 +74,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				return null;
 			}
 
-			// If we have stored user data, return it
-			if (storedUser) {
-				return storedUser;
-			}
-
-			// If no stored user data but token is valid, decode token for basic info
-			const currentToken = tokenManager.getAccessToken();
-			if (currentToken) {
-				const payload = tokenManager.decodeToken(currentToken);
-				if (payload) {
-					return {
-						id: payload.userId,
-						email: "", // Will be empty until we fetch from API
-						name: "", // Will be empty until we fetch from API
-					} as UserProfile;
-				}
+			// Store user data if we got a valid response
+			if (response.data) {
+				tokenManager.setUserData(response.data);
+				return response.data;
 			}
 
 			return null;
