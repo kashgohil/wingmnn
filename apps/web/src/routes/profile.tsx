@@ -1,23 +1,33 @@
 import { SoftRetroGridBackground } from "@/components/backgrounds/RetroGridPatterns";
 import { generateMetadata } from "@/lib/metadata";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { catchError } from "@wingmnn/utils/catch-error";
 import {
+	Bell,
 	Calendar,
 	CheckCircle2,
 	Clock,
 	Edit2,
 	FileText,
+	Globe,
+	Key,
+	Lock,
 	Mail,
 	Moon,
 	MoonStar,
+	Settings,
+	Shield,
 	Sun,
 	Sunrise,
+	Trash2,
 	User,
+	Users,
+	Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProtectedRoute } from "../components/ProtectedRoute";
+import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import {
 	Card,
@@ -35,6 +45,7 @@ import {
 } from "../components/ui/dialog";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { Switch } from "../components/ui/switch";
 import { Textarea } from "../components/ui/textarea";
 import {
 	Tooltip,
@@ -42,8 +53,11 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "../components/ui/tooltip";
+import { useTheme } from "../hooks/use-theme";
 import { useAuth } from "../lib/auth/auth-context";
 import { api } from "../lib/eden-client";
+import { useProjects } from "../lib/hooks/use-projects";
+import { useMyTasks } from "../lib/hooks/use-tasks";
 
 export const Route = createFileRoute("/profile")({
 	component: Profile,
@@ -57,7 +71,27 @@ export const Route = createFileRoute("/profile")({
 
 function Profile() {
 	const { user } = useAuth();
+	const { theme, setTheme } = useTheme();
+	const { data: projects = [] } = useProjects();
+	const { data: tasks = [] } = useMyTasks();
 	const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+	// Fetch active sessions
+	const { data: sessionsData } = useQuery({
+		queryKey: ["auth", "sessions"],
+		queryFn: async () => {
+			const [response, err] = await catchError(
+				(api.auth.sessions as any).get(),
+			);
+			if (err) return { sessions: [] };
+			const responseData = response as any;
+			if (responseData?.error) return { sessions: [] };
+			return responseData?.data || { sessions: [] };
+		},
+		staleTime: 30 * 1000,
+	});
+
+	const sessions = sessionsData?.sessions || [];
 	const [timeOfDayIcon, setTimeOfDayIcon] = useState<{
 		icon: typeof Sun;
 		label: string;
@@ -338,6 +372,486 @@ function Profile() {
 													<p className="text-xs text-muted-foreground mt-1">
 														{formatRelativeTime(user?.updatedAt)}
 													</p>
+												</div>
+											</div>
+										</Card>
+									</div>
+								</CardContent>
+							</Card>
+
+							{/* Preferences & Settings */}
+							<Card
+								padding="lg"
+								className="backdrop-blur-sm bg-card/80"
+							>
+								<CardHeader className="mb-4 p-0">
+									<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider">
+										Preferences & Settings
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="space-y-6">
+										{/* Theme Preference */}
+										<Card
+											padding="md"
+											className="bg-card/50 flex items-center justify-between gap-4"
+										>
+											<div className="flex items-start gap-4 flex-1">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													{theme === "light" ? (
+														<Sun className="h-5 w-5 text-primary" />
+													) : (
+														<Moon className="h-5 w-5 text-primary" />
+													)}
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Theme
+													</p>
+													<p className="font-medium text-lg">
+														{theme === "light" ? "Light Mode" : "Dark Mode"}
+													</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Switch between light and dark themes
+													</p>
+												</div>
+											</div>
+											<Switch
+												checked={theme === "dark"}
+												onCheckedChange={(checked) =>
+													setTheme(checked ? "dark" : "light")
+												}
+											/>
+										</Card>
+
+										{/* Notification Preferences */}
+										<Card
+											padding="md"
+											className="bg-card/50 flex items-center justify-between gap-4"
+										>
+											<div className="flex items-start gap-4 flex-1">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<Bell className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Email Notifications
+													</p>
+													<p className="font-medium text-lg">Enabled</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Receive email updates for important events
+													</p>
+												</div>
+											</div>
+											<Switch defaultChecked />
+										</Card>
+
+										{/* Language & Region */}
+										<Card
+											padding="md"
+											className="bg-card/50 flex items-start gap-4"
+										>
+											<div className="p-2 retro-border rounded-none bg-primary/10">
+												<Globe className="h-5 w-5 text-primary" />
+											</div>
+											<div className="flex-1">
+												<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+													Language & Region
+												</p>
+												<p className="font-medium text-lg">English (US)</p>
+												<p className="text-xs text-muted-foreground mt-1">
+													Timezone:{" "}
+													{Intl.DateTimeFormat().resolvedOptions().timeZone}
+												</p>
+											</div>
+										</Card>
+									</div>
+								</CardContent>
+							</Card>
+
+							{/* Security */}
+							<Card
+								padding="lg"
+								className="backdrop-blur-sm bg-card/80"
+							>
+								<CardHeader className="mb-4 p-0">
+									<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider">
+										Security
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="space-y-6">
+										{/* Active Sessions */}
+										<Card
+											padding="md"
+											className="bg-card/50"
+										>
+											<div className="flex items-start gap-4">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<Shield className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Active Sessions
+													</p>
+													<p className="font-medium text-lg">
+														{sessions.length} active session
+														{sessions.length !== 1 ? "s" : ""}
+													</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Manage devices where you're logged in
+													</p>
+													{sessions.length > 0 && (
+														<div className="mt-3 space-y-2">
+															{sessions.slice(0, 3).map((session: any) => (
+																<div
+																	key={session.id}
+																	className="text-xs text-muted-foreground flex items-center gap-2"
+																>
+																	<Clock className="h-3 w-3" />
+																	<span>
+																		{session.userAgent?.substring(0, 50) ||
+																			"Unknown device"}{" "}
+																		•{" "}
+																		{formatRelativeTime(session.lastActivityAt)}
+																	</span>
+																</div>
+															))}
+															{sessions.length > 3 && (
+																<p className="text-xs text-muted-foreground">
+																	+{sessions.length - 3} more session
+																	{sessions.length - 3 !== 1 ? "s" : ""}
+																</p>
+															)}
+														</div>
+													)}
+												</div>
+											</div>
+										</Card>
+
+										{/* Password */}
+										<Card
+											padding="md"
+											className="bg-card/50 flex items-center justify-between gap-4"
+										>
+											<div className="flex items-start gap-4 flex-1">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<Key className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Password
+													</p>
+													<p className="font-medium text-lg">••••••••</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Last changed {formatRelativeTime(user?.updatedAt)}
+													</p>
+												</div>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+											>
+												Change
+											</Button>
+										</Card>
+
+										{/* Two-Factor Authentication */}
+										<Card
+											padding="md"
+											className="bg-card/50 flex items-center justify-between gap-4"
+										>
+											<div className="flex items-start gap-4 flex-1">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<Lock className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Two-Factor Authentication
+													</p>
+													<p className="font-medium text-lg">Not enabled</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Add an extra layer of security to your account
+													</p>
+												</div>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+											>
+												Enable
+											</Button>
+										</Card>
+									</div>
+								</CardContent>
+							</Card>
+
+							{/* Activity & Statistics */}
+							<Card
+								padding="lg"
+								className="backdrop-blur-sm bg-card/80"
+							>
+								<CardHeader className="mb-4 p-0">
+									<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider">
+										Activity & Statistics
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+										{/* Projects */}
+										<Card
+											padding="md"
+											className="bg-card/50"
+										>
+											<div className="flex items-start gap-4">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<Zap className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Projects
+													</p>
+													<p className="font-medium text-2xl">
+														{projects.length}
+													</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Active projects
+													</p>
+												</div>
+											</div>
+										</Card>
+
+										{/* Tasks */}
+										<Card
+											padding="md"
+											className="bg-card/50"
+										>
+											<div className="flex items-start gap-4">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<CheckCircle2 className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Tasks
+													</p>
+													<p className="font-medium text-2xl">{tasks.length}</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Total tasks
+													</p>
+												</div>
+											</div>
+										</Card>
+
+										{/* Completed Tasks */}
+										<Card
+											padding="md"
+											className="bg-card/50"
+										>
+											<div className="flex items-start gap-4">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<CheckCircle2 className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Completed
+													</p>
+													<p className="font-medium text-2xl">
+														{tasks.filter((t) => t.progress === 100).length}
+													</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Finished tasks
+													</p>
+												</div>
+											</div>
+										</Card>
+
+										{/* Team Members */}
+										<Card
+											padding="md"
+											className="bg-card/50"
+										>
+											<div className="flex items-start gap-4">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<Users className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Collaboration
+													</p>
+													<p className="font-medium text-2xl">
+														{projects.length > 0 ? "Active" : "0"}
+													</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Team members
+													</p>
+												</div>
+											</div>
+										</Card>
+									</div>
+								</CardContent>
+							</Card>
+
+							{/* Connected Accounts */}
+							<Card
+								padding="lg"
+								className="backdrop-blur-sm bg-card/80"
+							>
+								<CardHeader className="mb-4 p-0">
+									<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider">
+										Connected Accounts
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="space-y-4">
+										{/* Google Account */}
+										<Card
+											padding="md"
+											className="bg-card/50 flex items-center justify-between gap-4"
+										>
+											<div className="flex items-center gap-4 flex-1">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<Mail className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Google
+													</p>
+													<p className="font-medium text-lg">
+														{user?.email || "Not connected"}
+													</p>
+												</div>
+											</div>
+											{user?.email ? (
+												<Badge variant="outline">Connected</Badge>
+											) : (
+												<Button
+													variant="outline"
+													size="sm"
+												>
+													Connect
+												</Button>
+											)}
+										</Card>
+
+										{/* Email Account */}
+										<Card
+											padding="md"
+											className="bg-card/50 flex items-center justify-between gap-4"
+										>
+											<div className="flex items-center gap-4 flex-1">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<Mail className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Email Account
+													</p>
+													<p className="font-medium text-lg">
+														{user?.email || "Not set"}
+													</p>
+												</div>
+											</div>
+											<Badge variant="outline">Primary</Badge>
+										</Card>
+									</div>
+								</CardContent>
+							</Card>
+
+							{/* Data & Privacy */}
+							<Card
+								padding="lg"
+								className="backdrop-blur-sm bg-card/80"
+							>
+								<CardHeader className="mb-4 p-0">
+									<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider">
+										Data & Privacy
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="space-y-6">
+										{/* Export Data */}
+										<Card
+											padding="md"
+											className="bg-card/50 flex items-center justify-between gap-4"
+										>
+											<div className="flex items-start gap-4 flex-1">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<FileText className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Export Data
+													</p>
+													<p className="font-medium text-lg">
+														Download your data
+													</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Get a copy of all your data in JSON format
+													</p>
+												</div>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+											>
+												Export
+											</Button>
+										</Card>
+
+										{/* Privacy Settings */}
+										<Card
+											padding="md"
+											className="bg-card/50 flex items-center justify-between gap-4"
+										>
+											<div className="flex items-start gap-4 flex-1">
+												<div className="p-2 retro-border rounded-none bg-primary/10">
+													<Settings className="h-5 w-5 text-primary" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Privacy Settings
+													</p>
+													<p className="font-medium text-lg">Manage privacy</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														Control who can see your profile and activity
+													</p>
+												</div>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+											>
+												Manage
+											</Button>
+										</Card>
+
+										{/* Delete Account */}
+										<Card
+											padding="md"
+											className="bg-card/50 border-destructive/20"
+										>
+											<div className="flex items-start gap-4">
+												<div className="p-2 retro-border rounded-none bg-destructive/10">
+													<Trash2 className="h-5 w-5 text-destructive" />
+												</div>
+												<div className="flex-1">
+													<p className="text-sm font-mono uppercase tracking-wider text-muted-foreground mb-1">
+														Delete Account
+													</p>
+													<p className="font-medium text-lg text-destructive">
+														Permanently delete your account
+													</p>
+													<p className="text-xs text-muted-foreground mt-1">
+														This action cannot be undone. All your data will be
+														permanently deleted.
+													</p>
+													<Button
+														variant="destructive"
+														size="sm"
+														className="mt-3"
+													>
+														Delete Account
+													</Button>
 												</div>
 											</div>
 										</Card>

@@ -35,7 +35,7 @@ code {
 	--muted-foreground: #718096;
 	--accent: #b8e6ff;
 	--accent-foreground: #2d3748;
-	--destructive: #ffb3ba;
+	--destructive: #ff7a85;
 	--destructive-foreground: #2d3748;
 	--border: #e2d5c4;
 	--input: #f7f3ed;
@@ -81,7 +81,7 @@ code {
 	--muted-foreground: #a0aec0;
 	--accent: #5b9bd5;
 	--accent-foreground: #1a1a24;
-	--destructive: #d977a6;
+	--destructive: #e85d75;
 	--destructive-foreground: #e2e8f0;
 	--border: #3d3d4d;
 	--input: #2d1f2e;
@@ -347,18 +347,18 @@ code {
 
 	.retro-button-destructive {
 		background: var(--destructive);
-		border-color: #ff9aa0 #ffb3ba #ffb3ba #ff9aa0;
+		border-color: #ff5a6b #ff7a85 #ff7a85 #ff5a6b;
 		color: var(--destructive-foreground);
 	}
 
 	.retro-button-destructive:hover:not(:disabled) {
-		background: #ffa8ae;
-		border-color: #ffb3ba #ff9aa0 #ff9aa0 #ffb3ba;
+		background: #ff6b7a;
+		border-color: #ff7a85 #ff5a6b #ff5a6b #ff7a85;
 	}
 
 	.retro-button-destructive:active:not(:disabled) {
-		background: #ff9ea4;
-		border-color: #ff9aa0 #ffb3ba #ffb3ba #ff9aa0;
+		background: #ff5a6b;
+		border-color: #ff5a6b #ff7a85 #ff7a85 #ff5a6b;
 		box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.2),
 			inset -2px -2px 0 rgba(255, 255, 255, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1);
 	}

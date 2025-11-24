@@ -11,7 +11,12 @@ function Switch({
     <SwitchPrimitive.Root
       data-slot="switch"
       className={cn(
-        "peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        "peer inline-flex h-6 w-11 shrink-0 items-center rounded-none border-2 border-border bg-input transition-all outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        "shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.1),inset_1px_1px_0_rgba(255,255,255,0.8)]",
+        "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+        "data-[state=checked]:shadow-[inset_-2px_-2px_0_rgba(0,0,0,0.15),inset_2px_2px_0_rgba(255,255,255,0.9)]",
+        "focus-visible:border-primary focus-visible:ring-0 focus-visible:shadow-[inset_-2px_-2px_0_rgba(0,0,0,0.15),inset_2px_2px_0_rgba(255,255,255,0.9)]",
+        "dark:data-[state=unchecked]:bg-input/80",
         className
       )}
       {...props}
@@ -19,7 +24,11 @@ function Switch({
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"
         className={cn(
-          "bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0"
+          "pointer-events-none block h-4 w-4 rounded-none ring-0 transition-transform",
+          "bg-background border-2 border-border",
+          "shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.15),inset_1px_1px_0_rgba(255,255,255,0.9)]",
+          "dark:bg-foreground dark:data-[state=checked]:bg-primary-foreground",
+          "data-[state=checked]:translate-x-[calc(100%+2px)] data-[state=unchecked]:translate-x-[2px]"
         )}
       />
     </SwitchPrimitive.Root>
