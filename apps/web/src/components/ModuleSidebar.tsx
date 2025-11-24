@@ -89,7 +89,7 @@ export function ModuleSidebar() {
 				{/* Sidebar Content */}
 				<div className="flex flex-col h-full overflow-y-auto">
 					{/* Header */}
-					<div className="p-3 py-4 flex items-center justify-center">
+					<div className="p-3 py-8 flex items-center justify-center">
 						<Tooltip>
 							<TooltipTrigger asChild>
 								<Link
