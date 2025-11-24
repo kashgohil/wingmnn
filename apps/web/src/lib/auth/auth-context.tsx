@@ -8,25 +8,19 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { UserProfile } from "@wingmnn/types";
 import { catchError } from "@wingmnn/utils/catch-error";
 import type { ReactNode } from "react";
 import React, { createContext, useContext, useState } from "react";
 import { api } from "../eden-client";
 import { tokenManager } from "./token-manager";
 
-// User interface matching backend response
-export interface User {
-	id: string;
-	email: string;
-	name: string;
-}
-
 // Auth context value interface
 export interface AuthContextValue {
 	// State
 	isAuthenticated: boolean;
 	isLoading: boolean;
-	user: User | null;
+	user: UserProfile | null;
 	error: string | null;
 
 	// Actions
@@ -125,7 +119,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 						id: payload.userId,
 						email: "", // Will be empty until we fetch from API
 						name: "", // Will be empty until we fetch from API
-					} as User;
+					} as UserProfile;
 				}
 			}
 
@@ -146,34 +140,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			email: string;
 			password: string;
 		}) => {
-			try {
-				const response = await api.auth.login.post({ email, password });
+			const [response, error] = await catchError(
+				api.auth.login.post({ email, password }),
+			);
 
-				if (response.error || !response.data) {
-					// Handle API errors with proper error messages
-					const error = response.error as any;
-
-					// Check for rate limiting (429)
-					if (error?.status === 429) {
-						throw new Error("Too many login attempts. Please try again later.");
-					}
-
-					// Check for validation errors
-					if (error?.status === 400 && error?.message) {
-						throw new Error(error.message);
-					}
-
-					// Default authentication error
-					const errorMessage = error?.message || "Invalid email or password";
-					throw new Error(errorMessage);
-				}
-
-				return response.data as {
-					accessToken: string;
-					user: User;
-					expiresIn: number;
-				};
-			} catch (error: any) {
+			if (error) {
 				// Handle network errors
 				if (error.message === "Failed to fetch" || error.name === "TypeError") {
 					throw new Error("Network error. Please check your connection.");
@@ -182,12 +153,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				// Re-throw other errors
 				throw error;
 			}
+
+			if (response.error || !response.data) {
+				// Handle API errors with proper error messages
+				const error = response.error as any;
+
+				// Check for rate limiting (429)
+				if (error?.status === 429) {
+					throw new Error("Too many login attempts. Please try again later.");
+				}
+
+				// Check for validation errors
+				if (error?.status === 400 && error?.message) {
+					throw new Error(error.message);
+				}
+
+				// Default authentication error
+				const errorMessage = error?.message || "Invalid email or password";
+				throw new Error(errorMessage);
+			}
+
+			return response.data;
 		},
-		onSuccess: (data: {
-			accessToken: string;
-			user: User;
-			expiresIn: number;
-		}) => {
+		onSuccess: (data) => {
 			tokenManager.setAccessToken(data.accessToken);
 			tokenManager.setUserData(data.user);
 			queryClient.setQueryData(["auth", "user"], data.user);
@@ -213,54 +201,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			password: string;
 			name: string;
 		}) => {
-			try {
-				const response = await api.auth.register.post({
+			const [response, error] = await catchError(
+				api.auth.register.post({
 					email,
 					password,
 					name,
-				});
+				}),
+			);
 
-				if (response.error || !response.data) {
-					// Handle API errors with proper error messages
-					const error = response.error as any;
-
-					// Check for rate limiting (429)
-					if (error?.status === 429) {
-						throw new Error(
-							"Too many registration attempts. Please try again later.",
-						);
-					}
-
-					// Check for validation errors (e.g., email already exists, weak password)
-					if (error?.status === 400 || error?.status === 409) {
-						const errorMessage = error?.message || "Registration failed";
-
-						// Handle specific validation errors
-						if (
-							errorMessage.toLowerCase().includes("email") &&
-							errorMessage.toLowerCase().includes("already")
-						) {
-							throw new Error("Email is already registered");
-						}
-
-						if (errorMessage.toLowerCase().includes("password")) {
-							throw new Error(errorMessage);
-						}
-
-						throw new Error(errorMessage);
-					}
-
-					// Default registration error
-					const errorMessage = error?.message || "Registration failed";
-					throw new Error(errorMessage);
-				}
-
-				return response.data as {
-					accessToken: string;
-					user: User;
-					expiresIn: number;
-				};
-			} catch (error: any) {
+			if (error) {
 				// Handle network errors
 				if (error.message === "Failed to fetch" || error.name === "TypeError") {
 					throw new Error("Network error. Please check your connection.");
@@ -269,12 +218,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				// Re-throw other errors
 				throw error;
 			}
+
+			if (response.error || !response.data) {
+				// Handle API errors with proper error messages
+				const error = response.error as any;
+
+				// Check for rate limiting (429)
+				if (error?.status === 429) {
+					throw new Error(
+						"Too many registration attempts. Please try again later.",
+					);
+				}
+
+				// Check for validation errors (e.g., email already exists, weak password)
+				if (error?.status === 400 || error?.status === 409) {
+					const errorMessage = error?.message || "Registration failed";
+
+					// Handle specific validation errors
+					if (
+						errorMessage.toLowerCase().includes("email") &&
+						errorMessage.toLowerCase().includes("already")
+					) {
+						throw new Error("Email is already registered");
+					}
+
+					if (errorMessage.toLowerCase().includes("password")) {
+						throw new Error(errorMessage);
+					}
+
+					throw new Error(errorMessage);
+				}
+
+				// Default registration error
+				const errorMessage = error?.message || "Registration failed";
+				throw new Error(errorMessage);
+			}
+
+			return response.data;
 		},
-		onSuccess: (data: {
-			accessToken: string;
-			user: User;
-			expiresIn: number;
-		}) => {
+		onSuccess: (data) => {
 			tokenManager.setAccessToken(data.accessToken);
 			tokenManager.setUserData(data.user);
 			queryClient.setQueryData(["auth", "user"], data.user);
@@ -304,6 +286,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			queryClient.setQueryData(["auth", "user"], null);
 			queryClient.invalidateQueries({ queryKey: ["auth"] });
 			setError(null);
+
+			// Navigate to intended destination using TanStack Router
+			const params = new URLSearchParams(window.location.search);
+			const redirectTo = params.get("redirect") || "/dashboard";
+			navigate({ to: redirectTo });
 		},
 	});
 
@@ -322,12 +309,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			// Handle redirect to intended destination after successful login
 			if (typeof window !== "undefined") {
 				const params = new URLSearchParams(window.location.search);
-				const redirectTo = params.get("redirect");
+				const redirectTo = params.get("redirect") || "/dashboard";
 
-				if (redirectTo) {
-					// Navigate to intended destination using TanStack Router
-					navigate({ to: redirectTo });
-				}
+				// Navigate to intended destination using TanStack Router
+				navigate({ to: redirectTo });
 			}
 		},
 		[clearError, loginMutation, navigate],
@@ -341,12 +326,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			// Handle redirect to intended destination after successful registration
 			if (typeof window !== "undefined") {
 				const params = new URLSearchParams(window.location.search);
-				const redirectTo = params.get("redirect");
+				const redirectTo = params.get("redirect") || "/dashboard";
 
-				if (redirectTo) {
-					// Navigate to intended destination using TanStack Router
-					navigate({ to: redirectTo });
-				}
+				// Navigate to intended destination using TanStack Router
+				navigate({ to: redirectTo });
 			}
 		},
 		[clearError, registerMutation, navigate],
