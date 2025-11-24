@@ -152,8 +152,6 @@ export const auth = () =>
 				(cookie[REFRESH_TOKEN_COOKIE_NAME]?.value as string | undefined) ||
 				null;
 
-			console.log({ accessToken, refreshToken });
-
 			// If no tokens provided, return unauthenticated state
 			if (!accessToken && !refreshToken) {
 				return buildUnauthenticatedContext(null);
@@ -164,8 +162,6 @@ export const auth = () =>
 				const [verificationResult, verifyError] = await catchError(
 					tokenService.verifyAccessToken(accessToken),
 				);
-
-				console.log("verificationResult", verificationResult, verifyError);
 
 				// if no refresh token and there's an error, return unauthenticated context
 				if (!refreshToken && verifyError) {

@@ -7,6 +7,7 @@ import { config, isProduction } from "./config";
 import { auth } from "./middleware/auth";
 import { csrf } from "./middleware/csrf";
 import { errorHandler } from "./middleware/error-handler";
+import { tracing } from "./middleware/tracing";
 import {
 	activityLogRoutes,
 	projectActivityRoutes,
@@ -350,6 +351,9 @@ Common HTTP status codes:
 				"X-RateLimit-Remaining", // Rate limit remaining
 				"X-RateLimit-Reset", // Rate limit reset time
 				"Retry-After", // Retry after rate limit
+				"X-Response-Time", // Request duration
+				"X-Request-Start", // Request start time
+				"X-Response-End", // Request end time
 			],
 			maxAge: 86400, // 24 hours
 		}),
@@ -363,6 +367,7 @@ Common HTTP status codes:
 	)
 	.use(cookie())
 	.use(csrf())
+	.use(tracing())
 	.use(auth())
 	.use(errorHandler())
 	.use(apiRoutes)
