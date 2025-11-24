@@ -53,8 +53,6 @@ const createEdenClient = (baseURL: string) => {
 			if (response.status === 401) {
 				console.warn("[API] Authentication failed - token may be invalid");
 			}
-
-			return response;
 		},
 	}) as unknown as ClientApi; // Treaty nests prefixed routes under `.api` in its type definition
 	// even though the runtime client exposes them at the top level. Casting keeps our

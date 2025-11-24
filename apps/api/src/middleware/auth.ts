@@ -60,6 +60,80 @@ const logout = (
 	return buildUnauthenticatedContext(authError);
 };
 
+const buildAuthenticatedContext = async (
+	cookie: Record<string, Cookie<unknown>>,
+	payload: TokenPayload,
+	activeAccessToken: string,
+	existingSession?: SessionModel | null,
+): Promise<AuthContext> => {
+	let session: SessionModel | null | undefined = existingSession;
+
+	if (!session) {
+		const [fetchedSession, sessionError] = await catchError(
+			sessionService.getSession(payload.sessionId),
+		);
+
+		if (sessionError) {
+			console.error(
+				"[Auth] Database error during session lookup:",
+				sessionError,
+			);
+			return buildUnauthenticatedContext(
+				new AuthError(
+					AuthErrorCode.SESSION_NOT_FOUND,
+					"Unable to verify session",
+					401,
+				),
+			);
+		}
+
+		session = fetchedSession;
+	}
+
+	if (!session) {
+		return logout(
+			cookie,
+			new AuthError(AuthErrorCode.SESSION_NOT_FOUND, "Session not found", 401),
+		);
+	}
+
+	if (session.isRevoked) {
+		return logout(
+			cookie,
+			new AuthError(AuthErrorCode.SESSION_REVOKED, "Session revoked", 401),
+		);
+	}
+
+	if (session.expiresAt < new Date()) {
+		return logout(
+			cookie,
+			new AuthError(AuthErrorCode.SESSION_EXPIRED, "Session expired", 401),
+		);
+	}
+
+	const [, activityError] = await catchError(
+		sessionService.updateLastActivity(session.id),
+	);
+	if (activityError) {
+		console.warn("[Auth] Failed to update last activity:", activityError);
+	}
+
+	const [, extendError] = await catchError(
+		sessionService.extendSessionIfNeeded(session.id),
+	);
+	if (extendError) {
+		console.warn("[Auth] Failed to extend session:", extendError);
+	}
+
+	return {
+		authenticated: true as const,
+		userId: payload.userId,
+		sessionId: payload.sessionId,
+		accessToken: activeAccessToken,
+		authError: null,
+	};
+};
+
 /**
  * Authentication middleware
  * Handles bearer token extraction, refresh token handling, automatic token refresh,
@@ -78,90 +152,7 @@ export const auth = () =>
 				(cookie[REFRESH_TOKEN_COOKIE_NAME]?.value as string | undefined) ||
 				null;
 
-			const buildAuthenticatedContext = async (
-				payload: TokenPayload,
-				activeAccessToken: string,
-				existingSession?: SessionModel | null,
-			): Promise<AuthContext> => {
-				let session: SessionModel | null | undefined = existingSession;
-
-				if (!session) {
-					const [fetchedSession, sessionError] = await catchError(
-						sessionService.getSession(payload.sessionId),
-					);
-
-					if (sessionError) {
-						console.error(
-							"[Auth] Database error during session lookup:",
-							sessionError,
-						);
-						return buildUnauthenticatedContext(
-							new AuthError(
-								AuthErrorCode.SESSION_NOT_FOUND,
-								"Unable to verify session",
-								401,
-							),
-						);
-					}
-
-					session = fetchedSession;
-				}
-
-				if (!session) {
-					return logout(
-						cookie,
-						new AuthError(
-							AuthErrorCode.SESSION_NOT_FOUND,
-							"Session not found",
-							401,
-						),
-					);
-				}
-
-				if (session.isRevoked) {
-					return logout(
-						cookie,
-						new AuthError(
-							AuthErrorCode.SESSION_REVOKED,
-							"Session revoked",
-							401,
-						),
-					);
-				}
-
-				if (session.expiresAt < new Date()) {
-					return logout(
-						cookie,
-						new AuthError(
-							AuthErrorCode.SESSION_EXPIRED,
-							"Session expired",
-							401,
-						),
-					);
-				}
-
-				const [, activityError] = await catchError(
-					sessionService.updateLastActivity(session.id),
-				);
-				if (activityError) {
-					console.warn("[Auth] Failed to update last activity:", activityError);
-				}
-
-				const [, extendError] = await catchError(
-					sessionService.extendSessionIfNeeded(session.id),
-				);
-				if (extendError) {
-					console.warn("[Auth] Failed to extend session:", extendError);
-				}
-
-				return {
-					authenticated: true as const,
-					userId: payload.userId,
-					sessionId: payload.sessionId,
-					accessToken: activeAccessToken,
-					authError: null,
-				};
-			};
+			console.log({ accessToken, refreshToken });
 
 			// If no tokens provided, return unauthenticated state
 			if (!accessToken && !refreshToken) {
@@ -173,6 +164,8 @@ export const auth = () =>
 				const [verificationResult, verifyError] = await catchError(
 					tokenService.verifyAccessToken(accessToken),
 				);
+
+				console.log("verificationResult", verificationResult, verifyError);
 
 				// if no refresh token and there's an error, return unauthenticated context
 				if (!refreshToken && verifyError) {
@@ -200,6 +193,7 @@ export const auth = () =>
 				// if the verification result is not expired, return authenticated context
 				if (!("expired" in verificationResult)) {
 					return buildAuthenticatedContext(
+						cookie,
 						verificationResult as TokenPayload,
 						accessToken,
 					);
@@ -329,6 +323,7 @@ export const auth = () =>
 			});
 
 			return buildAuthenticatedContext(
+				cookie,
 				newTokenPayload as TokenPayload,
 				refreshResult.accessToken,
 				validatedSession,
