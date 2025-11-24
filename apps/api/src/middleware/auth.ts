@@ -1,12 +1,12 @@
-import { Context, Elysia } from "elysia";
+import bearer from "@elysiajs/bearer";
+import { catchError } from "@wingmnn/utils";
+import { Elysia } from "elysia";
 import { isProduction } from "../config";
 import { AuthError, AuthErrorCode } from "../services/auth.service";
 import { sessionService } from "../services/session.service";
 import { tokenService, type TokenPayload } from "../services/token.service";
 
 const REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-const ACCESS_TOKEN_HEADER_NAME = "authorization";
-
 /**
  * Authentication context added to request
  * This is a discriminated union - TypeScript can narrow based on `authenticated`
@@ -17,13 +17,14 @@ export type AuthContext =
 			userId: string;
 			sessionId: string;
 			accessToken: string;
+			authError: null;
 	  }
 	| {
 			authenticated: false;
 			userId: null;
 			sessionId: null;
 			accessToken: null;
-			error?: string;
+			authError: AuthError | null;
 	  };
 
 /**
@@ -31,233 +32,333 @@ export type AuthContext =
  * Handles bearer token extraction, refresh token handling, automatic token refresh,
  * session validation, and activity tracking
  */
-export const auth = async (context: Context) => {
-	const { cookie, headers, set } = context;
-	try {
-		// Extract bearer token from Authorization header
-		const authHeader =
-			headers[ACCESS_TOKEN_HEADER_NAME] || headers["Authorization"];
-		let accessToken: string | null = null;
 
-		if (authHeader && typeof authHeader === "string") {
-			// Support both "Bearer <token>" and just "<token>" formats
-			const parts = authHeader.trim().split(" ");
-			accessToken =
-				parts.length === 2 && parts[0].toLowerCase() === "bearer"
-					? parts[1]
-					: parts.length === 1
-					? parts[0]
-					: null;
-		}
+export const auth = () =>
+	new Elysia({ name: "auth" })
+		.use(bearer())
+		.derive({ as: "global" }, async (context) => {
+			const { cookie, set } = context;
+			const accessToken = context.bearer;
+			async function tmp() {
+				// Value provided by @elysiajs/bearer plugin
+				// Extract refresh token from HTTP-only cookie
+				const refreshToken =
+					(cookie[REFRESH_TOKEN_COOKIE_NAME]?.value as string | undefined) ||
+					null;
 
-		// Extract refresh token from HTTP-only cookie
-		const refreshToken =
-			(cookie[REFRESH_TOKEN_COOKIE_NAME]?.value as string | undefined) || null;
-
-		// If no tokens provided, return unauthenticated state
-		if (!accessToken && !refreshToken) {
-			return {
-				authenticated: false as const,
-				userId: null,
-				sessionId: null,
-				accessToken: null,
-			};
-		}
-
-		let tokenPayload: TokenPayload | null = null;
-		let shouldRefresh = false;
-		let newTokenPair: {
-			accessToken: string;
-			refreshToken: string;
-			expiresIn: number;
-		} | null = null;
-
-		// Verify access token if present
-		if (accessToken) {
-			try {
-				const verificationResult = await tokenService.verifyAccessToken(
-					accessToken,
-				);
-
-				// Check if token is expired
-				if ("expired" in verificationResult && verificationResult.expired) {
-					// Token is expired, need to refresh
-					shouldRefresh = true;
-				} else {
-					// Token is valid
-					tokenPayload = verificationResult as TokenPayload;
-
-					// Check if token is near expiration (< 5 minutes)
-					const isNearExpiration =
-						tokenService.isTokenNearExpiration(accessToken);
-					if (isNearExpiration) {
-						shouldRefresh = true;
-					}
+				// If no tokens provided, return unauthenticated state
+				if (!accessToken && !refreshToken) {
+					console.log(accessToken, "no access token and no refresh token");
+					return {
+						authenticated: false as const,
+						userId: null,
+						sessionId: null,
+						accessToken: null,
+						authError: null,
+					};
 				}
-			} catch (error) {
-				// Token verification failed, try to refresh if refresh token is available
-				if (refreshToken) {
-					shouldRefresh = true;
-				} else {
-					// No refresh token, authentication failed
-					// If it's already an AuthError, rethrow it; otherwise create a new one
-					if (error instanceof AuthError) {
-						throw error;
-					}
-					throw new AuthError(
-						AuthErrorCode.INVALID_TOKEN,
-						"Invalid access token",
-						401,
+
+				let tokenPayload: TokenPayload | null = null;
+				let shouldRefresh = false;
+				let newTokenPair: {
+					accessToken: string;
+					refreshToken: string;
+					expiresIn: number;
+				} | null = null;
+
+				// Verify access token if present
+				if (accessToken) {
+					const [verificationResult, verifyError] = await catchError(
+						tokenService.verifyAccessToken(accessToken),
 					);
+
+					if (verifyError) {
+						// Token verification failed, try to refresh if refresh token is available
+						if (refreshToken) {
+							shouldRefresh = true;
+						} else {
+							// No refresh token, authentication failed
+							const authError =
+								verifyError instanceof AuthError
+									? verifyError
+									: new AuthError(
+											AuthErrorCode.INVALID_TOKEN,
+											"Invalid access token",
+											401,
+									  );
+							return {
+								authenticated: false as const,
+								userId: null,
+								sessionId: null,
+								accessToken: null,
+								authError,
+							};
+						}
+					} else {
+						// Check if token is expired
+						if (
+							verificationResult &&
+							"expired" in verificationResult &&
+							verificationResult.expired
+						) {
+							// Token is expired, need to refresh
+							shouldRefresh = true;
+						} else if (verificationResult) {
+							// Token is valid
+							tokenPayload = verificationResult as TokenPayload;
+
+							// Check if token is near expiration (< 5 minutes)
+							const isNearExpiration =
+								tokenService.isTokenNearExpiration(accessToken);
+							if (isNearExpiration) {
+								shouldRefresh = true;
+							}
+						}
+					}
+				} else {
+					// No access token, but we have refresh token - need to refresh
+					shouldRefresh = true;
 				}
-			}
-		} else {
-			// No access token, but we have refresh token - need to refresh
-			shouldRefresh = true;
-		}
 
-		// Refresh tokens if needed
-		if (shouldRefresh) {
-			if (!refreshToken) {
-				throw new AuthError(
-					AuthErrorCode.EXPIRED_TOKEN,
-					"Access token expired and no refresh token provided",
-					401,
-				);
-			}
+				// Refresh tokens if needed
+				if (shouldRefresh) {
+					if (!refreshToken) {
+						return {
+							authenticated: false as const,
+							userId: null,
+							sessionId: null,
+							accessToken: null,
+							authError: new AuthError(
+								AuthErrorCode.EXPIRED_TOKEN,
+								"Access token expired and no refresh token provided",
+								401,
+							),
+						};
+					}
 
-			try {
-				// Refresh tokens using refresh token (refreshToken is guaranteed to be non-null here)
-				newTokenPair = await tokenService.refreshTokens(refreshToken);
+					const [refreshResult, refreshError] = await catchError(
+						tokenService.refreshTokens(refreshToken),
+					);
 
-				// Verify the new access token to get payload
-				tokenPayload = (await tokenService.verifyAccessToken(
-					newTokenPair.accessToken,
-				)) as TokenPayload;
+					if (refreshError) {
+						// Refresh failed - invalid or expired refresh token
+						// Clear refresh token cookie by setting it with empty value and expired date
+						cookie[REFRESH_TOKEN_COOKIE_NAME].set({
+							value: "",
+							httpOnly: true,
+							secure: isProduction,
+							sameSite: "strict",
+							path: "/",
+							maxAge: 0,
+						});
 
-				// Set new tokens in response
-				// Access token in Authorization header (for client to read)
-				set.headers["X-Access-Token"] = newTokenPair.accessToken;
+						const authError =
+							refreshError instanceof AuthError
+								? refreshError
+								: new AuthError(
+										AuthErrorCode.INVALID_TOKEN,
+										refreshError instanceof Error
+											? refreshError.message
+											: "Token refresh failed",
+										401,
+								  );
+						return {
+							authenticated: false as const,
+							userId: null,
+							sessionId: null,
+							accessToken: null,
+							authError,
+						};
+					}
 
-				// Refresh token in HTTP-only cookie
-				cookie[REFRESH_TOKEN_COOKIE_NAME].set({
-					value: newTokenPair.refreshToken,
-					httpOnly: true,
-					secure: isProduction,
-					sameSite: "strict",
-					path: "/",
-					maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
-				});
-			} catch (error) {
-				// Refresh failed - invalid or expired refresh token
-				// Clear refresh token cookie by setting it with empty value and expired date
-				cookie[REFRESH_TOKEN_COOKIE_NAME].set({
-					value: "",
-					httpOnly: true,
-					secure: isProduction,
-					sameSite: "strict",
-					path: "/",
-					maxAge: 0,
-				});
+					if (!refreshResult) {
+						return {
+							authenticated: false as const,
+							userId: null,
+							sessionId: null,
+							accessToken: null,
+							authError: new AuthError(
+								AuthErrorCode.INVALID_TOKEN,
+								"Token refresh failed",
+								401,
+							),
+						};
+					}
 
-				// If it's already an AuthError, rethrow it; otherwise create a new one
-				if (error instanceof AuthError) {
-					throw error;
+					newTokenPair = refreshResult;
+
+					// Verify the new access token to get payload
+					const [newTokenPayload, newTokenError] = await catchError(
+						tokenService.verifyAccessToken(newTokenPair.accessToken),
+					);
+
+					if (newTokenError || !newTokenPayload) {
+						return {
+							authenticated: false as const,
+							userId: null,
+							sessionId: null,
+							accessToken: null,
+							authError: new AuthError(
+								AuthErrorCode.INVALID_TOKEN,
+								"Failed to verify refreshed token",
+								401,
+							),
+						};
+					}
+
+					tokenPayload = newTokenPayload as TokenPayload;
+
+					// Set new tokens in response
+					// Access token in Authorization header (for client to read)
+					set.headers["X-Access-Token"] = newTokenPair.accessToken;
+
+					// Refresh token in HTTP-only cookie
+					cookie[REFRESH_TOKEN_COOKIE_NAME].set({
+						value: newTokenPair.refreshToken,
+						httpOnly: true,
+						secure: isProduction,
+						sameSite: "strict",
+						path: "/",
+						maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+					});
 				}
-				throw new AuthError(
-					AuthErrorCode.INVALID_TOKEN,
-					error instanceof Error ? error.message : "Token refresh failed",
-					401,
+
+				// At this point, we should have a valid token payload
+				if (!tokenPayload) {
+					return {
+						authenticated: false as const,
+						userId: null,
+						sessionId: null,
+						accessToken: null,
+						authError: new AuthError(
+							AuthErrorCode.INVALID_TOKEN,
+							"Failed to authenticate",
+							401,
+						),
+					};
+				}
+
+				// Validate session - use catchError to handle database errors gracefully
+				const [session, sessionError] = await catchError(
+					sessionService.getSession(tokenPayload.sessionId),
 				);
+
+				if (sessionError) {
+					// Database error during session lookup - treat as authentication failure
+					console.error(
+						"[Auth] Database error during session lookup:",
+						sessionError,
+					);
+					return {
+						authenticated: false as const,
+						userId: null,
+						sessionId: null,
+						accessToken: null,
+						authError: new AuthError(
+							AuthErrorCode.SESSION_NOT_FOUND,
+							"Unable to verify session",
+							401,
+						),
+					};
+				}
+
+				if (!session) {
+					return {
+						authenticated: false as const,
+						userId: null,
+						sessionId: null,
+						accessToken: null,
+						authError: new AuthError(
+							AuthErrorCode.SESSION_NOT_FOUND,
+							"Session not found",
+							401,
+						),
+					};
+				}
+
+				// Check if session is revoked
+				if (session.isRevoked) {
+					// Clear refresh token cookie by setting it with empty value and expired date
+					cookie[REFRESH_TOKEN_COOKIE_NAME].set({
+						value: "",
+						httpOnly: true,
+						secure: isProduction,
+						sameSite: "strict",
+						path: "/",
+						maxAge: 0,
+					});
+
+					return {
+						authenticated: false as const,
+						userId: null,
+						sessionId: null,
+						accessToken: null,
+						authError: new AuthError(
+							AuthErrorCode.SESSION_REVOKED,
+							"Session revoked",
+							401,
+						),
+					};
+				}
+
+				// Check if session is expired
+				if (session.expiresAt < new Date()) {
+					// Clear refresh token cookie by setting it with empty value and expired date
+					cookie[REFRESH_TOKEN_COOKIE_NAME].set({
+						value: "",
+						httpOnly: true,
+						secure: isProduction,
+						sameSite: "strict",
+						path: "/",
+						maxAge: 0,
+					});
+
+					return {
+						authenticated: false as const,
+						userId: null,
+						sessionId: null,
+						accessToken: null,
+						authError: new AuthError(
+							AuthErrorCode.SESSION_EXPIRED,
+							"Session expired",
+							401,
+						),
+					};
+				}
+
+				// Update last activity - don't fail authentication if this fails
+				const [, activityError] = await catchError(
+					sessionService.updateLastActivity(session.id),
+				);
+				if (activityError) {
+					// Log but don't fail authentication for activity tracking errors
+					console.warn("[Auth] Failed to update last activity:", activityError);
+				}
+
+				// Extend session if needed - don't fail authentication if this fails
+				const [, extendError] = await catchError(
+					sessionService.extendSessionIfNeeded(session.id),
+				);
+				if (extendError) {
+					// Log but don't fail authentication for session extension errors
+					console.warn("[Auth] Failed to extend session:", extendError);
+				}
+
+				// Return authenticated context
+				const finalAccessToken = newTokenPair?.accessToken || accessToken!;
+
+				return {
+					authenticated: true as const,
+					userId: tokenPayload.userId,
+					sessionId: tokenPayload.sessionId,
+					accessToken: finalAccessToken,
+					authError: null,
+				};
 			}
-		}
-
-		// At this point, we should have a valid token payload
-		if (!tokenPayload) {
-			throw new AuthError(
-				AuthErrorCode.INVALID_TOKEN,
-				"Failed to authenticate",
-				401,
-			);
-		}
-
-		// Validate session
-		const session = await sessionService.getSession(tokenPayload.sessionId);
-
-		if (!session) {
-			throw new AuthError(
-				AuthErrorCode.SESSION_NOT_FOUND,
-				"Session not found",
-				401,
-			);
-		}
-
-		// Check if session is revoked
-		if (session.isRevoked) {
-			// Clear refresh token cookie by setting it with empty value and expired date
-			cookie[REFRESH_TOKEN_COOKIE_NAME].set({
-				value: "",
-				httpOnly: true,
-				secure: isProduction,
-				sameSite: "strict",
-				path: "/",
-				maxAge: 0,
-			});
-
-			throw new AuthError(
-				AuthErrorCode.SESSION_REVOKED,
-				"Session revoked",
-				401,
-			);
-		}
-
-		// Check if session is expired
-		if (session.expiresAt < new Date()) {
-			// Clear refresh token cookie by setting it with empty value and expired date
-			cookie[REFRESH_TOKEN_COOKIE_NAME].set({
-				value: "",
-				httpOnly: true,
-				secure: isProduction,
-				sameSite: "strict",
-				path: "/",
-				maxAge: 0,
-			});
-
-			throw new AuthError(
-				AuthErrorCode.SESSION_EXPIRED,
-				"Session expired",
-				401,
-			);
-		}
-
-		// Update last activity
-		await sessionService.updateLastActivity(session.id);
-
-		// Extend session if needed (within 7 days of expiration)
-		await sessionService.extendSessionIfNeeded(session.id);
-
-		// Return authenticated context
-		const finalAccessToken = newTokenPair?.accessToken || accessToken!;
-
-		return {
-			authenticated: true as const,
-			userId: tokenPayload.userId,
-			sessionId: tokenPayload.sessionId,
-			accessToken: finalAccessToken,
-		};
-	} catch (error) {
-		// If it's already an AuthError, rethrow it to preserve the type
-		if (error instanceof AuthError) {
-			throw error;
-		}
-		// For other errors, wrap them in an AuthError
-		throw new AuthError(
-			AuthErrorCode.INTERNAL_ERROR,
-			error instanceof Error ? error.message : "Authentication error",
-			500,
-		);
-	}
-};
+			const val = await tmp();
+			console.log(val);
+			return val;
+		});
 /**
  * Guard function to require authentication
  * Use this in routes that require authentication
@@ -274,8 +375,21 @@ export const auth = async (context: Context) => {
 export const requireAuth = () =>
 	new Elysia({ name: "requireAuth" }).onBeforeHandle(
 		{ as: "global" },
-		({ authenticated, set }: { authenticated?: boolean; set: any }) => {
+		({
+			authenticated,
+			authError,
+			set,
+		}: {
+			authenticated?: boolean;
+			authError?: AuthError | null;
+			set: any;
+		}) => {
 			if (!authenticated) {
+				// If there's a specific auth error, throw it so the error handler can format it properly
+				if (authError) {
+					throw authError;
+				}
+				// Otherwise, return generic unauthorized error
 				set.status = 401;
 				return {
 					error: "Unauthorized",
