@@ -3,12 +3,12 @@
  * Displays all projects the user is part of with stats
  */
 
-import { useMemo } from "react";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useProjects } from "@/lib/hooks/use-projects";
 import { useMyTasks } from "@/lib/hooks/use-tasks";
-import { useAuth } from "@/lib/auth/auth-context";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { useMemo } from "react";
 import { Badge } from "../ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 export function ProjectsList() {
 	const { data: projects = [], isLoading, error } = useProjects();
@@ -17,25 +17,35 @@ export function ProjectsList() {
 
 	// Calculate stats per project
 	const projectStats = useMemo(() => {
-		const stats: Record<string, {
-			totalTasks: number;
-			myTasks: number;
-			completedTasks: number;
-			completionRate: number;
-		}> = {};
+		const stats: Record<
+			string,
+			{
+				totalTasks: number;
+				myTasks: number;
+				completedTasks: number;
+				completionRate: number;
+			}
+		> = {};
 
 		projects.forEach((project) => {
-			const projectTasks = allTasks.filter((task) => task.projectId === project.id);
-			const myProjectTasks = projectTasks.filter((task) => task.assignedTo === user?.id);
-			const completed = projectTasks.filter((task) => task.progress === 100).length;
+			const projectTasks = allTasks.filter(
+				(task) => task.projectId === project.id,
+			);
+			const myProjectTasks = projectTasks.filter(
+				(task) => task.assignedTo === user?.id,
+			);
+			const completed = projectTasks.filter(
+				(task) => task.progress === 100,
+			).length;
 
 			stats[project.id] = {
 				totalTasks: projectTasks.length,
 				myTasks: myProjectTasks.length,
 				completedTasks: completed,
-				completionRate: projectTasks.length > 0
-					? Math.round((completed / projectTasks.length) * 100)
-					: 0,
+				completionRate:
+					projectTasks.length > 0
+						? Math.round((completed / projectTasks.length) * 100)
+						: 0,
 			};
 		});
 
@@ -63,7 +73,8 @@ export function ProjectsList() {
 				</CardHeader>
 				<CardContent>
 					<div className="text-destructive">
-						Error loading projects: {error instanceof Error ? error.message : "Unknown error"}
+						Error loading projects:{" "}
+						{error instanceof Error ? error.message : "Unknown error"}
 					</div>
 				</CardContent>
 			</Card>
@@ -109,7 +120,9 @@ export function ProjectsList() {
 									<div className="flex items-start justify-between">
 										<CardTitle className="text-lg">{project.name}</CardTitle>
 										<Badge
-											variant={project.status === "active" ? "default" : "secondary"}
+											variant={
+												project.status === "active" ? "default" : "secondary"
+											}
 										>
 											{project.status}
 										</Badge>
@@ -123,16 +136,22 @@ export function ProjectsList() {
 									)}
 									<div className="mt-4 space-y-2">
 										<div className="flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">Total Tasks:</span>
+											<span className="text-muted-foreground">
+												Total Tasks:
+											</span>
 											<span className="font-medium">{stats.totalTasks}</span>
 										</div>
 										<div className="flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">Assigned to Me:</span>
+											<span className="text-muted-foreground">
+												Assigned to Me:
+											</span>
 											<span className="font-medium">{stats.myTasks}</span>
 										</div>
 										<div className="flex items-center justify-between text-xs">
 											<span className="text-muted-foreground">Completion:</span>
-											<span className="font-medium">{stats.completionRate}%</span>
+											<span className="font-medium">
+												{stats.completionRate}%
+											</span>
 										</div>
 										<div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
 											<div
@@ -153,4 +172,3 @@ export function ProjectsList() {
 		</Card>
 	);
 }
-
