@@ -6,6 +6,7 @@ import { config } from "../config";
 import { db, eq, sessions, usedRefreshTokens } from "@wingmnn/db";
 import { catchError, catchErrorSync } from "@wingmnn/utils";
 import { AuthError, AuthErrorCode } from "./auth.service";
+import { sessionService } from "./session.service";
 
 // Token payload interfaces
 export interface TokenPayload {
@@ -278,7 +279,7 @@ export class TokenService {
 					const usedToken = usedTokenResult[0];
 
 					if (usedToken) {
-						await this.revokeSession(usedToken.sessionId);
+						await sessionService.revokeSession(usedToken.sessionId);
 						throw new AuthError(
 							AuthErrorCode.TOKEN_REUSE_DETECTED,
 							"Token reuse detected - session has been revoked for security",
