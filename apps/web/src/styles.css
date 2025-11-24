@@ -329,18 +329,21 @@ code {
 
 	.retro-button-primary {
 		background: var(--primary);
-		border-color: #d977a6 #ff9ec5 #ff9ec5 #d977a6;
+		border-color: var(--primary-border-dark, #d977a6) var(--primary, #ff9ec5)
+			var(--primary, #ff9ec5) var(--primary-border-dark, #d977a6);
 		color: var(--primary-foreground);
 	}
 
 	.retro-button-primary:hover:not(:disabled) {
-		background: #ff8ab8;
-		border-color: #ff9ec5 #d977a6 #d977a6 #ff9ec5;
+		background: var(--primary-hover, #ff8ab8);
+		border-color: var(--primary, #ff9ec5) var(--primary-border-dark, #d977a6)
+			var(--primary-border-dark, #d977a6) var(--primary, #ff9ec5);
 	}
 
 	.retro-button-primary:active:not(:disabled) {
-		background: #ff7aa8;
-		border-color: #d977a6 #ff9ec5 #ff9ec5 #d977a6;
+		background: var(--primary-active, #ff7aa8);
+		border-color: var(--primary-border-dark, #d977a6) var(--primary, #ff9ec5)
+			var(--primary, #ff9ec5) var(--primary-border-dark, #d977a6);
 		box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.2),
 			inset -2px -2px 0 rgba(255, 255, 255, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1);
 	}
@@ -421,11 +424,13 @@ code {
 
 	/* Dark mode retro buttons */
 	.dark .retro-button-primary {
-		border-color: #b85a7f #d977a6 #d977a6 #b85a7f;
+		border-color: var(--primary-border-dark, #b85a7f) var(--primary, #d977a6)
+			var(--primary, #d977a6) var(--primary-border-dark, #b85a7f);
 	}
 
 	.dark .retro-button-primary:hover:not(:disabled) {
-		border-color: #d977a6 #b85a7f #b85a7f #d977a6;
+		border-color: var(--primary, #d977a6) var(--primary-border-dark, #b85a7f)
+			var(--primary-border-dark, #b85a7f) var(--primary, #d977a6);
 	}
 
 	.dark .retro-button-outline {

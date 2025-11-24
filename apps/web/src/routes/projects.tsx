@@ -1,8 +1,10 @@
 import { generateMetadata } from "@/lib/metadata";
 import { getModuleBySlug } from "@/lib/modules";
 import { createFileRoute } from "@tanstack/react-router";
-import { Settings, Workflow } from "lucide-react";
+import { Plus, Settings, Workflow } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
+import { ModuleColorProvider } from "../components/ModuleColorProvider";
+import { ProjectCreationDialog } from "../components/projects/ProjectCreationDialog";
 import { ProjectsList } from "../components/projects/ProjectsList";
 import { SpotlightStats } from "../components/projects/SpotlightStats";
 import { TasksList } from "../components/projects/TasksList";
@@ -17,6 +19,12 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "../components/ui/tabs";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "../components/ui/tooltip";
 
 // Lazy load AnalyticsTab to reduce initial bundle size
 const AnalyticsTab = lazy(() =>
@@ -41,109 +49,146 @@ function ProjectsModule() {
 	const [activeTab, setActiveTab] = useState("overview");
 	const [widgetSettingsOpen, setWidgetSettingsOpen] = useState(false);
 	const [workflowManagerOpen, setWorkflowManagerOpen] = useState(false);
+	const [createProjectOpen, setCreateProjectOpen] = useState(false);
 
 	return (
 		<ProtectedRoute>
-			<div className="min-h-screen text-foreground p-8">
-				<div className="max-w-7xl mx-auto">
-					<div className="space-y-8">
-						{/* Header */}
-						<div className="flex items-center justify-between gap-4">
-							<div className="flex items-center gap-4">
-								{Icon && (
-									<div
-										className="p-6 retro-border rounded-none"
-										style={{
-											backgroundColor: `var(${module?.colorVar})`,
-										}}
-									>
-										<Icon className="h-12 w-12 text-primary-foreground" />
+			<ModuleColorProvider moduleSlug="projects">
+				<div className="min-h-screen text-foreground p-8">
+					<div className="max-w-7xl mx-auto">
+						<div className="space-y-8">
+							{/* Header */}
+							<div className="flex items-center justify-between gap-4">
+								<div className="flex items-center gap-4">
+									{Icon && (
+										<div
+											className="p-6 retro-border rounded-none"
+											style={{
+												backgroundColor: `var(${module?.colorVar})`,
+											}}
+										>
+											<Icon className="h-12 w-12 text-primary-foreground" />
+										</div>
+									)}
+									<div>
+										<h1 className="text-4xl font-bold font-mono uppercase tracking-wider">
+											{module?.name}
+										</h1>
+										<p className="text-muted-foreground mt-2">
+											{module?.description}
+										</p>
 									</div>
-								)}
-								<div>
-									<h1 className="text-4xl font-bold font-mono uppercase tracking-wider">
-										{module?.name}
-									</h1>
-									<p className="text-muted-foreground mt-2">
-										{module?.description}
-									</p>
 								</div>
+								<TooltipProvider>
+									<div className="flex items-center gap-2">
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<Button
+													size="icon"
+													variant="outline"
+													onClick={() => setCreateProjectOpen(true)}
+												>
+													<Plus className="h-4 w-4" />
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent side="bottom">
+												<p>Create a new project</p>
+											</TooltipContent>
+										</Tooltip>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<Button
+													variant="outline"
+													size="icon"
+													onClick={() => setWorkflowManagerOpen(true)}
+												>
+													<Workflow className="h-4 w-4" />
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent side="bottom">
+												<p>Manage Workflows</p>
+											</TooltipContent>
+										</Tooltip>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<Button
+													variant="outline"
+													size="icon"
+													onClick={() => setWidgetSettingsOpen(true)}
+												>
+													<Settings className="h-4 w-4" />
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent side="bottom">
+												<p>Widget Settings</p>
+											</TooltipContent>
+										</Tooltip>
+									</div>
+								</TooltipProvider>
 							</div>
-							<div className="flex items-center gap-2">
-								<Button
-									variant="outline"
-									size="icon"
-									onClick={() => setWorkflowManagerOpen(true)}
-									title="Manage Workflows"
-								>
-									<Workflow className="h-4 w-4" />
-								</Button>
-								<Button
-									variant="outline"
-									size="icon"
-									onClick={() => setWidgetSettingsOpen(true)}
-									title="Widget Settings"
-								>
-									<Settings className="h-4 w-4" />
-								</Button>
-							</div>
-						</div>
 
-						{/* Tabs */}
-						<Tabs
-							value={activeTab}
-							onValueChange={setActiveTab}
-						>
-							<TabsList>
-								<TabsTrigger value="overview">Overview</TabsTrigger>
-								<TabsTrigger value="analytics">Analytics</TabsTrigger>
-							</TabsList>
-
-							<TabsContent
-								value="overview"
-								className="space-y-6"
+							{/* Tabs */}
+							<Tabs
+								value={activeTab}
+								onValueChange={setActiveTab}
 							>
-								{/* Spotlight Stats */}
-								<SpotlightStats />
+								<TabsList>
+									<TabsTrigger value="overview">Overview</TabsTrigger>
+									<TabsTrigger value="analytics">Analytics</TabsTrigger>
+								</TabsList>
 
-								{/* Projects List */}
-								<ProjectsList />
-
-								{/* Tasks List */}
-								<TasksList />
-							</TabsContent>
-
-							<TabsContent value="analytics">
-								<Suspense
-									fallback={
-										<Card>
-											<CardContent className="py-8">
-												<div className="text-center text-muted-foreground">
-													Loading analytics...
-												</div>
-											</CardContent>
-										</Card>
-									}
+								<TabsContent
+									value="overview"
+									className="space-y-6"
 								>
-									<AnalyticsTab />
-								</Suspense>
-							</TabsContent>
-						</Tabs>
+									{/* Spotlight Stats */}
+									<SpotlightStats />
+
+									{/* Projects List */}
+									<ProjectsList />
+
+									{/* Tasks List */}
+									<TasksList />
+								</TabsContent>
+
+								<TabsContent value="analytics">
+									<Suspense
+										fallback={
+											<Card>
+												<CardContent className="py-8">
+													<div className="text-center text-muted-foreground">
+														Loading analytics...
+													</div>
+												</CardContent>
+											</Card>
+										}
+									>
+										<AnalyticsTab />
+									</Suspense>
+								</TabsContent>
+							</Tabs>
+						</div>
 					</div>
+
+					{/* Widget Settings Dialog */}
+					<WidgetSettings
+						open={widgetSettingsOpen}
+						onOpenChange={setWidgetSettingsOpen}
+					/>
+
+					{/* Workflow Manager Dialog */}
+					<WorkflowManager
+						open={workflowManagerOpen}
+						onOpenChange={setWorkflowManagerOpen}
+					/>
+
+					{/* Project Creation Dialog */}
+					<ProjectCreationDialog
+						open={createProjectOpen}
+						onOpenChange={setCreateProjectOpen}
+					/>
 				</div>
-
-				{/* Widget Settings Dialog */}
-				<WidgetSettings
-					open={widgetSettingsOpen}
-					onOpenChange={setWidgetSettingsOpen}
-				/>
-
-				{/* Workflow Manager Dialog */}
-				<WorkflowManager
-					open={workflowManagerOpen}
-					onOpenChange={setWorkflowManagerOpen}
-				/>
-			</div>
+			</ModuleColorProvider>
 		</ProtectedRoute>
 	);
 }

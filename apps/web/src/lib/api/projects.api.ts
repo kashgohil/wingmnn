@@ -1,6 +1,6 @@
 /**
  * Projects API Service
- * 
+ *
  * Type-safe API calls for project-related operations
  */
 
@@ -43,7 +43,7 @@ export interface UpdateProjectParams {
  */
 export async function listProjects(params?: ListProjectsParams) {
 	const query: Record<string, string> = {};
-	
+
 	if (params?.status) {
 		query.status = params.status;
 	}
@@ -60,19 +60,19 @@ export async function listProjects(params?: ListProjectsParams) {
 		query.sortDirection = params.sortDirection;
 	}
 
-	const [response, error] = await catchError(
-		api.projects.get(query)
-	);
+	const [response, error] = await catchError(api.projects.get(query));
 
 	if (error) {
-		throw new Error(error instanceof Error ? error.message : "Failed to fetch projects");
+		throw new Error(
+			error instanceof Error ? error.message : "Failed to fetch projects",
+		);
 	}
 
 	if (response?.error) {
 		throw new Error(
 			typeof response.error === "object" && "message" in response.error
 				? String(response.error.message)
-				: "Failed to fetch projects"
+				: "Failed to fetch projects",
 		);
 	}
 
@@ -83,19 +83,19 @@ export async function listProjects(params?: ListProjectsParams) {
  * Get a single project by ID
  */
 export async function getProject(id: string) {
-	const [response, error] = await catchError(
-		api.projects({ id }).get()
-	);
+	const [response, error] = await catchError(api.projects({ id }).get());
 
 	if (error) {
-		throw new Error(error instanceof Error ? error.message : "Failed to fetch project");
+		throw new Error(
+			error instanceof Error ? error.message : "Failed to fetch project",
+		);
 	}
 
 	if (response?.error) {
 		throw new Error(
 			typeof response.error === "object" && "message" in response.error
 				? String(response.error.message)
-				: "Failed to fetch project"
+				: "Failed to fetch project",
 		);
 	}
 
@@ -106,19 +106,19 @@ export async function getProject(id: string) {
  * Create a new project
  */
 export async function createProject(params: CreateProjectParams) {
-	const [response, error] = await catchError(
-		api.projects.post(params)
-	);
+	const [response, error] = await catchError(api.projects.post(params));
 
 	if (error) {
-		throw new Error(error instanceof Error ? error.message : "Failed to create project");
+		throw new Error(
+			error instanceof Error ? error.message : "Failed to create project",
+		);
 	}
 
 	if (response?.error) {
 		throw new Error(
 			typeof response.error === "object" && "message" in response.error
 				? String(response.error.message)
-				: "Failed to create project"
+				: "Failed to create project",
 		);
 	}
 
@@ -129,19 +129,19 @@ export async function createProject(params: CreateProjectParams) {
  * Update a project
  */
 export async function updateProject(id: string, params: UpdateProjectParams) {
-	const [response, error] = await catchError(
-		api.projects({ id }).put(params)
-	);
+	const [response, error] = await catchError(api.projects({ id }).put(params));
 
 	if (error) {
-		throw new Error(error instanceof Error ? error.message : "Failed to update project");
+		throw new Error(
+			error instanceof Error ? error.message : "Failed to update project",
+		);
 	}
 
 	if (response?.error) {
 		throw new Error(
 			typeof response.error === "object" && "message" in response.error
 				? String(response.error.message)
-				: "Failed to update project"
+				: "Failed to update project",
 		);
 	}
 
@@ -152,22 +152,54 @@ export async function updateProject(id: string, params: UpdateProjectParams) {
  * Delete a project
  */
 export async function deleteProject(id: string) {
-	const [response, error] = await catchError(
-		api.projects({ id }).delete()
-	);
+	const [response, error] = await catchError(api.projects({ id }).delete());
 
 	if (error) {
-		throw new Error(error instanceof Error ? error.message : "Failed to delete project");
+		throw new Error(
+			error instanceof Error ? error.message : "Failed to delete project",
+		);
 	}
 
 	if (response?.error) {
 		throw new Error(
 			typeof response.error === "object" && "message" in response.error
 				? String(response.error.message)
-				: "Failed to delete project"
+				: "Failed to delete project",
 		);
 	}
 
 	return response?.data;
 }
 
+export interface AddProjectMemberParams {
+	userId?: string;
+	userGroupId?: string;
+}
+
+/**
+ * Add a member to a project
+ */
+export async function addProjectMember(
+	projectId: string,
+	params: AddProjectMemberParams,
+) {
+	const [response, error] = await catchError(
+		api.projects({ id: projectId }).members.post(params),
+	);
+
+	if (error) {
+		throw new Error(
+			error instanceof Error ? error.message : "Failed to add project member",
+		);
+	}
+
+	if (response?.error) {
+		throw new Error(
+			typeof response.error === "object" && "message" in response.error
+				? String(response.error.message)
+				: "Failed to add project member",
+		);
+	}
+
+	return response?.data;
+}
