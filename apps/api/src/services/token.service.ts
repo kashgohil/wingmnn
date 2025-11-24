@@ -4,6 +4,7 @@ import { config } from "../config";
 
 // Import everything from the db package using workspace alias
 import { db, eq, sessions, usedRefreshTokens } from "@wingmnn/db";
+import { catchError, catchErrorSync } from "@wingmnn/utils";
 import { AuthError, AuthErrorCode } from "./auth.service";
 
 // Token payload interfaces
@@ -44,39 +45,16 @@ export interface Session {
 const ACCESS_TOKEN_EXPIRATION_SECONDS = 15 * 60; // 15 minutes
 const NEAR_EXPIRATION_THRESHOLD_SECONDS = 5 * 60; // 5 minutes
 
-// Initialize JWT helper - we'll use it as a utility
-const createJwtHelper = async () => {
-	const helper = await jwtPlugin({
-		name: "jwt",
-		secret: config.JWT_SECRET,
-	});
-	return helper.decorator.jwt;
-};
-
-let jwtHelper: Awaited<ReturnType<typeof createJwtHelper>>;
+// Initialize JWT helper once; expose decorator directly
+const jwtPluginInstance = jwtPlugin({
+	name: "jwt",
+	secret: config.JWT_SECRET,
+});
+const jwtHelper = jwtPluginInstance.decorator.jwt;
 
 export class TokenService {
-	private jwt: Awaited<ReturnType<typeof createJwtHelper>> | null = null;
-	private initPromise: Promise<void> | null = null;
+	private readonly jwt = jwtHelper;
 	private pendingRefreshes = new Map<string, Promise<TokenPair>>();
-
-	constructor() {
-		// Initialize JWT in constructor
-		this.initPromise = this.initializeJwt();
-	}
-
-	private async initializeJwt() {
-		if (!jwtHelper) {
-			jwtHelper = await createJwtHelper();
-		}
-		this.jwt = jwtHelper;
-	}
-
-	private async ensureInitialized() {
-		if (this.initPromise) {
-			await this.initPromise;
-		}
-	}
 
 	/**
 	 * Generate a JWT access token with 15-minute expiration
@@ -85,8 +63,6 @@ export class TokenService {
 		userId: string,
 		sessionId: string,
 	): Promise<string> {
-		await this.ensureInitialized();
-
 		const jti = crypto.randomUUID();
 		const iat = Math.floor(Date.now() / 1000);
 		const exp = iat + ACCESS_TOKEN_EXPIRATION_SECONDS;
@@ -100,8 +76,7 @@ export class TokenService {
 			exp,
 		};
 
-		const token = await this.jwt!.sign(payload);
-		return token;
+		return await this.jwt.sign(payload);
 	}
 
 	/**
@@ -122,61 +97,48 @@ export class TokenService {
 	}
 
 	/**
+	 * Decode an access token and return its payload
+	 */
+	decodeAccessToken(
+		token: string,
+	): ReturnType<typeof catchErrorSync<TokenPayload>> {
+		return catchErrorSync(() => {
+			const parts = token.split(".");
+			if (parts.length !== 3) {
+				throw new Error("Invalid token structure");
+			}
+			const payloadStr = Buffer.from(parts[1], "base64url").toString();
+			return JSON.parse(payloadStr) as TokenPayload;
+		});
+	}
+
+	/**
 	 * Verify an access token and return its payload
 	 * Returns TokenExpiredPayload if token is expired but otherwise valid
 	 */
 	async verifyAccessToken(
 		token: string,
 	): Promise<TokenPayload | TokenExpiredPayload> {
-		await this.ensureInitialized();
+		const [verifiedPayload, verifyError] = await catchError(
+			this.jwt.verify(token) as Promise<TokenPayload | false>,
+		);
 
-		try {
-			const payload = (await this.jwt!.verify(token)) as TokenPayload | false;
+		if (verifyError instanceof AuthError) {
+			throw verifyError;
+		}
 
-			if (!payload) {
-				throw new AuthError(
-					AuthErrorCode.INVALID_TOKEN,
-					"Invalid access token",
-					401,
-				);
-			}
+		if (verifyError) {
+			const [decodedPayload] = this.decodeAccessToken(token);
 
-			// Check if token is expired
-			const now = Math.floor(Date.now() / 1000);
-			if (payload.exp < now) {
-				return {
-					expired: true,
-					sessionId: payload.sessionId,
-					userId: payload.userId,
-				};
-			}
-
-			return payload;
-		} catch (error) {
-			// If it's already an AuthError, rethrow it
-			if (error instanceof AuthError) {
-				throw error;
-			}
-
-			// If verification fails, try to decode without verification to get session info
-			// This helps with expired tokens
-			try {
-				const parts = token.split(".");
-				if (parts.length === 3) {
-					const payloadStr = Buffer.from(parts[1], "base64url").toString();
-					const payload = JSON.parse(payloadStr) as TokenPayload;
-
-					const now = Math.floor(Date.now() / 1000);
-					if (payload.exp < now) {
-						return {
-							expired: true,
-							sessionId: payload.sessionId,
-							userId: payload.userId,
-						};
-					}
+			if (decodedPayload) {
+				const now = Math.floor(Date.now() / 1000);
+				if (decodedPayload.exp < now) {
+					return {
+						expired: true,
+						sessionId: decodedPayload.sessionId,
+						userId: decodedPayload.userId,
+					};
 				}
-			} catch {
-				// If decoding fails, throw invalid token error
 			}
 
 			throw new AuthError(
@@ -185,28 +147,41 @@ export class TokenService {
 				401,
 			);
 		}
+
+		if (!verifiedPayload) {
+			throw new AuthError(
+				AuthErrorCode.INVALID_TOKEN,
+				"Invalid access token",
+				401,
+			);
+		}
+
+		const now = Math.floor(Date.now() / 1000);
+		if (verifiedPayload.exp < now) {
+			return {
+				expired: true,
+				sessionId: verifiedPayload.sessionId,
+				userId: verifiedPayload.userId,
+			};
+		}
+
+		return verifiedPayload;
 	}
 
 	/**
 	 * Check if a token is near expiration (< 5 minutes remaining)
 	 */
 	isTokenNearExpiration(token: string): boolean {
-		try {
-			const parts = token.split(".");
-			if (parts.length !== 3) {
-				return false;
-			}
+		const [payload, decodeError] = this.decodeAccessToken(token);
 
-			const payloadStr = Buffer.from(parts[1], "base64url").toString();
-			const payload = JSON.parse(payloadStr) as TokenPayload;
-
-			const now = Math.floor(Date.now() / 1000);
-			const timeRemaining = payload.exp - now;
-
-			return timeRemaining < NEAR_EXPIRATION_THRESHOLD_SECONDS;
-		} catch {
+		if (decodeError || !payload) {
 			return false;
 		}
+
+		const now = Math.floor(Date.now() / 1000);
+		const timeRemaining = payload.exp - now;
+
+		return timeRemaining < NEAR_EXPIRATION_THRESHOLD_SECONDS;
 	}
 
 	/**
@@ -217,21 +192,27 @@ export class TokenService {
 		const tokenHash = this.hashToken(token);
 
 		// Find session by refresh token hash
-		const result = await db
-			.select()
-			.from(sessions)
-			.where(eq(sessions.refreshTokenHash, tokenHash))
-			.limit(1);
+		const [result, error] = await catchError(
+			db
+				.select()
+				.from(sessions)
+				.where(eq(sessions.refreshTokenHash, tokenHash))
+				.limit(1),
+		);
 
-		const session = result[0];
+		if (error) {
+			throw error;
+		}
 
-		if (!session) {
+		if (!result || result.length === 0) {
 			throw new AuthError(
 				AuthErrorCode.INVALID_TOKEN,
 				"Invalid refresh token",
 				401,
 			);
 		}
+
+		const session = result[0]!;
 
 		// Check if session is revoked
 		if (session.isRevoked) {
@@ -268,33 +249,53 @@ export class TokenService {
 		const performRefresh = async (): Promise<TokenPair> => {
 			// Validate the refresh token and get session. If it fails because the token
 			// no longer matches any session, treat it as a possible reuse attempt.
-			const session = await this.validateRefreshToken(refreshToken).catch(
-				async (error) => {
-					if (
-						error instanceof AuthError &&
-						error.code === AuthErrorCode.INVALID_TOKEN
-					) {
-						const usedTokenResult = await db
+			const [session, validationError] = await catchError(
+				this.validateRefreshToken(refreshToken),
+			);
+
+			if (validationError || !session) {
+				if (
+					validationError instanceof AuthError &&
+					validationError.code === AuthErrorCode.INVALID_TOKEN
+				) {
+					const [usedTokenResult, reuseLookupError] = await catchError(
+						db
 							.select()
 							.from(usedRefreshTokens)
 							.where(eq(usedRefreshTokens.tokenHash, tokenHash))
-							.limit(1);
+							.limit(1),
+					);
 
-						const usedToken = usedTokenResult[0];
-
-						if (usedToken) {
-							await this.revokeSession(usedToken.sessionId);
-							throw new AuthError(
-								AuthErrorCode.TOKEN_REUSE_DETECTED,
-								"Token reuse detected - session has been revoked for security",
-								401,
-							);
-						}
+					if (reuseLookupError) throw reuseLookupError;
+					if (!usedTokenResult || usedTokenResult.length === 0) {
+						throw new AuthError(
+							AuthErrorCode.INVALID_TOKEN,
+							"cannot verify token reuse",
+							401,
+						);
 					}
 
-					throw error;
-				},
-			);
+					const usedToken = usedTokenResult[0];
+
+					if (usedToken) {
+						await this.revokeSession(usedToken.sessionId);
+						throw new AuthError(
+							AuthErrorCode.TOKEN_REUSE_DETECTED,
+							"Token reuse detected - session has been revoked for security",
+							401,
+						);
+					}
+				}
+
+				throw (
+					validationError ??
+					new AuthError(
+						AuthErrorCode.INVALID_TOKEN,
+						"Invalid refresh token",
+						401,
+					)
+				);
+			}
 
 			// Mark the old token as used
 			await db.insert(usedRefreshTokens).values({
@@ -334,11 +335,18 @@ export class TokenService {
 		const refreshPromise = performRefresh();
 		this.pendingRefreshes.set(tokenHash, refreshPromise);
 
-		try {
-			return await refreshPromise;
-		} finally {
-			this.pendingRefreshes.delete(tokenHash);
+		const [refreshResult, refreshError] = await catchError(refreshPromise);
+		this.pendingRefreshes.delete(tokenHash);
+
+		if (refreshError) throw refreshError;
+		if (!refreshResult) {
+			throw new AuthError(
+				AuthErrorCode.INVALID_TOKEN,
+				"failed to refresh tokens",
+				401,
+			);
 		}
+		return refreshResult;
 	}
 
 	/**
