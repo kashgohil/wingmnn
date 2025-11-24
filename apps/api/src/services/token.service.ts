@@ -6,7 +6,6 @@ import { config } from "../config";
 import { db, eq, sessions, usedRefreshTokens } from "@wingmnn/db";
 import { catchError, catchErrorSync } from "@wingmnn/utils";
 import { AuthError, AuthErrorCode } from "./auth.service";
-import { sessionService } from "./session.service";
 
 // Token payload interfaces
 export interface TokenPayload {
@@ -240,7 +239,10 @@ export class TokenService {
 	 * Refresh tokens with rotation and reuse detection
 	 * Issues new access and refresh tokens, invalidates old refresh token
 	 */
-	async refreshTokens(refreshToken: string): Promise<TokenPair> {
+	async refreshTokens(
+		session: Session,
+		refreshToken: string,
+	): Promise<TokenPair> {
 		const tokenHash = this.hashToken(refreshToken);
 
 		if (this.pendingRefreshes.has(tokenHash)) {
@@ -250,54 +252,6 @@ export class TokenService {
 		const performRefresh = async (): Promise<TokenPair> => {
 			// Validate the refresh token and get session. If it fails because the token
 			// no longer matches any session, treat it as a possible reuse attempt.
-			const [session, validationError] = await catchError(
-				this.validateRefreshToken(refreshToken),
-			);
-
-			if (validationError || !session) {
-				if (
-					validationError instanceof AuthError &&
-					validationError.code === AuthErrorCode.INVALID_TOKEN
-				) {
-					const [usedTokenResult, reuseLookupError] = await catchError(
-						db
-							.select()
-							.from(usedRefreshTokens)
-							.where(eq(usedRefreshTokens.tokenHash, tokenHash))
-							.limit(1),
-					);
-
-					if (reuseLookupError) throw reuseLookupError;
-					if (!usedTokenResult || usedTokenResult.length === 0) {
-						throw new AuthError(
-							AuthErrorCode.INVALID_TOKEN,
-							"cannot verify token reuse",
-							401,
-						);
-					}
-
-					const usedToken = usedTokenResult[0];
-
-					if (usedToken) {
-						await sessionService.revokeSession(usedToken.sessionId);
-						throw new AuthError(
-							AuthErrorCode.TOKEN_REUSE_DETECTED,
-							"Token reuse detected - session has been revoked for security",
-							401,
-						);
-					}
-				}
-
-				throw (
-					validationError ??
-					new AuthError(
-						AuthErrorCode.INVALID_TOKEN,
-						"Invalid refresh token",
-						401,
-					)
-				);
-			}
-
 			// Mark the old token as used
 			await db.insert(usedRefreshTokens).values({
 				tokenHash,
@@ -350,14 +304,12 @@ export class TokenService {
 		return refreshResult;
 	}
 
-	/**
-	 * Revoke a session by marking it as revoked
-	 */
-	async revokeSession(sessionId: string): Promise<void> {
-		await db
-			.update(sessions)
-			.set({ isRevoked: true })
-			.where(eq(sessions.id, sessionId));
+	isUsedRefreshToken(tokenHash: string) {
+		return db
+			.select()
+			.from(usedRefreshTokens)
+			.where(eq(usedRefreshTokens.tokenHash, tokenHash))
+			.limit(1);
 	}
 }
 
