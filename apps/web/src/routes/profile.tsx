@@ -1,3 +1,4 @@
+import { SoftRetroGridBackground } from "@/components/backgrounds/RetroGridPatterns";
 import { generateMetadata } from "@/lib/metadata";
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail, User } from "lucide-react";
@@ -26,8 +27,9 @@ function Profile() {
 
 	return (
 		<ProtectedRoute>
-			<div className="min-h-screen bg-background text-foreground">
-				<div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 pt-36 sm:pt-6 pb-24">
+			<div className="h-screen bg-background text-foreground overflow-y-auto">
+				<SoftRetroGridBackground className="absolute h-full overflow-hidden opacity-40" />
+				<div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 pt-36 sm:pt-8 pb-24">
 					<div className="space-y-8">
 						{/* Header Section */}
 						<Card

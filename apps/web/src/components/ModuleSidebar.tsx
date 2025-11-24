@@ -4,7 +4,9 @@ import { getModuleByPathname, modules } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
 import { catchError } from "@wingmnn/utils/catch-error";
+import { useQuery } from "@tanstack/react-query";
 import {
+	Bell,
 	HelpCircle,
 	LayoutDashboard,
 	LogOut,
@@ -12,6 +14,7 @@ import {
 	Sun,
 	UserCircle,
 } from "lucide-react";
+import { useState } from "react";
 import { WingmnnIcon } from "./icons/wingmnnIcon";
 import { Avatar } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -22,11 +25,24 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "./ui/tooltip";
+import { NotificationsDrawer } from "./NotificationsDrawer";
+import { listNotifications } from "@/lib/api/notifications.api";
+import { Badge } from "./ui/badge";
 
 export function ModuleSidebar() {
 	const location = useLocation();
 	const { user, logout } = useAuth();
 	const { theme, setTheme } = useTheme();
+	const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+	// Fetch notifications to show unread count
+	const { data: notifications = [] } = useQuery({
+		queryKey: ["notifications"],
+		queryFn: () => listNotifications({ unreadOnly: true }),
+		staleTime: 30 * 1000, // 30 seconds
+	});
+
+	const unreadCount = notifications.filter((n) => !n.isRead).length;
 
 	// Get current module to determine icon color
 	const currentModule = getModuleByPathname(location.pathname);
@@ -160,6 +176,33 @@ export function ModuleSidebar() {
 
 					{/* Bottom Actions */}
 					<div className="p-3 space-y-1">
+						{/* Notifications */}
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="menu"
+									onClick={() => setNotificationsOpen(true)}
+									className="justify-center p-2! relative"
+									aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+								>
+									<Bell className="h-5 w-5" />
+									{unreadCount > 0 && (
+										<Badge
+											variant="destructive"
+											className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-bold rounded-full"
+										>
+											{unreadCount > 9 ? "9+" : unreadCount}
+										</Badge>
+									)}
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent side="right">
+								<p>
+									Notifications{unreadCount > 0 ? ` (${unreadCount} unread)` : ""}
+								</p>
+							</TooltipContent>
+						</Tooltip>
+
 						{/* Help */}
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -279,6 +322,10 @@ export function ModuleSidebar() {
 					</div>
 				</div>
 			</aside>
+			<NotificationsDrawer
+				open={notificationsOpen}
+				onOpenChange={setNotificationsOpen}
+			/>
 		</TooltipProvider>
 	);
 }
