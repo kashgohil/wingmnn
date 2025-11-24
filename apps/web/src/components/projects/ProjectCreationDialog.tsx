@@ -50,7 +50,7 @@ export function ProjectCreationDialog({
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
 	const [workflowId, setWorkflowId] = useState<string>("");
-	const [taskKey, setTaskKey] = useState("");
+	const [key, setKey] = useState("");
 	const [members, setMembers] = useState<ProjectMember[]>([]);
 	const [selectedView, setSelectedView] = useState<string>("board");
 	const [projectStatus, setProjectStatus] = useState<string>("active");
@@ -70,7 +70,7 @@ export function ProjectCreationDialog({
 		setName("");
 		setDescription("");
 		setWorkflowId("");
-		setTaskKey("");
+		setKey("");
 		setMembers([]);
 		setSelectedView("board");
 		setProjectStatus("active");
@@ -109,11 +109,41 @@ export function ProjectCreationDialog({
 		if (!canSubmit || !user) return;
 
 		try {
-			// Create the project
+			// Build settings object
+			const settings: {
+				enableTimeTracking?: boolean;
+				enableNotifications?: boolean;
+				selectedView?: string;
+			} = {};
+
+			if (enableTimeTracking !== undefined) {
+				settings.enableTimeTracking = enableTimeTracking;
+			}
+			if (enableNotifications !== undefined) {
+				settings.enableNotifications = enableNotifications;
+			}
+			if (selectedView) {
+				settings.selectedView = selectedView;
+			}
+
+			// Create the project with all configuration
 			const project = await createProject.mutateAsync({
 				name: name.trim(),
 				description: description.trim() || undefined,
 				workflowId,
+				status:
+					projectStatus !== "active"
+						? (projectStatus as "archived" | "on_hold" | "completed")
+						: undefined,
+				key: key.trim() || undefined,
+				startDate: startDate || undefined,
+				endDate: endDate || undefined,
+				priority:
+					priority !== "medium"
+						? (priority as "low" | "high" | "critical")
+						: undefined,
+				category: category.trim() || undefined,
+				settings: Object.keys(settings).length > 0 ? settings : undefined,
 			});
 
 			if (!project) {
@@ -133,28 +163,6 @@ export function ProjectCreationDialog({
 					}
 				}
 			}
-
-			// Note: Additional configuration options would need to be saved separately
-			// if they're added to the project schema in the future
-			if (taskKey.trim()) {
-				console.log("Task key to be saved:", taskKey.trim());
-			}
-			if (startDate) {
-				console.log("Start date to be saved:", startDate);
-			}
-			if (endDate) {
-				console.log("End date to be saved:", endDate);
-			}
-			if (priority !== "medium") {
-				console.log("Priority to be saved:", priority);
-			}
-			if (category.trim()) {
-				console.log("Category to be saved:", category.trim());
-			}
-			console.log("Time tracking enabled:", enableTimeTracking);
-			console.log("Notifications enabled:", enableNotifications);
-			console.log("Default view:", selectedView);
-			console.log("Initial status:", projectStatus);
 
 			resetForm();
 			onOpenChange(false);
@@ -372,16 +380,16 @@ export function ProjectCreationDialog({
 
 								{/* Task Key Prefix */}
 								<div>
-									<Label htmlFor="task-key">Task Key Prefix</Label>
+									<Label htmlFor="key">Task Key Prefix</Label>
 									<Input
-										id="task-key"
-										value={taskKey}
+										id="key"
+										value={key}
 										onChange={(e) => {
 											const value = e.target.value
 												.toUpperCase()
 												.replace(/[^A-Z]/g, "")
 												.slice(0, 3);
-											setTaskKey(value);
+											setKey(value);
 										}}
 										placeholder="ABC"
 										maxLength={3}

@@ -7,6 +7,12 @@
 import { catchError } from "@wingmnn/utils/catch-error";
 import { api } from "../eden-client";
 
+export interface ProjectSettings {
+	enableTimeTracking?: boolean;
+	enableNotifications?: boolean;
+	selectedView?: string;
+}
+
 export interface Project {
 	id: string;
 	name: string;
@@ -15,6 +21,12 @@ export interface Project {
 	workflowId: string;
 	status: "active" | "archived" | "on_hold" | "completed";
 	statusUpdatedAt: string | null;
+	key: string | null;
+	startDate: string | null;
+	endDate: string | null;
+	priority: "low" | "medium" | "high" | "critical" | null;
+	category: string | null;
+	settings: ProjectSettings | null;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -31,6 +43,13 @@ export interface CreateProjectParams {
 	name: string;
 	description?: string;
 	workflowId: string;
+	status?: "active" | "archived" | "on_hold" | "completed";
+	key?: string;
+	startDate?: string;
+	endDate?: string;
+	priority?: "low" | "medium" | "high" | "critical";
+	category?: string;
+	settings?: ProjectSettings;
 }
 
 export interface UpdateProjectParams {

@@ -82,6 +82,33 @@ export const projectRoutes = new Elysia({ prefix: "/projects" })
 				name: t.String({ minLength: 1, maxLength: 200 }),
 				description: t.Optional(t.String({ maxLength: 2000 })),
 				workflowId: t.String(),
+				status: t.Optional(
+					t.Union([
+						t.Literal("active"),
+						t.Literal("archived"),
+						t.Literal("on_hold"),
+						t.Literal("completed"),
+					]),
+				),
+				key: t.Optional(t.String({ maxLength: 3 })),
+				startDate: t.Optional(t.String()),
+				endDate: t.Optional(t.String()),
+				priority: t.Optional(
+					t.Union([
+						t.Literal("low"),
+						t.Literal("medium"),
+						t.Literal("high"),
+						t.Literal("critical"),
+					]),
+				),
+				category: t.Optional(t.String({ maxLength: 100 })),
+				settings: t.Optional(
+					t.Object({
+						enableTimeTracking: t.Optional(t.Boolean()),
+						enableNotifications: t.Optional(t.Boolean()),
+						selectedView: t.Optional(t.String()),
+					}),
+				),
 			}),
 			detail: {
 				tags: ["Projects"],
