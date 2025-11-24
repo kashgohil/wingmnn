@@ -6,6 +6,8 @@ import { generateMetadata } from "@/lib/metadata";
 import { modules } from "@/lib/modules";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Moon, MoonStar, Sun, Sunrise } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import {
 	Card,
@@ -35,6 +37,38 @@ function Dashboard() {
 		queryFn: () => listNotifications(),
 		staleTime: 30 * 1000,
 	});
+	const [timeOfDayIcon, setTimeOfDayIcon] = useState<{
+		icon: typeof Sun;
+		label: string;
+	}>({ icon: Sun, label: "Day" });
+
+	// Update icon based on time of day
+	useEffect(() => {
+		const updateTimeOfDay = () => {
+			const now = new Date();
+			const hour = now.getHours();
+
+			if (hour >= 5 && hour < 8) {
+				// Early morning (5 AM - 8 AM)
+				setTimeOfDayIcon({ icon: Sunrise, label: "Early Morning" });
+			} else if (hour >= 8 && hour < 18) {
+				// Morning/Afternoon (8 AM - 6 PM)
+				setTimeOfDayIcon({ icon: Sun, label: "Day" });
+			} else if (hour >= 18 && hour < 21) {
+				// Evening (6 PM - 9 PM)
+				setTimeOfDayIcon({ icon: Moon, label: "Evening" });
+			} else {
+				// Night (9 PM - 5 AM)
+				setTimeOfDayIcon({ icon: MoonStar, label: "Night" });
+			}
+		};
+
+		updateTimeOfDay();
+		// Update every minute to catch transitions
+		const interval = setInterval(updateTimeOfDay, 60000);
+
+		return () => clearInterval(interval);
+	}, []);
 
 	// Calculate stats
 	const activeProjects = projects.length;
@@ -50,26 +84,33 @@ function Dashboard() {
 	const unreadNotifications = notifications.filter((n) => !n.isRead).length;
 	const completedTasks = tasks.filter((t) => t.progress === 100).length;
 
+	const TimeIcon = timeOfDayIcon.icon;
+
 	return (
 		<ProtectedRoute>
-			<div className="min-h-screen bg-background text-foreground">
+			<div className="h-screen overflow-y-auto bg-background text-foreground">
 				<SoftRetroGridBackground className="absolute inset-0 overflow-hidden opacity-40" />
 				<div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 pt-36 sm:pt-8 pb-24">
 					<div className="space-y-8">
 						{/* Welcome Section */}
-						<Card
-							padding="lg"
-							className="backdrop-blur-sm bg-card/80"
-						>
-							<CardHeader>
-								<CardTitle className="text-4xl font-bold font-mono uppercase tracking-wider">
+						<div className="flex items-center gap-4">
+							<div
+								className="p-6 retro-border rounded-none"
+								style={{
+									backgroundColor: "var(--primary)",
+								}}
+							>
+								<TimeIcon className="h-12 w-12 text-primary-foreground" />
+							</div>
+							<div>
+								<h1 className="text-4xl font-bold font-mono uppercase tracking-wider">
 									Welcome back, {user?.name}!
-								</CardTitle>
-								<CardDescription className="text-base">
+								</h1>
+								<p className="text-muted-foreground mt-2">
 									Here's your workspace overview
-								</CardDescription>
-							</CardHeader>
-						</Card>
+								</p>
+							</div>
+						</div>
 
 						{/* Module Summary Widgets */}
 						<div>
@@ -185,7 +226,7 @@ function Dashboard() {
 							padding="lg"
 							className="backdrop-blur-sm bg-card/80"
 						>
-							<CardHeader>
+							<CardHeader className="mb-4 p-0">
 								<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider">
 									Recent Activity
 								</CardTitle>
@@ -225,30 +266,6 @@ function Dashboard() {
 											</span>
 										</Card>
 									))}
-								</div>
-							</CardContent>
-						</Card>
-
-						{/* User Info */}
-						<Card
-							padding="lg"
-							className="backdrop-blur-sm bg-card/80"
-						>
-							<CardHeader>
-								<CardTitle className="text-2xl font-bold font-mono uppercase tracking-wider">
-									Account Details
-								</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<div className="space-y-4">
-									<div>
-										<p className="text-sm text-muted-foreground mb-1">Name</p>
-										<p className="font-medium">{user?.name}</p>
-									</div>
-									<div>
-										<p className="text-sm text-muted-foreground mb-1">Email</p>
-										<p className="font-medium">{user?.email}</p>
-									</div>
 								</div>
 							</CardContent>
 						</Card>
