@@ -10,6 +10,7 @@ import { useWorkflows } from "@/lib/hooks/use-workflows";
 import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
+import { DatePicker } from "../ui/date-picker";
 import {
 	Dialog,
 	DialogContent,
@@ -27,6 +28,7 @@ import {
 	SelectValue,
 } from "../ui/select";
 import { Stepper } from "../ui/stepper";
+import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 
 interface ProjectCreationDialogProps {
@@ -51,6 +53,13 @@ export function ProjectCreationDialog({
 	const [taskKey, setTaskKey] = useState("");
 	const [members, setMembers] = useState<ProjectMember[]>([]);
 	const [selectedView, setSelectedView] = useState<string>("board");
+	const [projectStatus, setProjectStatus] = useState<string>("active");
+	const [startDate, setStartDate] = useState<string>("");
+	const [endDate, setEndDate] = useState<string>("");
+	const [priority, setPriority] = useState<string>("medium");
+	const [category, setCategory] = useState<string>("");
+	const [enableTimeTracking, setEnableTimeTracking] = useState<boolean>(true);
+	const [enableNotifications, setEnableNotifications] = useState<boolean>(true);
 
 	const { data: workflows = [] } = useWorkflows({ type: "task" });
 	const createProject = useCreateProject();
@@ -64,6 +73,13 @@ export function ProjectCreationDialog({
 		setTaskKey("");
 		setMembers([]);
 		setSelectedView("board");
+		setProjectStatus("active");
+		setStartDate("");
+		setEndDate("");
+		setPriority("medium");
+		setCategory("");
+		setEnableTimeTracking(true);
+		setEnableNotifications(true);
 	};
 
 	const handleClose = (open: boolean) => {
@@ -118,11 +134,27 @@ export function ProjectCreationDialog({
 				}
 			}
 
-			// Note: taskKey and views would need to be saved separately
+			// Note: Additional configuration options would need to be saved separately
 			// if they're added to the project schema in the future
 			if (taskKey.trim()) {
 				console.log("Task key to be saved:", taskKey.trim());
 			}
+			if (startDate) {
+				console.log("Start date to be saved:", startDate);
+			}
+			if (endDate) {
+				console.log("End date to be saved:", endDate);
+			}
+			if (priority !== "medium") {
+				console.log("Priority to be saved:", priority);
+			}
+			if (category.trim()) {
+				console.log("Category to be saved:", category.trim());
+			}
+			console.log("Time tracking enabled:", enableTimeTracking);
+			console.log("Notifications enabled:", enableNotifications);
+			console.log("Default view:", selectedView);
+			console.log("Initial status:", projectStatus);
 
 			resetForm();
 			onOpenChange(false);
@@ -139,7 +171,7 @@ export function ProjectCreationDialog({
 			open={open}
 			onOpenChange={handleClose}
 		>
-			<DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
 				<DialogHeader>
 					<DialogTitle>Create New Project</DialogTitle>
 					<DialogDescription>
@@ -153,7 +185,7 @@ export function ProjectCreationDialog({
 					mode="mobile"
 				/>
 
-				<div className="flex gap-6 mt-6">
+				<div className="flex gap-6 mt-6 flex-1 min-h-0">
 					<Stepper
 						currentStep={step}
 						steps={stepNames}
@@ -164,7 +196,7 @@ export function ProjectCreationDialog({
 					<div className="hidden md:block w-px bg-border" />
 
 					{/* Step Content */}
-					<div className="flex-1 min-h-[400px]">
+					<div className="flex-1 overflow-y-auto min-h-[500px] max-h-[500px]">
 						{step === 1 && (
 							<div className="space-y-6">
 								<div>
@@ -242,7 +274,103 @@ export function ProjectCreationDialog({
 
 						{step === 3 && (
 							<div className="space-y-6">
-								{/* Three-letter key */}
+								{/* Project Status */}
+								<div>
+									<Label htmlFor="project-status">Initial Status</Label>
+									<Select
+										value={projectStatus}
+										onValueChange={setProjectStatus}
+									>
+										<SelectTrigger
+											id="project-status"
+											className="mt-2"
+										>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="active">Active</SelectItem>
+											<SelectItem value="on_hold">On Hold</SelectItem>
+											<SelectItem value="completed">Completed</SelectItem>
+											<SelectItem value="archived">Archived</SelectItem>
+										</SelectContent>
+									</Select>
+									<p className="text-xs text-muted-foreground mt-1">
+										Set the initial status for this project
+									</p>
+								</div>
+
+								{/* Project Dates */}
+								<div className="grid grid-cols-2 gap-4">
+									<div>
+										<Label htmlFor="start-date">Start Date</Label>
+										<div className="mt-2">
+											<DatePicker
+												value={startDate}
+												onChange={setStartDate}
+												placeholder="Select start date"
+												max={endDate || undefined}
+											/>
+										</div>
+										<p className="text-xs text-muted-foreground mt-1">
+											Project start date (optional)
+										</p>
+									</div>
+									<div>
+										<Label htmlFor="end-date">End Date</Label>
+										<div className="mt-2">
+											<DatePicker
+												value={endDate}
+												onChange={setEndDate}
+												placeholder="Select end date"
+												min={startDate || undefined}
+											/>
+										</div>
+										<p className="text-xs text-muted-foreground mt-1">
+											Project end date (optional)
+										</p>
+									</div>
+								</div>
+
+								{/* Priority and Category */}
+								<div className="grid grid-cols-2 gap-4">
+									<div>
+										<Label htmlFor="priority">Priority</Label>
+										<Select
+											value={priority}
+											onValueChange={setPriority}
+										>
+											<SelectTrigger
+												id="priority"
+												className="mt-2"
+											>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="low">Low</SelectItem>
+												<SelectItem value="medium">Medium</SelectItem>
+												<SelectItem value="high">High</SelectItem>
+											</SelectContent>
+										</Select>
+										<p className="text-xs text-muted-foreground mt-1">
+											Project priority level
+										</p>
+									</div>
+									<div>
+										<Label htmlFor="category">Category</Label>
+										<Input
+											id="category"
+											value={category}
+											onChange={(e) => setCategory(e.target.value)}
+											placeholder="e.g., Development, Marketing"
+											className="mt-2"
+										/>
+										<p className="text-xs text-muted-foreground mt-1">
+											Project category or type (optional)
+										</p>
+									</div>
+								</div>
+
+								{/* Task Key Prefix */}
 								<div>
 									<Label htmlFor="task-key">Task Key Prefix</Label>
 									<Input
@@ -261,6 +389,71 @@ export function ProjectCreationDialog({
 									/>
 									<p className="text-xs text-muted-foreground mt-1">
 										Three-letter prefix for task and subtask IDs (e.g., ABC-001)
+									</p>
+								</div>
+
+								{/* Feature Toggles */}
+								<div className="space-y-4">
+									<div className="flex items-center justify-between p-4 retro-border rounded-none">
+										<div className="flex-1">
+											<Label
+												htmlFor="time-tracking"
+												className="font-medium"
+											>
+												Enable Time Tracking
+											</Label>
+											<p className="text-sm text-muted-foreground mt-1">
+												Allow team members to track time spent on tasks
+											</p>
+										</div>
+										<Switch
+											id="time-tracking"
+											checked={enableTimeTracking}
+											onCheckedChange={setEnableTimeTracking}
+										/>
+									</div>
+									<div className="flex items-center justify-between p-4 retro-border rounded-none">
+										<div className="flex-1">
+											<Label
+												htmlFor="notifications"
+												className="font-medium"
+											>
+												Enable Notifications
+											</Label>
+											<p className="text-sm text-muted-foreground mt-1">
+												Send notifications for project updates and changes
+											</p>
+										</div>
+										<Switch
+											id="notifications"
+											checked={enableNotifications}
+											onCheckedChange={setEnableNotifications}
+										/>
+									</div>
+								</div>
+
+								{/* Default View */}
+								<div>
+									<Label htmlFor="default-view">Default View</Label>
+									<Select
+										value={selectedView}
+										onValueChange={setSelectedView}
+									>
+										<SelectTrigger
+											id="default-view"
+											className="mt-2"
+										>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="board">Board View</SelectItem>
+											<SelectItem value="list">List View</SelectItem>
+											<SelectItem value="timeline">Timeline View</SelectItem>
+											<SelectItem value="calendar">Calendar View</SelectItem>
+										</SelectContent>
+									</Select>
+									<p className="text-xs text-muted-foreground mt-1">
+										Choose the default view for this project
 									</p>
 								</div>
 
@@ -308,31 +501,6 @@ export function ProjectCreationDialog({
 											Add Member
 										</Button>
 									</div>
-								</div>
-
-								{/* Views */}
-								<div>
-									<Label htmlFor="default-view">Default View</Label>
-									<Select
-										value={selectedView}
-										onValueChange={setSelectedView}
-									>
-										<SelectTrigger
-											id="default-view"
-											className="mt-2"
-										>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="board">Board View</SelectItem>
-											<SelectItem value="list">List View</SelectItem>
-											<SelectItem value="timeline">Timeline View</SelectItem>
-											<SelectItem value="calendar">Calendar View</SelectItem>
-										</SelectContent>
-									</Select>
-									<p className="text-xs text-muted-foreground mt-1">
-										Choose the default view for this project
-									</p>
 								</div>
 							</div>
 						)}
