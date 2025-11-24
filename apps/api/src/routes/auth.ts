@@ -525,6 +525,133 @@ Get the profile information for the currently authenticated user.
 			},
 		},
 	)
+	// PUT /auth/me - Update current user profile
+	.put(
+		"/me",
+		async ({ authenticated, userId, body }) => {
+			// Check if user is authenticated
+			if (!authenticated || !userId) {
+				throw new AuthError(
+					AuthErrorCode.INVALID_TOKEN,
+					"Authentication required",
+					401,
+				);
+			}
+
+			// Update user profile
+			const user = await authService.updateUserProfile(userId, body);
+
+			return user;
+		},
+		{
+			body: t.Object({
+				name: t.Optional(t.String({ minLength: 1, maxLength: 200 })),
+				bio: t.Optional(t.String({ maxLength: 1000 })),
+			}),
+			detail: {
+				tags: ["Authentication"],
+				summary: "Update current user profile",
+				description: `
+Update the profile information for the currently authenticated user.
+
+**Authentication Required:**
+- Must include valid access token in Authorization header
+
+**Update Behavior:**
+- All fields are optional (only provided fields are updated)
+- Name must be at least 1 character and max 200 characters
+- Bio must be max 1000 characters
+
+**Response:**
+- Updated user profile information
+        `,
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "User profile updated successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										id: { type: "string", example: "user_123" },
+										email: {
+											type: "string",
+											nullable: true,
+											example: "user@example.com",
+										},
+										name: { type: "string", example: "John Doe" },
+										bio: { type: "string", example: "Software developer" },
+										createdAt: {
+											type: "string",
+											format: "date-time",
+											example: "2024-01-15T10:30:00Z",
+										},
+										updatedAt: {
+											type: "string",
+											format: "date-time",
+											example: "2024-01-20T14:22:00Z",
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Validation error",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										error: { type: "string", example: "INVALID_EMAIL" },
+										message: {
+											type: "string",
+											example: "Name cannot be empty",
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										error: { type: "string", example: "INVALID_TOKEN" },
+										message: {
+											type: "string",
+											example: "Authentication required",
+										},
+									},
+								},
+							},
+						},
+					},
+					404: {
+						description: "User not found",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										error: { type: "string", example: "USER_NOT_FOUND" },
+										message: {
+											type: "string",
+											example: "User not found",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	)
 	// GET /auth/sessions - List user's active sessions
 	.get(
 		"/sessions",

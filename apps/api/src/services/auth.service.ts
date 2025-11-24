@@ -306,6 +306,58 @@ export class AuthService {
 	}
 
 	/**
+	 * Update user profile
+	 * @param userId - User ID
+	 * @param data - Profile data to update (name and/or bio)
+	 * @returns Updated user profile
+	 * @throws AuthError if user not found
+	 */
+	async updateUserProfile(
+		userId: string,
+		data: { name?: string; bio?: string },
+	): Promise<UserProfile> {
+		// Check if user exists
+		const existingUser = await db
+			.select()
+			.from(users)
+			.where(eq(users.id, userId))
+			.limit(1);
+
+		if (!existingUser[0]) {
+			throw new AuthError(AuthErrorCode.USER_NOT_FOUND, "User not found", 404);
+		}
+
+		// Prepare update data
+		const updateData: any = {
+			updatedAt: new Date(),
+		};
+
+		if (data.name !== undefined) {
+			if (!data.name.trim()) {
+				throw new AuthError(
+					AuthErrorCode.INVALID_EMAIL,
+					"Name cannot be empty",
+					400,
+				);
+			}
+			updateData.name = data.name.trim();
+		}
+
+		if (data.bio !== undefined) {
+			updateData.bio = data.bio.trim();
+		}
+
+		// Update user
+		const result = await db
+			.update(users)
+			.set(updateData)
+			.where(eq(users.id, userId))
+			.returning();
+
+		return this.toUserProfile(result[0]);
+	}
+
+	/**
 	 * Find user by OAuth provider and provider account ID
 	 * @param provider - OAuth provider name
 	 * @param providerAccountId - User ID from the OAuth provider
