@@ -136,7 +136,7 @@ export function ProjectsList() {
 										</div>
 										<div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
 											<div
-												className="h-full bg-primary transition-all"
+												className="h-full bg-primary transition-all progress-bar-fill"
 												style={{ width: `${stats.completionRate}%` }}
 											/>
 										</div>

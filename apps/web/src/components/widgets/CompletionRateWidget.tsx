@@ -3,8 +3,8 @@
  * Displays percentage of completed tasks
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CheckCircle2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface CompletionRateWidgetProps {
 	completed: number;
@@ -30,7 +30,7 @@ export function CompletionRateWidget({
 				</p>
 				<div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
 					<div
-						className="h-full bg-primary transition-all"
+						className="h-full bg-primary transition-all progress-bar-fill"
 						style={{ width: `${percentage}%` }}
 					/>
 				</div>
@@ -38,4 +38,3 @@ export function CompletionRateWidget({
 		</Card>
 	);
 }
-
