@@ -4,14 +4,14 @@
  */
 
 import {
-	LineChart as RechartsLineChart,
+	CartesianGrid,
+	Legend,
 	Line,
+	LineChart as RechartsLineChart,
+	ResponsiveContainer,
+	Tooltip,
 	XAxis,
 	YAxis,
-	CartesianGrid,
-	Tooltip,
-	Legend,
-	ResponsiveContainer,
 } from "recharts";
 
 interface LineChartProps {
@@ -32,16 +32,28 @@ export function LineChart({
 	height = 300,
 }: LineChartProps) {
 	return (
-		<div className="w-full" style={{ minWidth: 0, height: `${height}px` }}>
-			<ResponsiveContainer width="100%" height="100%">
+		<div
+			className="w-full"
+			style={{ minWidth: 0, height: `${height}px` }}
+		>
+			<ResponsiveContainer
+				width="100%"
+				height="100%"
+			>
 				<RechartsLineChart data={data}>
-					<CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+					<CartesianGrid
+						strokeDasharray="3 3"
+						className="stroke-muted"
+					/>
 					<XAxis
 						dataKey={dataKey}
 						className="text-xs"
 						tick={{ fill: "currentColor" }}
 					/>
-					<YAxis className="text-xs" tick={{ fill: "currentColor" }} />
+					<YAxis
+						className="text-xs"
+						tick={{ fill: "currentColor" }}
+					/>
 					<Tooltip
 						contentStyle={{
 							backgroundColor: "hsl(var(--background))",
@@ -49,7 +61,7 @@ export function LineChart({
 							borderRadius: "0",
 						}}
 					/>
-					<Legend />
+					<Legend iconType="line" />
 					{lines.map((line) => (
 						<Line
 							key={line.key}
@@ -66,4 +78,3 @@ export function LineChart({
 		</div>
 	);
 }
-

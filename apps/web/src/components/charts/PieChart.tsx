@@ -4,12 +4,12 @@
  */
 
 import {
-	PieChart as RechartsPieChart,
-	Pie,
 	Cell,
-	Tooltip,
 	Legend,
+	Pie,
+	PieChart as RechartsPieChart,
 	ResponsiveContainer,
+	Tooltip,
 } from "recharts";
 
 interface PieChartProps {
@@ -37,8 +37,14 @@ export function PieChart({
 	colors = DEFAULT_COLORS,
 }: PieChartProps) {
 	return (
-		<div className="w-full" style={{ minWidth: 0, height: `${height}px` }}>
-			<ResponsiveContainer width="100%" height="100%">
+		<div
+			className="w-full"
+			style={{ minWidth: 0, height: `${height}px` }}
+		>
+			<ResponsiveContainer
+				width="100%"
+				height="100%"
+			>
 				<RechartsPieChart>
 					<Pie
 						data={data}
@@ -46,7 +52,7 @@ export function PieChart({
 						cy="50%"
 						labelLine={false}
 						label={({ name, percent }) =>
-							`${name}: ${(percent * 100).toFixed(0)}%`
+							`${name}: ${((percent ?? 0) * 100).toFixed(0)}%`
 						}
 						outerRadius={80}
 						fill="#8884d8"
@@ -66,10 +72,9 @@ export function PieChart({
 							borderRadius: "0",
 						}}
 					/>
-					<Legend />
+					<Legend iconType="square" />
 				</RechartsPieChart>
 			</ResponsiveContainer>
 		</div>
 	);
 }
-

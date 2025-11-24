@@ -486,4 +486,24 @@ code {
 	.recharts-responsive-container * {
 		box-sizing: border-box;
 	}
+
+	/* Fix legend item alignment - icon and text side by side */
+	.recharts-legend-item {
+		display: inline-flex !important;
+		align-items: center !important;
+		gap: 8px !important;
+		margin-right: 16px !important;
+	}
+
+	.recharts-legend-item-text {
+		display: inline-block !important;
+		vertical-align: middle !important;
+		margin-left: 4px !important;
+	}
+
+	/* Ensure legend icon and text are on same line */
+	.recharts-legend-item .recharts-surface {
+		display: inline-block !important;
+		vertical-align: middle !important;
+	}
 }
