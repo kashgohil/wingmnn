@@ -29,13 +29,13 @@ const createEdenClient = (baseURL: string) => {
 		onRequest: (_path, options) => {
 			// Add Authorization header if token exists
 			const token = tokenManager.getAccessToken();
-			if (token) {
-				options.headers = {
-					...options.headers,
-					Authorization: `Bearer ${token}`,
-				};
-			}
-			return options;
+
+			if (!token) return options;
+
+			options.headers = {
+				...options.headers,
+				Authorization: `Bearer ${token}`,
+			};
 		},
 		onResponse: (response) => {
 			// Check for new access token in response headers

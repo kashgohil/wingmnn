@@ -31,7 +31,7 @@ export interface TokenManager {
 }
 
 class TokenManagerImpl implements TokenManager {
-	private readonly STORAGE_KEY = "access_token";
+	private readonly ACCESS_TOKEN_KEY = "access_token";
 	private readonly USER_DATA_KEY = "user_data";
 
 	/**
@@ -39,7 +39,7 @@ class TokenManagerImpl implements TokenManager {
 	 * @returns The stored access token or null if not found
 	 */
 	getAccessToken(): string | null {
-		return localStorage.getItem(this.STORAGE_KEY);
+		return localStorage.getItem(this.ACCESS_TOKEN_KEY);
 	}
 
 	/**
@@ -47,14 +47,14 @@ class TokenManagerImpl implements TokenManager {
 	 * @param token The access token to store
 	 */
 	setAccessToken(token: string): void {
-		localStorage.setItem(this.STORAGE_KEY, token);
+		localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
 	}
 
 	/**
 	 * Removes the access token from localStorage
 	 */
 	clearAccessToken(): void {
-		localStorage.removeItem(this.STORAGE_KEY);
+		localStorage.removeItem(this.ACCESS_TOKEN_KEY);
 		this.clearUserData(); // Also clear user data when clearing token
 	}
 
