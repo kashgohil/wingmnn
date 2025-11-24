@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { config } from "../config";
+import { auth } from "../middleware/auth";
 import { rateLimit } from "../middleware/rate-limit";
 import { TagError, TagErrorCode, tagService } from "../services/tag.service";
 
@@ -8,92 +9,89 @@ import { TagError, TagErrorCode, tagService } from "../services/tag.service";
  * Provides endpoints for tag management and task-tag associations
  */
 export const tagRoutes = new Elysia({ prefix: "/projects" })
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to all tag endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "tags",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle TagError
-    if (error instanceof TagError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.derive(auth)
+	// Apply rate limiting to all tag endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "tags",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle TagError
+		if (error instanceof TagError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in tag routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // POST /projects/:id/tags - Create a new tag
-  .post(
-    "/:id/tags",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new TagError(
-          TagErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in tag routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// POST /projects/:id/tags - Create a new tag
+	.post(
+		"/:id/tags",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new TagError(
+					TagErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const tag = await tagService.createTag(
-        {
-          ...body,
-          projectId: params.id,
-        },
-        userId
-      );
+			const tag = await tagService.createTag(
+				{
+					...body,
+					projectId: params.id,
+				},
+				userId,
+			);
 
-      return {
-        tag,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        name: t.String({ minLength: 1, maxLength: 100 }),
-        description: t.Optional(t.String({ maxLength: 500 })),
-        colorCode: t.Optional(t.String({ pattern: "^#[0-9A-Fa-f]{6}$" })),
-      }),
-      detail: {
-        tags: ["Tags"],
-        summary: "Create a new tag",
-        description: `
+			return {
+				tag,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				name: t.String({ minLength: 1, maxLength: 100 }),
+				description: t.Optional(t.String({ maxLength: 500 })),
+				colorCode: t.Optional(t.String({ pattern: "^#[0-9A-Fa-f]{6}$" })),
+			}),
+			detail: {
+				tags: ["Tags"],
+				summary: "Create a new tag",
+				description: `
 Create a new tag within a project.
 
 **Authentication Required:**
@@ -120,86 +118,86 @@ Create a new tag within a project.
 - Requirements 11.1: Tag creation with all fields
 - Requirements 11.6: Tag names are unique per project
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Tag created successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    tag: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string", example: "tag_123" },
-                        name: { type: "string", example: "Bug" },
-                        description: {
-                          type: "string",
-                          example: "Bug fixes and issues",
-                        },
-                        colorCode: { type: "string", example: "#FF5733" },
-                        projectId: { type: "string", example: "proj_123" },
-                        createdBy: { type: "string", example: "user_123" },
-                        updatedBy: { type: "string", example: "user_123" },
-                        createdAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                        updatedAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Validation error",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to create tags in this project",
-          },
-          409: {
-            description: "Tag name already exists in this project",
-          },
-        },
-      },
-    }
-  )
-  // GET /projects/:id/tags - List tags for a project
-  .get(
-    "/:id/tags",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new TagError(
-          TagErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Tag created successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										tag: {
+											type: "object",
+											properties: {
+												id: { type: "string", example: "tag_123" },
+												name: { type: "string", example: "Bug" },
+												description: {
+													type: "string",
+													example: "Bug fixes and issues",
+												},
+												colorCode: { type: "string", example: "#FF5733" },
+												projectId: { type: "string", example: "proj_123" },
+												createdBy: { type: "string", example: "user_123" },
+												updatedBy: { type: "string", example: "user_123" },
+												createdAt: {
+													type: "string",
+													format: "date-time",
+												},
+												updatedAt: {
+													type: "string",
+													format: "date-time",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Validation error",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to create tags in this project",
+					},
+					409: {
+						description: "Tag name already exists in this project",
+					},
+				},
+			},
+		},
+	)
+	// GET /projects/:id/tags - List tags for a project
+	.get(
+		"/:id/tags",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new TagError(
+					TagErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const tags = await tagService.listTags(params.id, userId);
+			const tags = await tagService.listTags(params.id, userId);
 
-      return {
-        tags,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Tags"],
-        summary: "List tags for a project",
-        description: `
+			return {
+				tags,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Tags"],
+				summary: "List tags for a project",
+				description: `
 Get all tags for a specific project.
 
 **Authentication Required:**
@@ -213,80 +211,80 @@ Get all tags for a specific project.
 - Array of tag objects for the project
 - Tags are ordered by creation date
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of tags",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    tags: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          id: { type: "string" },
-                          name: { type: "string" },
-                          description: { type: "string" },
-                          colorCode: { type: "string" },
-                          projectId: { type: "string" },
-                          createdBy: { type: "string" },
-                          updatedBy: { type: "string" },
-                          createdAt: { type: "string", format: "date-time" },
-                          updatedAt: { type: "string", format: "date-time" },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to view tags in this project",
-          },
-        },
-      },
-    }
-  )
-  // PUT /projects/:id/tags/:tagId - Update a tag
-  .put(
-    "/:id/tags/:tagId",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new TagError(
-          TagErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of tags",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										tags: {
+											type: "array",
+											items: {
+												type: "object",
+												properties: {
+													id: { type: "string" },
+													name: { type: "string" },
+													description: { type: "string" },
+													colorCode: { type: "string" },
+													projectId: { type: "string" },
+													createdBy: { type: "string" },
+													updatedBy: { type: "string" },
+													createdAt: { type: "string", format: "date-time" },
+													updatedAt: { type: "string", format: "date-time" },
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to view tags in this project",
+					},
+				},
+			},
+		},
+	)
+	// PUT /projects/:id/tags/:tagId - Update a tag
+	.put(
+		"/:id/tags/:tagId",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new TagError(
+					TagErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const tag = await tagService.updateTag(params.tagId, body, userId);
+			const tag = await tagService.updateTag(params.tagId, body, userId);
 
-      return {
-        tag,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-        tagId: t.String(),
-      }),
-      body: t.Object({
-        name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
-        description: t.Optional(t.String({ maxLength: 500 })),
-        colorCode: t.Optional(t.String({ pattern: "^#[0-9A-Fa-f]{6}$" })),
-      }),
-      detail: {
-        tags: ["Tags"],
-        summary: "Update a tag",
-        description: `
+			return {
+				tag,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+				tagId: t.String(),
+			}),
+			body: t.Object({
+				name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
+				description: t.Optional(t.String({ maxLength: 500 })),
+				colorCode: t.Optional(t.String({ pattern: "^#[0-9A-Fa-f]{6}$" })),
+			}),
+			detail: {
+				tags: ["Tags"],
+				summary: "Update a tag",
+				description: `
 Update tag properties.
 
 **Authentication Required:**
@@ -304,81 +302,81 @@ Update tag properties.
 **Response:**
 - Updated tag object with new values
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Tag updated successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    tag: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        description: { type: "string" },
-                        colorCode: { type: "string" },
-                        projectId: { type: "string" },
-                        createdBy: { type: "string" },
-                        updatedBy: { type: "string" },
-                        createdAt: { type: "string", format: "date-time" },
-                        updatedAt: { type: "string", format: "date-time" },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Validation error",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to update tags in this project",
-          },
-          404: {
-            description: "Tag not found",
-          },
-          409: {
-            description: "Tag name already exists in this project",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /projects/:id/tags/:tagId - Delete a tag
-  .delete(
-    "/:id/tags/:tagId",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new TagError(
-          TagErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Tag updated successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										tag: {
+											type: "object",
+											properties: {
+												id: { type: "string" },
+												name: { type: "string" },
+												description: { type: "string" },
+												colorCode: { type: "string" },
+												projectId: { type: "string" },
+												createdBy: { type: "string" },
+												updatedBy: { type: "string" },
+												createdAt: { type: "string", format: "date-time" },
+												updatedAt: { type: "string", format: "date-time" },
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Validation error",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to update tags in this project",
+					},
+					404: {
+						description: "Tag not found",
+					},
+					409: {
+						description: "Tag name already exists in this project",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /projects/:id/tags/:tagId - Delete a tag
+	.delete(
+		"/:id/tags/:tagId",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new TagError(
+					TagErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await tagService.deleteTag(params.tagId, userId);
+			await tagService.deleteTag(params.tagId, userId);
 
-      return {
-        message: "Tag deleted successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-        tagId: t.String(),
-      }),
-      detail: {
-        tags: ["Tags"],
-        summary: "Delete a tag",
-        description: `
+			return {
+				message: "Tag deleted successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+				tagId: t.String(),
+			}),
+			detail: {
+				tags: ["Tags"],
+				summary: "Delete a tag",
+				description: `
 Delete a tag from a project.
 
 **Authentication Required:**
@@ -398,121 +396,118 @@ Delete a tag from a project.
 **Validates:**
 - Requirements 11.4: Tag deletion cascades to associations
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Tag deleted successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: {
-                      type: "string",
-                      example: "Tag deleted successfully",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to delete tags in this project",
-          },
-          404: {
-            description: "Tag not found",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Tag deleted successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Tag deleted successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to delete tags in this project",
+					},
+					404: {
+						description: "Tag not found",
+					},
+				},
+			},
+		},
+	);
 
 /**
  * Task tag routes plugin
  * Provides endpoints for managing task-tag associations
  */
 export const taskTagRoutes = new Elysia({ prefix: "/tasks" })
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to task-tag endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "task-tags",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle TagError
-    if (error instanceof TagError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.derive(auth)
+	// Apply rate limiting to task-tag endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "task-tags",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle TagError
+		if (error instanceof TagError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in task tag routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // POST /tasks/:id/tags - Add a tag to a task
-  .post(
-    "/:id/tags",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new TagError(
-          TagErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in task tag routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// POST /tasks/:id/tags - Add a tag to a task
+	.post(
+		"/:id/tags",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new TagError(
+					TagErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await tagService.addTagToTask(params.id, body.tagId, userId);
+			await tagService.addTagToTask(params.id, body.tagId, userId);
 
-      return {
-        message: "Tag added to task successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        tagId: t.String(),
-      }),
-      detail: {
-        tags: ["Tags"],
-        summary: "Add a tag to a task",
-        description: `
+			return {
+				message: "Tag added to task successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				tagId: t.String(),
+			}),
+			detail: {
+				tags: ["Tags"],
+				summary: "Add a tag to a task",
+				description: `
 Associate a tag with a task.
 
 **Authentication Required:**
@@ -537,68 +532,68 @@ Associate a tag with a task.
 **Validates:**
 - Requirements 11.2: Tag association creates link
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Tag added to task successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: {
-                      type: "string",
-                      example: "Tag added to task successfully",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Tag must belong to the same project as the task",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to modify this task",
-          },
-          404: {
-            description: "Task or tag not found",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /tasks/:id/tags/:tagId - Remove a tag from a task
-  .delete(
-    "/:id/tags/:tagId",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new TagError(
-          TagErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Tag added to task successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Tag added to task successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Tag must belong to the same project as the task",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to modify this task",
+					},
+					404: {
+						description: "Task or tag not found",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /tasks/:id/tags/:tagId - Remove a tag from a task
+	.delete(
+		"/:id/tags/:tagId",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new TagError(
+					TagErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await tagService.removeTagFromTask(params.id, params.tagId, userId);
+			await tagService.removeTagFromTask(params.id, params.tagId, userId);
 
-      return {
-        message: "Tag removed from task successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-        tagId: t.String(),
-      }),
-      detail: {
-        tags: ["Tags"],
-        summary: "Remove a tag from a task",
-        description: `
+			return {
+				message: "Tag removed from task successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+				tagId: t.String(),
+			}),
+			detail: {
+				tags: ["Tags"],
+				summary: "Remove a tag from a task",
+				description: `
 Remove the association between a tag and a task.
 
 **Authentication Required:**
@@ -618,64 +613,64 @@ Remove the association between a tag and a task.
 **Validates:**
 - Requirements 11.3: Tag removal deletes association
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Tag removed from task successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: {
-                      type: "string",
-                      example: "Tag removed from task successfully",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to modify this task",
-          },
-          404: {
-            description: "Task not found",
-          },
-        },
-      },
-    }
-  )
-  // GET /tasks/:id/tags - List tags for a task
-  .get(
-    "/:id/tags",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new TagError(
-          TagErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Tag removed from task successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Tag removed from task successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to modify this task",
+					},
+					404: {
+						description: "Task not found",
+					},
+				},
+			},
+		},
+	)
+	// GET /tasks/:id/tags - List tags for a task
+	.get(
+		"/:id/tags",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new TagError(
+					TagErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const tags = await tagService.listTaskTags(params.id, userId);
+			const tags = await tagService.listTaskTags(params.id, userId);
 
-      return {
-        tags,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Tags"],
-        summary: "List tags for a task",
-        description: `
+			return {
+				tags,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Tags"],
+				summary: "List tags for a task",
+				description: `
 Get all tags associated with a specific task.
 
 **Authentication Required:**
@@ -692,47 +687,47 @@ Get all tags associated with a specific task.
 **Validates:**
 - Requirements 11.5: Tag filtering returns correct tasks (inverse operation)
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of tags for the task",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    tags: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          id: { type: "string" },
-                          name: { type: "string" },
-                          description: { type: "string" },
-                          colorCode: { type: "string" },
-                          projectId: { type: "string" },
-                          createdBy: { type: "string" },
-                          updatedBy: { type: "string" },
-                          createdAt: { type: "string", format: "date-time" },
-                          updatedAt: { type: "string", format: "date-time" },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to view this task",
-          },
-          404: {
-            description: "Task not found",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of tags for the task",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										tags: {
+											type: "array",
+											items: {
+												type: "object",
+												properties: {
+													id: { type: "string" },
+													name: { type: "string" },
+													description: { type: "string" },
+													colorCode: { type: "string" },
+													projectId: { type: "string" },
+													createdBy: { type: "string" },
+													updatedBy: { type: "string" },
+													createdAt: { type: "string", format: "date-time" },
+													updatedAt: { type: "string", format: "date-time" },
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to view this task",
+					},
+					404: {
+						description: "Task not found",
+					},
+				},
+			},
+		},
+	);

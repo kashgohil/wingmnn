@@ -1,10 +1,11 @@
 import { Elysia, t } from "elysia";
 import { config } from "../config";
+import { auth } from "../middleware/auth";
 import { rateLimit } from "../middleware/rate-limit";
 import {
-  ProjectError,
-  ProjectErrorCode,
-  projectService,
+	ProjectError,
+	ProjectErrorCode,
+	projectService,
 } from "../services/project.service";
 
 /**
@@ -12,83 +13,80 @@ import {
  * Provides endpoints for project management, status updates, and member management
  */
 export const projectRoutes = new Elysia({ prefix: "/projects" })
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to all project endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "projects",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle ProjectError
-    if (error instanceof ProjectError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.derive(auth)
+	// Apply rate limiting to all project endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "projects",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle ProjectError
+		if (error instanceof ProjectError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in project routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // POST /projects - Create a new project
-  .post(
-    "/",
-    async ({ body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ProjectError(
-          ProjectErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in project routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// POST /projects - Create a new project
+	.post(
+		"/",
+		async ({ body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const project = await projectService.createProject(body, userId);
+			const project = await projectService.createProject(body, userId);
 
-      return {
-        project,
-      };
-    },
-    {
-      body: t.Object({
-        name: t.String({ minLength: 1, maxLength: 200 }),
-        description: t.Optional(t.String({ maxLength: 2000 })),
-        workflowId: t.String(),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "Create a new project",
-        description: `
+			return {
+				project,
+			};
+		},
+		{
+			body: t.Object({
+				name: t.String({ minLength: 1, maxLength: 200 }),
+				description: t.Optional(t.String({ maxLength: 2000 })),
+				workflowId: t.String(),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "Create a new project",
+				description: `
 Create a new project with a selected workflow.
 
 **Authentication Required:**
@@ -112,114 +110,114 @@ Create a new project with a selected workflow.
 **Response:**
 - Created project object with ID, metadata, and initial status (active)
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Project created successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    project: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string", example: "proj_123" },
-                        name: { type: "string", example: "My Project" },
-                        description: {
-                          type: "string",
-                          example: "Project description",
-                        },
-                        ownerId: { type: "string", example: "user_123" },
-                        workflowId: { type: "string", example: "wf_123" },
-                        status: {
-                          type: "string",
-                          enum: ["active", "archived", "on_hold", "completed"],
-                          example: "active",
-                        },
-                        statusUpdatedAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                        createdAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                        updatedAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Validation error",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Workflow not found",
-          },
-        },
-      },
-    }
-  )
-  // GET /projects - List projects
-  .get(
-    "/",
-    async ({ query, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ProjectError(
-          ProjectErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Project created successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										project: {
+											type: "object",
+											properties: {
+												id: { type: "string", example: "proj_123" },
+												name: { type: "string", example: "My Project" },
+												description: {
+													type: "string",
+													example: "Project description",
+												},
+												ownerId: { type: "string", example: "user_123" },
+												workflowId: { type: "string", example: "wf_123" },
+												status: {
+													type: "string",
+													enum: ["active", "archived", "on_hold", "completed"],
+													example: "active",
+												},
+												statusUpdatedAt: {
+													type: "string",
+													format: "date-time",
+												},
+												createdAt: {
+													type: "string",
+													format: "date-time",
+												},
+												updatedAt: {
+													type: "string",
+													format: "date-time",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Validation error",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Workflow not found",
+					},
+				},
+			},
+		},
+	)
+	// GET /projects - List projects
+	.get(
+		"/",
+		async ({ query, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const { status, limit, offset, sortBy, sortDirection } = query;
+			const { status, limit, offset, sortBy, sortDirection } = query;
 
-      // Convert status to the correct type or null for all projects
-      const statusFilter = status === "all" ? null : status;
+			// Convert status to the correct type or null for all projects
+			const statusFilter = status === "all" ? null : status;
 
-      const projects = await projectService.listProjects(userId, statusFilter, {
-        limit: limit ? parseInt(limit) : undefined,
-        offset: offset ? parseInt(offset) : undefined,
-        sortBy,
-        sortDirection,
-      });
+			const projects = await projectService.listProjects(userId, statusFilter, {
+				limit: limit ? parseInt(limit) : undefined,
+				offset: offset ? parseInt(offset) : undefined,
+				sortBy,
+				sortDirection,
+			});
 
-      return {
-        projects,
-      };
-    },
-    {
-      query: t.Object({
-        status: t.Optional(
-          t.Union([
-            t.Literal("active"),
-            t.Literal("archived"),
-            t.Literal("on_hold"),
-            t.Literal("completed"),
-            t.Literal("all"),
-          ])
-        ),
-        limit: t.Optional(t.String()),
-        offset: t.Optional(t.String()),
-        sortBy: t.Optional(t.String()),
-        sortDirection: t.Optional(
-          t.Union([t.Literal("asc"), t.Literal("desc")])
-        ),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "List projects",
-        description: `
+			return {
+				projects,
+			};
+		},
+		{
+			query: t.Object({
+				status: t.Optional(
+					t.Union([
+						t.Literal("active"),
+						t.Literal("archived"),
+						t.Literal("on_hold"),
+						t.Literal("completed"),
+						t.Literal("all"),
+					]),
+				),
+				limit: t.Optional(t.String()),
+				offset: t.Optional(t.String()),
+				sortBy: t.Optional(t.String()),
+				sortDirection: t.Optional(
+					t.Union([t.Literal("asc"), t.Literal("desc")]),
+				),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "List projects",
+				description: `
 List all projects accessible to the authenticated user.
 
 **Authentication Required:**
@@ -255,90 +253,90 @@ List all projects accessible to the authenticated user.
 - Array of project objects
 - Each project includes basic metadata
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of projects",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    projects: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          id: { type: "string" },
-                          name: { type: "string" },
-                          description: { type: "string" },
-                          ownerId: { type: "string" },
-                          workflowId: { type: "string" },
-                          status: {
-                            type: "string",
-                            enum: [
-                              "active",
-                              "archived",
-                              "on_hold",
-                              "completed",
-                            ],
-                          },
-                          statusUpdatedAt: {
-                            type: "string",
-                            format: "date-time",
-                          },
-                          createdAt: { type: "string", format: "date-time" },
-                          updatedAt: { type: "string", format: "date-time" },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-        },
-      },
-    }
-  )
-  // GET /projects/:id - Get project details
-  .get(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ProjectError(
-          ProjectErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of projects",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										projects: {
+											type: "array",
+											items: {
+												type: "object",
+												properties: {
+													id: { type: "string" },
+													name: { type: "string" },
+													description: { type: "string" },
+													ownerId: { type: "string" },
+													workflowId: { type: "string" },
+													status: {
+														type: "string",
+														enum: [
+															"active",
+															"archived",
+															"on_hold",
+															"completed",
+														],
+													},
+													statusUpdatedAt: {
+														type: "string",
+														format: "date-time",
+													},
+													createdAt: { type: "string", format: "date-time" },
+													updatedAt: { type: "string", format: "date-time" },
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+				},
+			},
+		},
+	)
+	// GET /projects/:id - Get project details
+	.get(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const project = await projectService.getProject(params.id, userId);
+			const project = await projectService.getProject(params.id, userId);
 
-      if (!project) {
-        throw new ProjectError(
-          ProjectErrorCode.PROJECT_NOT_FOUND,
-          "Project not found or access denied",
-          404
-        );
-      }
+			if (!project) {
+				throw new ProjectError(
+					ProjectErrorCode.PROJECT_NOT_FOUND,
+					"Project not found or access denied",
+					404,
+				);
+			}
 
-      return {
-        project,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "Get project details",
-        description: `
+			return {
+				project,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "Get project details",
+				description: `
 Get detailed information about a specific project.
 
 **Authentication Required:**
@@ -351,85 +349,85 @@ Get detailed information about a specific project.
 **Response:**
 - Complete project object with all metadata
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Project details",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    project: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        description: { type: "string" },
-                        ownerId: { type: "string" },
-                        workflowId: { type: "string" },
-                        status: {
-                          type: "string",
-                          enum: ["active", "archived", "on_hold", "completed"],
-                        },
-                        statusUpdatedAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                        createdAt: { type: "string", format: "date-time" },
-                        updatedAt: { type: "string", format: "date-time" },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Project not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // PUT /projects/:id - Update project details
-  .put(
-    "/:id",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ProjectError(
-          ProjectErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Project details",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										project: {
+											type: "object",
+											properties: {
+												id: { type: "string" },
+												name: { type: "string" },
+												description: { type: "string" },
+												ownerId: { type: "string" },
+												workflowId: { type: "string" },
+												status: {
+													type: "string",
+													enum: ["active", "archived", "on_hold", "completed"],
+												},
+												statusUpdatedAt: {
+													type: "string",
+													format: "date-time",
+												},
+												createdAt: { type: "string", format: "date-time" },
+												updatedAt: { type: "string", format: "date-time" },
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Project not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// PUT /projects/:id - Update project details
+	.put(
+		"/:id",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const project = await projectService.updateProject(
-        params.id,
-        body,
-        userId
-      );
+			const project = await projectService.updateProject(
+				params.id,
+				body,
+				userId,
+			);
 
-      return {
-        project,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        name: t.Optional(t.String({ minLength: 1, maxLength: 200 })),
-        description: t.Optional(t.String({ maxLength: 2000 })),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "Update project details",
-        description: `
+			return {
+				project,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				name: t.Optional(t.String({ minLength: 1, maxLength: 200 })),
+				description: t.Optional(t.String({ maxLength: 2000 })),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "Update project details",
+				description: `
 Update project name and/or description.
 
 **Authentication Required:**
@@ -447,83 +445,83 @@ Update project name and/or description.
 **Response:**
 - Updated project object with new values
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Project updated successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    project: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        description: { type: "string" },
-                        ownerId: { type: "string" },
-                        workflowId: { type: "string" },
-                        status: {
-                          type: "string",
-                          enum: ["active", "archived", "on_hold", "completed"],
-                        },
-                        statusUpdatedAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                        createdAt: { type: "string", format: "date-time" },
-                        updatedAt: { type: "string", format: "date-time" },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Validation error or workflow immutability violation",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to update this project",
-          },
-          404: {
-            description: "Project not found",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /projects/:id - Delete a project
-  .delete(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ProjectError(
-          ProjectErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Project updated successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										project: {
+											type: "object",
+											properties: {
+												id: { type: "string" },
+												name: { type: "string" },
+												description: { type: "string" },
+												ownerId: { type: "string" },
+												workflowId: { type: "string" },
+												status: {
+													type: "string",
+													enum: ["active", "archived", "on_hold", "completed"],
+												},
+												statusUpdatedAt: {
+													type: "string",
+													format: "date-time",
+												},
+												createdAt: { type: "string", format: "date-time" },
+												updatedAt: { type: "string", format: "date-time" },
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Validation error or workflow immutability violation",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to update this project",
+					},
+					404: {
+						description: "Project not found",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /projects/:id - Delete a project
+	.delete(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await projectService.deleteProject(params.id, userId);
+			await projectService.deleteProject(params.id, userId);
 
-      return {
-        message: "Project deleted successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "Delete a project",
-        description: `
+			return {
+				message: "Project deleted successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "Delete a project",
+				description: `
 Delete a project and all associated content.
 
 **Authentication Required:**
@@ -542,76 +540,76 @@ Delete a project and all associated content.
 **Response:**
 - Success message on successful deletion
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Project deleted successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: {
-                      type: "string",
-                      example: "Project deleted successfully",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to delete this project",
-          },
-          404: {
-            description: "Project not found",
-          },
-        },
-      },
-    }
-  )
-  // PATCH /projects/:id/status - Update project status
-  .patch(
-    "/:id/status",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ProjectError(
-          ProjectErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Project deleted successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Project deleted successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to delete this project",
+					},
+					404: {
+						description: "Project not found",
+					},
+				},
+			},
+		},
+	)
+	// PATCH /projects/:id/status - Update project status
+	.patch(
+		"/:id/status",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const project = await projectService.updateProjectStatus(
-        params.id,
-        body.status,
-        userId
-      );
+			const project = await projectService.updateProjectStatus(
+				params.id,
+				body.status,
+				userId,
+			);
 
-      return {
-        project,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        status: t.Union([
-          t.Literal("active"),
-          t.Literal("archived"),
-          t.Literal("on_hold"),
-          t.Literal("completed"),
-        ]),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "Update project status",
-        description: `
+			return {
+				project,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				status: t.Union([
+					t.Literal("active"),
+					t.Literal("archived"),
+					t.Literal("on_hold"),
+					t.Literal("completed"),
+				]),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "Update project status",
+				description: `
 Update the status of a project.
 
 **Authentication Required:**
@@ -636,84 +634,84 @@ Update the status of a project.
 **Response:**
 - Updated project object with new status and timestamp
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Project status updated successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    project: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        description: { type: "string" },
-                        ownerId: { type: "string" },
-                        workflowId: { type: "string" },
-                        status: {
-                          type: "string",
-                          enum: ["active", "archived", "on_hold", "completed"],
-                        },
-                        statusUpdatedAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                        createdAt: { type: "string", format: "date-time" },
-                        updatedAt: { type: "string", format: "date-time" },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to change project status",
-          },
-          404: {
-            description: "Project not found",
-          },
-        },
-      },
-    }
-  )
-  // POST /projects/:id/members - Add a member to a project
-  .post(
-    "/:id/members",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ProjectError(
-          ProjectErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Project status updated successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										project: {
+											type: "object",
+											properties: {
+												id: { type: "string" },
+												name: { type: "string" },
+												description: { type: "string" },
+												ownerId: { type: "string" },
+												workflowId: { type: "string" },
+												status: {
+													type: "string",
+													enum: ["active", "archived", "on_hold", "completed"],
+												},
+												statusUpdatedAt: {
+													type: "string",
+													format: "date-time",
+												},
+												createdAt: { type: "string", format: "date-time" },
+												updatedAt: { type: "string", format: "date-time" },
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to change project status",
+					},
+					404: {
+						description: "Project not found",
+					},
+				},
+			},
+		},
+	)
+	// POST /projects/:id/members - Add a member to a project
+	.post(
+		"/:id/members",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await projectService.addMember(params.id, body, userId);
+			await projectService.addMember(params.id, body, userId);
 
-      return {
-        message: "Member added successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        userId: t.Optional(t.String()),
-        userGroupId: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "Add a member to a project",
-        description: `
+			return {
+				message: "Member added successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				userId: t.Optional(t.String()),
+				userGroupId: t.Optional(t.String()),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "Add a member to a project",
+				description: `
 Add a user or user group as a member of a project.
 
 **Authentication Required:**
@@ -737,68 +735,68 @@ Add a user or user group as a member of a project.
 **Response:**
 - Success message on successful addition
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Member added successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: {
-                      type: "string",
-                      example: "Member added successfully",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Invalid input (must provide userId or userGroupId)",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to add members",
-          },
-          404: {
-            description: "Project not found",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /projects/:id/members/:memberId - Remove a member from a project
-  .delete(
-    "/:id/members/:memberId",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ProjectError(
-          ProjectErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Member added successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Member added successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Invalid input (must provide userId or userGroupId)",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to add members",
+					},
+					404: {
+						description: "Project not found",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /projects/:id/members/:memberId - Remove a member from a project
+	.delete(
+		"/:id/members/:memberId",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await projectService.removeMember(params.id, params.memberId, userId);
+			await projectService.removeMember(params.id, params.memberId, userId);
 
-      return {
-        message: "Member removed successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-        memberId: t.String(),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "Remove a member from a project",
-        description: `
+			return {
+				message: "Member removed successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+				memberId: t.String(),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "Remove a member from a project",
+				description: `
 Remove a user or user group from project membership.
 
 **Authentication Required:**
@@ -816,64 +814,64 @@ Remove a user or user group from project membership.
 **Response:**
 - Success message on successful removal
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Member removed successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: {
-                      type: "string",
-                      example: "Member removed successfully",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to remove members",
-          },
-          404: {
-            description: "Project or member not found",
-          },
-        },
-      },
-    }
-  )
-  // GET /projects/:id/members - List project members
-  .get(
-    "/:id/members",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ProjectError(
-          ProjectErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Member removed successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Member removed successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to remove members",
+					},
+					404: {
+						description: "Project or member not found",
+					},
+				},
+			},
+		},
+	)
+	// GET /projects/:id/members - List project members
+	.get(
+		"/:id/members",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const members = await projectService.listMembers(params.id, userId);
+			const members = await projectService.listMembers(params.id, userId);
 
-      return {
-        members,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "List project members",
-        description: `
+			return {
+				members,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "List project members",
+				description: `
 Get a list of all members (users and user groups) for a project.
 
 **Authentication Required:**
@@ -888,55 +886,55 @@ Get a list of all members (users and user groups) for a project.
 - Each member includes user ID or user group ID
 - Includes metadata about when and by whom the member was added
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of project members",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    members: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          id: { type: "string", example: "member_123" },
-                          projectId: { type: "string", example: "proj_123" },
-                          userId: {
-                            type: "string",
-                            nullable: true,
-                            example: "user_123",
-                          },
-                          userGroupId: {
-                            type: "string",
-                            nullable: true,
-                            example: "group_123",
-                          },
-                          addedBy: { type: "string", example: "user_123" },
-                          addedAt: {
-                            type: "string",
-                            format: "date-time",
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to view project members",
-          },
-          404: {
-            description: "Project not found",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of project members",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										members: {
+											type: "array",
+											items: {
+												type: "object",
+												properties: {
+													id: { type: "string", example: "member_123" },
+													projectId: { type: "string", example: "proj_123" },
+													userId: {
+														type: "string",
+														nullable: true,
+														example: "user_123",
+													},
+													userGroupId: {
+														type: "string",
+														nullable: true,
+														example: "group_123",
+													},
+													addedBy: { type: "string", example: "user_123" },
+													addedAt: {
+														type: "string",
+														format: "date-time",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to view project members",
+					},
+					404: {
+						description: "Project not found",
+					},
+				},
+			},
+		},
+	);

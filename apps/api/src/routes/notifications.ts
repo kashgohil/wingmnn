@@ -1,10 +1,11 @@
 import { Elysia, t } from "elysia";
 import { config } from "../config";
+import { auth } from "../middleware/auth";
 import { rateLimit } from "../middleware/rate-limit";
 import {
-  NotificationError,
-  NotificationErrorCode,
-  notificationService,
+	NotificationError,
+	NotificationErrorCode,
+	notificationService,
 } from "../services/notification.service";
 
 /**
@@ -12,86 +13,83 @@ import {
  * Provides endpoints for notification management
  */
 export const notificationRoutes = new Elysia({ prefix: "/notifications" })
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to all notification endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "notifications",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle NotificationError
-    if (error instanceof NotificationError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.derive(auth)
+	// Apply rate limiting to all notification endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "notifications",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle NotificationError
+		if (error instanceof NotificationError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in notification routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // GET /notifications - List notifications for the authenticated user
-  .get(
-    "/",
-    async ({ query, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new NotificationError(
-          NotificationErrorCode.FORBIDDEN,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in notification routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// GET /notifications - List notifications for the authenticated user
+	.get(
+		"/",
+		async ({ query, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new NotificationError(
+					NotificationErrorCode.FORBIDDEN,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const unreadOnly = query.unreadOnly === "true";
+			const unreadOnly = query.unreadOnly === "true";
 
-      const notifications = await notificationService.listNotifications(
-        userId,
-        unreadOnly
-      );
+			const notifications = await notificationService.listNotifications(
+				userId,
+				unreadOnly,
+			);
 
-      return {
-        notifications,
-      };
-    },
-    {
-      query: t.Object({
-        unreadOnly: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Notifications"],
-        summary: "List notifications",
-        description: `
+			return {
+				notifications,
+			};
+		},
+		{
+			query: t.Object({
+				unreadOnly: t.Optional(t.String()),
+			}),
+			detail: {
+				tags: ["Notifications"],
+				summary: "List notifications",
+				description: `
 Get all notifications for the authenticated user.
 
 **Authentication Required:**
@@ -126,45 +124,45 @@ Get all notifications for the authenticated user.
 - Implement notification center
 - Keep users informed of relevant changes
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of notifications",
-          },
-          401: {
-            description: "Authentication required",
-          },
-        },
-      },
-    }
-  )
-  // PATCH /notifications/:id/read - Mark a notification as read
-  .patch(
-    "/:id/read",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new NotificationError(
-          NotificationErrorCode.FORBIDDEN,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of notifications",
+					},
+					401: {
+						description: "Authentication required",
+					},
+				},
+			},
+		},
+	)
+	// PATCH /notifications/:id/read - Mark a notification as read
+	.patch(
+		"/:id/read",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new NotificationError(
+					NotificationErrorCode.FORBIDDEN,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await notificationService.markAsRead(params.id, userId);
+			await notificationService.markAsRead(params.id, userId);
 
-      return {
-        message: "Notification marked as read",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Notifications"],
-        summary: "Mark notification as read",
-        description: `
+			return {
+				message: "Notification marked as read",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Notifications"],
+				summary: "Mark notification as read",
+				description: `
 Mark a specific notification as read.
 
 **Authentication Required:**
@@ -191,48 +189,48 @@ Mark a specific notification as read.
 - Dismiss individual notifications
 - Update notification status in UI
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Notification marked as read successfully",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Cannot mark notifications belonging to other users",
-          },
-          404: {
-            description: "Notification not found",
-          },
-        },
-      },
-    }
-  )
-  // POST /notifications/read-all - Mark all notifications as read
-  .post(
-    "/read-all",
-    async ({ authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new NotificationError(
-          NotificationErrorCode.FORBIDDEN,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Notification marked as read successfully",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Cannot mark notifications belonging to other users",
+					},
+					404: {
+						description: "Notification not found",
+					},
+				},
+			},
+		},
+	)
+	// POST /notifications/read-all - Mark all notifications as read
+	.post(
+		"/read-all",
+		async ({ authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new NotificationError(
+					NotificationErrorCode.FORBIDDEN,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await notificationService.markAllAsRead(userId);
+			await notificationService.markAllAsRead(userId);
 
-      return {
-        message: "All notifications marked as read",
-      };
-    },
-    {
-      detail: {
-        tags: ["Notifications"],
-        summary: "Mark all notifications as read",
-        description: `
+			return {
+				message: "All notifications marked as read",
+			};
+		},
+		{
+			detail: {
+				tags: ["Notifications"],
+				summary: "Mark all notifications as read",
+				description: `
 Mark all unread notifications as read for the authenticated user.
 
 **Authentication Required:**
@@ -257,15 +255,15 @@ Mark all unread notifications as read for the authenticated user.
 - Bulk notification management
 - Reset notification count to zero
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "All notifications marked as read successfully",
-          },
-          401: {
-            description: "Authentication required",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "All notifications marked as read successfully",
+					},
+					401: {
+						description: "Authentication required",
+					},
+				},
+			},
+		},
+	);

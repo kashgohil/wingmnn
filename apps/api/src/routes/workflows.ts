@@ -1,10 +1,11 @@
 import { Elysia, t } from "elysia";
 import { config } from "../config";
+import { auth } from "../middleware/auth";
 import { rateLimit } from "../middleware/rate-limit";
 import {
-  WorkflowError,
-  WorkflowErrorCode,
-  workflowService,
+	WorkflowError,
+	WorkflowErrorCode,
+	workflowService,
 } from "../services/workflow.service";
 
 /**
@@ -12,84 +13,81 @@ import {
  * Provides endpoints for workflow and status management
  */
 export const workflowRoutes = new Elysia({ prefix: "/workflows" })
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to all workflow endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "workflows",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle WorkflowError
-    if (error instanceof WorkflowError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.derive(auth)
+	// Apply rate limiting to all workflow endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "workflows",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle WorkflowError
+		if (error instanceof WorkflowError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in workflow routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // POST /workflows - Create a new workflow
-  .post(
-    "/",
-    async ({ body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new WorkflowError(
-          WorkflowErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in workflow routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// POST /workflows - Create a new workflow
+	.post(
+		"/",
+		async ({ body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new WorkflowError(
+					WorkflowErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const workflow = await workflowService.createWorkflow(body, userId);
+			const workflow = await workflowService.createWorkflow(body, userId);
 
-      return {
-        workflow,
-      };
-    },
-    {
-      body: t.Object({
-        name: t.String({ minLength: 1, maxLength: 100 }),
-        description: t.Optional(t.String({ maxLength: 1000 })),
-        workflowType: t.Union([t.Literal("task"), t.Literal("subtask")]),
-        isTemplate: t.Optional(t.Boolean()),
-      }),
-      detail: {
-        tags: ["Workflows"],
-        summary: "Create a new workflow",
-        description: `
+			return {
+				workflow,
+			};
+		},
+		{
+			body: t.Object({
+				name: t.String({ minLength: 1, maxLength: 100 }),
+				description: t.Optional(t.String({ maxLength: 1000 })),
+				workflowType: t.Union([t.Literal("task"), t.Literal("subtask")]),
+				isTemplate: t.Optional(t.Boolean()),
+			}),
+			detail: {
+				tags: ["Workflows"],
+				summary: "Create a new workflow",
+				description: `
 Create a new custom workflow for tasks or subtasks.
 
 **Authentication Required:**
@@ -112,95 +110,95 @@ Create a new custom workflow for tasks or subtasks.
 **Response:**
 - Created workflow object with ID and metadata
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Workflow created successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    workflow: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string", example: "wf_123" },
-                        name: { type: "string", example: "My Custom Workflow" },
-                        description: {
-                          type: "string",
-                          example: "Custom workflow for feature development",
-                        },
-                        workflowType: {
-                          type: "string",
-                          enum: ["task", "subtask"],
-                          example: "task",
-                        },
-                        createdBy: { type: "string", example: "user_123" },
-                        isTemplate: { type: "boolean", example: false },
-                        createdAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                        updatedAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Validation error",
-          },
-          401: {
-            description: "Authentication required",
-          },
-        },
-      },
-    }
-  )
-  // GET /workflows - List workflows
-  .get(
-    "/",
-    async ({ query, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new WorkflowError(
-          WorkflowErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Workflow created successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										workflow: {
+											type: "object",
+											properties: {
+												id: { type: "string", example: "wf_123" },
+												name: { type: "string", example: "My Custom Workflow" },
+												description: {
+													type: "string",
+													example: "Custom workflow for feature development",
+												},
+												workflowType: {
+													type: "string",
+													enum: ["task", "subtask"],
+													example: "task",
+												},
+												createdBy: { type: "string", example: "user_123" },
+												isTemplate: { type: "boolean", example: false },
+												createdAt: {
+													type: "string",
+													format: "date-time",
+												},
+												updatedAt: {
+													type: "string",
+													format: "date-time",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Validation error",
+					},
+					401: {
+						description: "Authentication required",
+					},
+				},
+			},
+		},
+	)
+	// GET /workflows - List workflows
+	.get(
+		"/",
+		async ({ query, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new WorkflowError(
+					WorkflowErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const { type, limit, offset, sortBy, sortDirection } = query;
-      const workflows = await workflowService.listWorkflows(userId, type, {
-        limit: limit ? parseInt(limit) : undefined,
-        offset: offset ? parseInt(offset) : undefined,
-        sortBy,
-        sortDirection,
-      });
+			const { type, limit, offset, sortBy, sortDirection } = query;
+			const workflows = await workflowService.listWorkflows(userId, type, {
+				limit: limit ? parseInt(limit) : undefined,
+				offset: offset ? parseInt(offset) : undefined,
+				sortBy,
+				sortDirection,
+			});
 
-      return {
-        workflows,
-      };
-    },
-    {
-      query: t.Object({
-        type: t.Optional(t.Union([t.Literal("task"), t.Literal("subtask")])),
-        limit: t.Optional(t.String()),
-        offset: t.Optional(t.String()),
-        sortBy: t.Optional(t.String()),
-        sortDirection: t.Optional(
-          t.Union([t.Literal("asc"), t.Literal("desc")])
-        ),
-      }),
-      detail: {
-        tags: ["Workflows"],
-        summary: "List workflows",
-        description: `
+			return {
+				workflows,
+			};
+		},
+		{
+			query: t.Object({
+				type: t.Optional(t.Union([t.Literal("task"), t.Literal("subtask")])),
+				limit: t.Optional(t.String()),
+				offset: t.Optional(t.String()),
+				sortBy: t.Optional(t.String()),
+				sortDirection: t.Optional(
+					t.Union([t.Literal("asc"), t.Literal("desc")]),
+				),
+			}),
+			detail: {
+				tags: ["Workflows"],
+				summary: "List workflows",
+				description: `
 List all workflows accessible to the authenticated user.
 
 **Authentication Required:**
@@ -227,81 +225,81 @@ List all workflows accessible to the authenticated user.
 - Array of workflow objects
 - Each workflow includes basic metadata (statuses not included in list view)
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of workflows",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    workflows: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          id: { type: "string" },
-                          name: { type: "string" },
-                          description: { type: "string" },
-                          workflowType: {
-                            type: "string",
-                            enum: ["task", "subtask"],
-                          },
-                          createdBy: { type: "string" },
-                          isTemplate: { type: "boolean" },
-                          createdAt: { type: "string", format: "date-time" },
-                          updatedAt: { type: "string", format: "date-time" },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-        },
-      },
-    }
-  )
-  // GET /workflows/:id - Get workflow details
-  .get(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new WorkflowError(
-          WorkflowErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of workflows",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										workflows: {
+											type: "array",
+											items: {
+												type: "object",
+												properties: {
+													id: { type: "string" },
+													name: { type: "string" },
+													description: { type: "string" },
+													workflowType: {
+														type: "string",
+														enum: ["task", "subtask"],
+													},
+													createdBy: { type: "string" },
+													isTemplate: { type: "boolean" },
+													createdAt: { type: "string", format: "date-time" },
+													updatedAt: { type: "string", format: "date-time" },
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+				},
+			},
+		},
+	)
+	// GET /workflows/:id - Get workflow details
+	.get(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new WorkflowError(
+					WorkflowErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const workflow = await workflowService.getWorkflow(params.id);
+			const workflow = await workflowService.getWorkflow(params.id);
 
-      if (!workflow) {
-        throw new WorkflowError(
-          WorkflowErrorCode.WORKFLOW_NOT_FOUND,
-          "Workflow not found",
-          404
-        );
-      }
+			if (!workflow) {
+				throw new WorkflowError(
+					WorkflowErrorCode.WORKFLOW_NOT_FOUND,
+					"Workflow not found",
+					404,
+				);
+			}
 
-      return {
-        workflow,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Workflows"],
-        summary: "Get workflow details",
-        description: `
+			return {
+				workflow,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Workflows"],
+				summary: "Get workflow details",
+				description: `
 Get detailed information about a specific workflow, including all statuses.
 
 **Authentication Required:**
@@ -312,105 +310,105 @@ Get detailed information about a specific workflow, including all statuses.
 - Statuses are ordered by position
 - Each status includes phase, color, and position information
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Workflow details",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    workflow: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        description: { type: "string" },
-                        workflowType: {
-                          type: "string",
-                          enum: ["task", "subtask"],
-                        },
-                        createdBy: { type: "string" },
-                        isTemplate: { type: "boolean" },
-                        createdAt: { type: "string", format: "date-time" },
-                        updatedAt: { type: "string", format: "date-time" },
-                        statuses: {
-                          type: "array",
-                          items: {
-                            type: "object",
-                            properties: {
-                              id: { type: "string" },
-                              workflowId: { type: "string" },
-                              name: { type: "string" },
-                              description: { type: "string" },
-                              phase: {
-                                type: "string",
-                                enum: [
-                                  "backlog",
-                                  "planning",
-                                  "in_progress",
-                                  "feedback",
-                                  "closed",
-                                ],
-                              },
-                              colorCode: { type: "string" },
-                              position: { type: "number" },
-                              createdAt: {
-                                type: "string",
-                                format: "date-time",
-                              },
-                              updatedAt: {
-                                type: "string",
-                                format: "date-time",
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Workflow not found",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /workflows/:id - Delete a workflow
-  .delete(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new WorkflowError(
-          WorkflowErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Workflow details",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										workflow: {
+											type: "object",
+											properties: {
+												id: { type: "string" },
+												name: { type: "string" },
+												description: { type: "string" },
+												workflowType: {
+													type: "string",
+													enum: ["task", "subtask"],
+												},
+												createdBy: { type: "string" },
+												isTemplate: { type: "boolean" },
+												createdAt: { type: "string", format: "date-time" },
+												updatedAt: { type: "string", format: "date-time" },
+												statuses: {
+													type: "array",
+													items: {
+														type: "object",
+														properties: {
+															id: { type: "string" },
+															workflowId: { type: "string" },
+															name: { type: "string" },
+															description: { type: "string" },
+															phase: {
+																type: "string",
+																enum: [
+																	"backlog",
+																	"planning",
+																	"in_progress",
+																	"feedback",
+																	"closed",
+																],
+															},
+															colorCode: { type: "string" },
+															position: { type: "number" },
+															createdAt: {
+																type: "string",
+																format: "date-time",
+															},
+															updatedAt: {
+																type: "string",
+																format: "date-time",
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Workflow not found",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /workflows/:id - Delete a workflow
+	.delete(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new WorkflowError(
+					WorkflowErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await workflowService.deleteWorkflow(params.id, userId);
+			await workflowService.deleteWorkflow(params.id, userId);
 
-      return {
-        message: "Workflow deleted successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Workflows"],
-        summary: "Delete a workflow",
-        description: `
+			return {
+				message: "Workflow deleted successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Workflows"],
+				summary: "Delete a workflow",
+				description: `
 Delete a custom workflow.
 
 **Authentication Required:**
@@ -427,80 +425,80 @@ Delete a custom workflow.
 **Response:**
 - Success message on successful deletion
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Workflow deleted successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: {
-                      type: "string",
-                      example: "Workflow deleted successfully",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Workflow is in use by projects",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to delete this workflow",
-          },
-          404: {
-            description: "Workflow not found",
-          },
-        },
-      },
-    }
-  )
-  // POST /workflows/:id/statuses - Add a status to a workflow
-  .post(
-    "/:id/statuses",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new WorkflowError(
-          WorkflowErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Workflow deleted successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Workflow deleted successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Workflow is in use by projects",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to delete this workflow",
+					},
+					404: {
+						description: "Workflow not found",
+					},
+				},
+			},
+		},
+	)
+	// POST /workflows/:id/statuses - Add a status to a workflow
+	.post(
+		"/:id/statuses",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new WorkflowError(
+					WorkflowErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const status = await workflowService.addStatus(params.id, body, userId);
+			const status = await workflowService.addStatus(params.id, body, userId);
 
-      return {
-        status,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        name: t.String({ minLength: 1, maxLength: 100 }),
-        description: t.Optional(t.String({ maxLength: 500 })),
-        phase: t.Union([
-          t.Literal("backlog"),
-          t.Literal("planning"),
-          t.Literal("in_progress"),
-          t.Literal("feedback"),
-          t.Literal("closed"),
-        ]),
-        colorCode: t.Optional(t.String({ pattern: "^#[0-9A-Fa-f]{6}$" })),
-        position: t.Optional(t.Number({ minimum: 0 })),
-      }),
-      detail: {
-        tags: ["Workflows"],
-        summary: "Add a status to a workflow",
-        description: `
+			return {
+				status,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				name: t.String({ minLength: 1, maxLength: 100 }),
+				description: t.Optional(t.String({ maxLength: 500 })),
+				phase: t.Union([
+					t.Literal("backlog"),
+					t.Literal("planning"),
+					t.Literal("in_progress"),
+					t.Literal("feedback"),
+					t.Literal("closed"),
+				]),
+				colorCode: t.Optional(t.String({ pattern: "^#[0-9A-Fa-f]{6}$" })),
+				position: t.Optional(t.Number({ minimum: 0 })),
+			}),
+			detail: {
+				tags: ["Workflows"],
+				summary: "Add a status to a workflow",
+				description: `
 Add a new status to an existing workflow.
 
 **Authentication Required:**
@@ -526,116 +524,116 @@ Add a new status to an existing workflow.
 **Response:**
 - Created status object with ID and metadata
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Status added successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    status: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string", example: "status_123" },
-                        workflowId: { type: "string", example: "wf_123" },
-                        name: { type: "string", example: "In Progress" },
-                        description: {
-                          type: "string",
-                          example: "Work is actively being done",
-                        },
-                        phase: {
-                          type: "string",
-                          enum: [
-                            "backlog",
-                            "planning",
-                            "in_progress",
-                            "feedback",
-                            "closed",
-                          ],
-                          example: "in_progress",
-                        },
-                        colorCode: { type: "string", example: "#3B82F6" },
-                        position: { type: "number", example: 2 },
-                        createdAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                        updatedAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Validation error",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to modify this workflow",
-          },
-          404: {
-            description: "Workflow not found",
-          },
-        },
-      },
-    }
-  )
-  // PUT /workflows/:id/statuses/:statusId - Update a status
-  .put(
-    "/:id/statuses/:statusId",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new WorkflowError(
-          WorkflowErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Status added successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										status: {
+											type: "object",
+											properties: {
+												id: { type: "string", example: "status_123" },
+												workflowId: { type: "string", example: "wf_123" },
+												name: { type: "string", example: "In Progress" },
+												description: {
+													type: "string",
+													example: "Work is actively being done",
+												},
+												phase: {
+													type: "string",
+													enum: [
+														"backlog",
+														"planning",
+														"in_progress",
+														"feedback",
+														"closed",
+													],
+													example: "in_progress",
+												},
+												colorCode: { type: "string", example: "#3B82F6" },
+												position: { type: "number", example: 2 },
+												createdAt: {
+													type: "string",
+													format: "date-time",
+												},
+												updatedAt: {
+													type: "string",
+													format: "date-time",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Validation error",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to modify this workflow",
+					},
+					404: {
+						description: "Workflow not found",
+					},
+				},
+			},
+		},
+	)
+	// PUT /workflows/:id/statuses/:statusId - Update a status
+	.put(
+		"/:id/statuses/:statusId",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new WorkflowError(
+					WorkflowErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const status = await workflowService.updateStatus(
-        params.statusId,
-        body,
-        userId
-      );
+			const status = await workflowService.updateStatus(
+				params.statusId,
+				body,
+				userId,
+			);
 
-      return {
-        status,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-        statusId: t.String(),
-      }),
-      body: t.Object({
-        name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
-        description: t.Optional(t.String({ maxLength: 500 })),
-        phase: t.Optional(
-          t.Union([
-            t.Literal("backlog"),
-            t.Literal("planning"),
-            t.Literal("in_progress"),
-            t.Literal("feedback"),
-            t.Literal("closed"),
-          ])
-        ),
-        colorCode: t.Optional(t.String({ pattern: "^#[0-9A-Fa-f]{6}$" })),
-        position: t.Optional(t.Number({ minimum: 0 })),
-      }),
-      detail: {
-        tags: ["Workflows"],
-        summary: "Update a status",
-        description: `
+			return {
+				status,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+				statusId: t.String(),
+			}),
+			body: t.Object({
+				name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
+				description: t.Optional(t.String({ maxLength: 500 })),
+				phase: t.Optional(
+					t.Union([
+						t.Literal("backlog"),
+						t.Literal("planning"),
+						t.Literal("in_progress"),
+						t.Literal("feedback"),
+						t.Literal("closed"),
+					]),
+				),
+				colorCode: t.Optional(t.String({ pattern: "^#[0-9A-Fa-f]{6}$" })),
+				position: t.Optional(t.Number({ minimum: 0 })),
+			}),
+			detail: {
+				tags: ["Workflows"],
+				summary: "Update a status",
+				description: `
 Update an existing status in a workflow.
 
 **Authentication Required:**
@@ -658,93 +656,93 @@ Update an existing status in a workflow.
 **Response:**
 - Updated status object with new values
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Status updated successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    status: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        workflowId: { type: "string" },
-                        name: { type: "string" },
-                        description: { type: "string" },
-                        phase: {
-                          type: "string",
-                          enum: [
-                            "backlog",
-                            "planning",
-                            "in_progress",
-                            "feedback",
-                            "closed",
-                          ],
-                        },
-                        colorCode: { type: "string" },
-                        position: { type: "number" },
-                        createdAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                        updatedAt: {
-                          type: "string",
-                          format: "date-time",
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Validation error",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to modify this workflow",
-          },
-          404: {
-            description: "Status or workflow not found",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /workflows/:id/statuses/:statusId - Delete a status
-  .delete(
-    "/:id/statuses/:statusId",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new WorkflowError(
-          WorkflowErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Status updated successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										status: {
+											type: "object",
+											properties: {
+												id: { type: "string" },
+												workflowId: { type: "string" },
+												name: { type: "string" },
+												description: { type: "string" },
+												phase: {
+													type: "string",
+													enum: [
+														"backlog",
+														"planning",
+														"in_progress",
+														"feedback",
+														"closed",
+													],
+												},
+												colorCode: { type: "string" },
+												position: { type: "number" },
+												createdAt: {
+													type: "string",
+													format: "date-time",
+												},
+												updatedAt: {
+													type: "string",
+													format: "date-time",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Validation error",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to modify this workflow",
+					},
+					404: {
+						description: "Status or workflow not found",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /workflows/:id/statuses/:statusId - Delete a status
+	.delete(
+		"/:id/statuses/:statusId",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new WorkflowError(
+					WorkflowErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await workflowService.deleteStatus(params.statusId, userId);
+			await workflowService.deleteStatus(params.statusId, userId);
 
-      return {
-        message: "Status deleted successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-        statusId: t.String(),
-      }),
-      detail: {
-        tags: ["Workflows"],
-        summary: "Delete a status",
-        description: `
+			return {
+				message: "Status deleted successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+				statusId: t.String(),
+			}),
+			detail: {
+				tags: ["Workflows"],
+				summary: "Delete a status",
+				description: `
 Delete a status from a workflow.
 
 **Authentication Required:**
@@ -762,70 +760,70 @@ Delete a status from a workflow.
 **Response:**
 - Success message on successful deletion
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Status deleted successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: {
-                      type: "string",
-                      example: "Status deleted successfully",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Status is in use by tasks or subtasks",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to modify this workflow",
-          },
-          404: {
-            description: "Status or workflow not found",
-          },
-        },
-      },
-    }
-  )
-  // PATCH /workflows/:id/statuses/reorder - Reorder statuses
-  .patch(
-    "/:id/statuses/reorder",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new WorkflowError(
-          WorkflowErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Status deleted successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Status deleted successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Status is in use by tasks or subtasks",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to modify this workflow",
+					},
+					404: {
+						description: "Status or workflow not found",
+					},
+				},
+			},
+		},
+	)
+	// PATCH /workflows/:id/statuses/reorder - Reorder statuses
+	.patch(
+		"/:id/statuses/reorder",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new WorkflowError(
+					WorkflowErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await workflowService.reorderStatuses(params.id, body.statusIds, userId);
+			await workflowService.reorderStatuses(params.id, body.statusIds, userId);
 
-      return {
-        message: "Statuses reordered successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        statusIds: t.Array(t.String(), { minItems: 1 }),
-      }),
-      detail: {
-        tags: ["Workflows"],
-        summary: "Reorder statuses in a workflow",
-        description: `
+			return {
+				message: "Statuses reordered successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				statusIds: t.Array(t.String(), { minItems: 1 }),
+			}),
+			detail: {
+				tags: ["Workflows"],
+				summary: "Reorder statuses in a workflow",
+				description: `
 Reorder statuses within a workflow by providing the desired order.
 
 **Authentication Required:**
@@ -853,37 +851,37 @@ Reorder statuses within a workflow by providing the desired order.
 **Response:**
 - Success message on successful reordering
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Statuses reordered successfully",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: {
-                      type: "string",
-                      example: "Statuses reordered successfully",
-                    },
-                  },
-                },
-              },
-            },
-          },
-          400: {
-            description: "Invalid status IDs or validation error",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to modify this workflow",
-          },
-          404: {
-            description: "Workflow not found",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Statuses reordered successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Statuses reordered successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Invalid status IDs or validation error",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to modify this workflow",
+					},
+					404: {
+						description: "Workflow not found",
+					},
+				},
+			},
+		},
+	);

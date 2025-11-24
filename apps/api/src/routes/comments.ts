@@ -1,10 +1,11 @@
 import { Elysia, t } from "elysia";
 import { config } from "../config";
+import { auth } from "../middleware/auth";
 import { rateLimit } from "../middleware/rate-limit";
 import {
-  CommentError,
-  CommentErrorCode,
-  commentService,
+	CommentError,
+	CommentErrorCode,
+	commentService,
 } from "../services/comment.service";
 
 /**
@@ -12,84 +13,81 @@ import {
  * Provides endpoints for comment management with threading support
  */
 export const commentRoutes = new Elysia({ prefix: "/comments" })
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to all comment endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "comments",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle CommentError
-    if (error instanceof CommentError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.derive(auth)
+	// Apply rate limiting to all comment endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "comments",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle CommentError
+		if (error instanceof CommentError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in comment routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // POST /comments - Create a new comment
-  .post(
-    "/",
-    async ({ body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new CommentError(
-          CommentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in comment routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// POST /comments - Create a new comment
+	.post(
+		"/",
+		async ({ body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new CommentError(
+					CommentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const comment = await commentService.createComment(body, userId);
+			const comment = await commentService.createComment(body, userId);
 
-      return {
-        comment,
-      };
-    },
-    {
-      body: t.Object({
-        relatedEntityType: t.Union([t.Literal("task"), t.Literal("subtask")]),
-        relatedEntityId: t.String(),
-        parentCommentId: t.Optional(t.String()),
-        content: t.String({ minLength: 1, maxLength: 10000 }),
-      }),
-      detail: {
-        tags: ["Comments"],
-        summary: "Create a new comment",
-        description: `
+			return {
+				comment,
+			};
+		},
+		{
+			body: t.Object({
+				relatedEntityType: t.Union([t.Literal("task"), t.Literal("subtask")]),
+				relatedEntityId: t.String(),
+				parentCommentId: t.Optional(t.String()),
+				content: t.String({ minLength: 1, maxLength: 10000 }),
+			}),
+			detail: {
+				tags: ["Comments"],
+				summary: "Create a new comment",
+				description: `
 Create a new comment on a task or subtask.
 
 **Authentication Required:**
@@ -120,69 +118,69 @@ Create a new comment on a task or subtask.
 **Response:**
 - Created comment object with ID and all metadata
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Comment created successfully",
-          },
-          400: {
-            description:
-              "Validation error, empty content, or invalid parent comment",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to comment on this task/subtask",
-          },
-          404: {
-            description: "Task, subtask, or parent comment not found",
-          },
-        },
-      },
-    }
-  )
-  // GET /comments - List comments for a task or subtask
-  .get(
-    "/",
-    async ({ query, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new CommentError(
-          CommentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Comment created successfully",
+					},
+					400: {
+						description:
+							"Validation error, empty content, or invalid parent comment",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to comment on this task/subtask",
+					},
+					404: {
+						description: "Task, subtask, or parent comment not found",
+					},
+				},
+			},
+		},
+	)
+	// GET /comments - List comments for a task or subtask
+	.get(
+		"/",
+		async ({ query, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new CommentError(
+					CommentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      // Validate required query parameters
-      if (!query.relatedEntityType || !query.relatedEntityId) {
-        throw new CommentError(
-          CommentErrorCode.UNAUTHORIZED,
-          "relatedEntityType and relatedEntityId are required",
-          400
-        );
-      }
+			// Validate required query parameters
+			if (!query.relatedEntityType || !query.relatedEntityId) {
+				throw new CommentError(
+					CommentErrorCode.UNAUTHORIZED,
+					"relatedEntityType and relatedEntityId are required",
+					400,
+				);
+			}
 
-      const comments = await commentService.listComments(
-        query.relatedEntityType,
-        query.relatedEntityId,
-        userId
-      );
+			const comments = await commentService.listComments(
+				query.relatedEntityType,
+				query.relatedEntityId,
+				userId,
+			);
 
-      return {
-        comments,
-      };
-    },
-    {
-      query: t.Object({
-        relatedEntityType: t.Union([t.Literal("task"), t.Literal("subtask")]),
-        relatedEntityId: t.String(),
-      }),
-      detail: {
-        tags: ["Comments"],
-        summary: "List comments for a task or subtask",
-        description: `
+			return {
+				comments,
+			};
+		},
+		{
+			query: t.Object({
+				relatedEntityType: t.Union([t.Literal("task"), t.Literal("subtask")]),
+				relatedEntityId: t.String(),
+			}),
+			detail: {
+				tags: ["Comments"],
+				summary: "List comments for a task or subtask",
+				description: `
 Get all comments for a specific task or subtask with nested structure.
 
 **Authentication Required:**
@@ -217,56 +215,56 @@ Get all comments for a specific task or subtask with nested structure.
 - Show discussion history
 - Implement comment sections in UI
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of comments with nested replies",
-          },
-          400: {
-            description: "Missing required query parameters",
-          },
-          401: {
-            description: "Authentication required",
-          },
-        },
-      },
-    }
-  )
-  // GET /comments/:id - Get a specific comment
-  .get(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new CommentError(
-          CommentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of comments with nested replies",
+					},
+					400: {
+						description: "Missing required query parameters",
+					},
+					401: {
+						description: "Authentication required",
+					},
+				},
+			},
+		},
+	)
+	// GET /comments/:id - Get a specific comment
+	.get(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new CommentError(
+					CommentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const comment = await commentService.getCommentThread(params.id, userId);
+			const comment = await commentService.getCommentThread(params.id, userId);
 
-      if (!comment) {
-        throw new CommentError(
-          CommentErrorCode.COMMENT_NOT_FOUND,
-          "Comment not found or access denied",
-          404
-        );
-      }
+			if (!comment) {
+				throw new CommentError(
+					CommentErrorCode.COMMENT_NOT_FOUND,
+					"Comment not found or access denied",
+					404,
+				);
+			}
 
-      return {
-        comment,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Comments"],
-        summary: "Get a specific comment with its thread",
-        description: `
+			return {
+				comment,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Comments"],
+				summary: "Get a specific comment with its thread",
+				description: `
 Get detailed information about a specific comment including all its replies.
 
 **Authentication Required:**
@@ -286,55 +284,55 @@ Get detailed information about a specific comment including all its replies.
 - Link to individual comments
 - Show comment context
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Comment with nested replies",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Comment not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // PUT /comments/:id - Update a comment
-  .put(
-    "/:id",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new CommentError(
-          CommentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Comment with nested replies",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Comment not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// PUT /comments/:id - Update a comment
+	.put(
+		"/:id",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new CommentError(
+					CommentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const comment = await commentService.updateComment(
-        params.id,
-        body.content,
-        userId
-      );
+			const comment = await commentService.updateComment(
+				params.id,
+				body.content,
+				userId,
+			);
 
-      return {
-        comment,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        content: t.String({ minLength: 1, maxLength: 10000 }),
-      }),
-      detail: {
-        tags: ["Comments"],
-        summary: "Update a comment",
-        description: `
+			return {
+				comment,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				content: t.String({ minLength: 1, maxLength: 10000 }),
+			}),
+			detail: {
+				tags: ["Comments"],
+				summary: "Update a comment",
+				description: `
 Update the content of a comment.
 
 **Authentication Required:**
@@ -358,54 +356,54 @@ Update the content of a comment.
 **Response:**
 - Updated comment object with new content and editedAt timestamp
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Comment updated successfully",
-          },
-          400: {
-            description: "Validation error or empty content",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Can only update your own comments",
-          },
-          404: {
-            description: "Comment not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /comments/:id - Delete a comment
-  .delete(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new CommentError(
-          CommentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Comment updated successfully",
+					},
+					400: {
+						description: "Validation error or empty content",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Can only update your own comments",
+					},
+					404: {
+						description: "Comment not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /comments/:id - Delete a comment
+	.delete(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new CommentError(
+					CommentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await commentService.deleteComment(params.id, userId);
+			await commentService.deleteComment(params.id, userId);
 
-      return {
-        message: "Comment deleted successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Comments"],
-        summary: "Delete a comment",
-        description: `
+			return {
+				message: "Comment deleted successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Comments"],
+				summary: "Delete a comment",
+				description: `
 Delete a comment and all its replies.
 
 **Authentication Required:**
@@ -428,58 +426,58 @@ Delete a comment and all its replies.
 **Response:**
 - Success message on successful deletion
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Comment deleted successfully",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Can only delete your own comments",
-          },
-          404: {
-            description: "Comment not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // POST /comments/:id/replies - Create a reply to a comment
-  .post(
-    "/:id/replies",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new CommentError(
-          CommentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Comment deleted successfully",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Can only delete your own comments",
+					},
+					404: {
+						description: "Comment not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// POST /comments/:id/replies - Create a reply to a comment
+	.post(
+		"/:id/replies",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new CommentError(
+					CommentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const reply = await commentService.replyToComment(
-        params.id,
-        body.content,
-        userId
-      );
+			const reply = await commentService.replyToComment(
+				params.id,
+				body.content,
+				userId,
+			);
 
-      return {
-        comment: reply,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        content: t.String({ minLength: 1, maxLength: 10000 }),
-      }),
-      detail: {
-        tags: ["Comments"],
-        summary: "Reply to a comment",
-        description: `
+			return {
+				comment: reply,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				content: t.String({ minLength: 1, maxLength: 10000 }),
+			}),
+			detail: {
+				tags: ["Comments"],
+				summary: "Reply to a comment",
+				description: `
 Create a reply to an existing comment.
 
 **Authentication Required:**
@@ -509,62 +507,62 @@ Create a reply to an existing comment.
 
 **Note:** This is a convenience endpoint. You can also use POST /comments with parentCommentId.
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Reply created successfully",
-          },
-          400: {
-            description: "Validation error or empty content",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to reply to this comment",
-          },
-          404: {
-            description: "Parent comment not found",
-          },
-        },
-      },
-    }
-  )
-  // GET /comments/:id/replies - Get all replies to a comment
-  .get(
-    "/:id/replies",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new CommentError(
-          CommentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Reply created successfully",
+					},
+					400: {
+						description: "Validation error or empty content",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to reply to this comment",
+					},
+					404: {
+						description: "Parent comment not found",
+					},
+				},
+			},
+		},
+	)
+	// GET /comments/:id/replies - Get all replies to a comment
+	.get(
+		"/:id/replies",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new CommentError(
+					CommentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const comment = await commentService.getCommentThread(params.id, userId);
+			const comment = await commentService.getCommentThread(params.id, userId);
 
-      if (!comment) {
-        throw new CommentError(
-          CommentErrorCode.COMMENT_NOT_FOUND,
-          "Comment not found or access denied",
-          404
-        );
-      }
+			if (!comment) {
+				throw new CommentError(
+					CommentErrorCode.COMMENT_NOT_FOUND,
+					"Comment not found or access denied",
+					404,
+				);
+			}
 
-      return {
-        replies: comment.replies || [],
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Comments"],
-        summary: "Get all replies to a comment",
-        description: `
+			return {
+				replies: comment.replies || [],
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Comments"],
+				summary: "Get all replies to a comment",
+				description: `
 Get all direct and nested replies to a specific comment.
 
 **Authentication Required:**
@@ -589,18 +587,18 @@ Get all direct and nested replies to a specific comment.
 - Load replies on demand
 - Implement "show replies" functionality
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of replies with nested structure",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Comment not found or access denied",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of replies with nested structure",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Comment not found or access denied",
+					},
+				},
+			},
+		},
+	);

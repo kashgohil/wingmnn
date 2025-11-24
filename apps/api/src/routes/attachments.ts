@@ -1,10 +1,11 @@
 import { Elysia, t } from "elysia";
 import { config } from "../config";
+import { auth } from "../middleware/auth";
 import { rateLimit } from "../middleware/rate-limit";
 import {
-  AttachmentError,
-  AttachmentErrorCode,
-  attachmentService,
+	AttachmentError,
+	AttachmentErrorCode,
+	attachmentService,
 } from "../services/attachment.service";
 
 /**
@@ -12,94 +13,91 @@ import {
  * Provides endpoints for file upload, download, and management
  */
 export const attachmentRoutes = new Elysia({ prefix: "/attachments" })
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to all attachment endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "attachments",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle AttachmentError
-    if (error instanceof AttachmentError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.derive(auth)
+	// Apply rate limiting to all attachment endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "attachments",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle AttachmentError
+		if (error instanceof AttachmentError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in attachment routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // POST /attachments - Upload a new attachment
-  .post(
-    "/",
-    async ({ body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new AttachmentError(
-          AttachmentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in attachment routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// POST /attachments - Upload a new attachment
+	.post(
+		"/",
+		async ({ body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new AttachmentError(
+					AttachmentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const attachment = await attachmentService.uploadAttachment(
-        {
-          relatedEntityType: body.relatedEntityType,
-          relatedEntityId: body.relatedEntityId,
-          file: body.file,
-          originalFilename: body.file.name,
-          mimeType: body.file.type,
-        },
-        userId
-      );
+			const attachment = await attachmentService.uploadAttachment(
+				{
+					relatedEntityType: body.relatedEntityType,
+					relatedEntityId: body.relatedEntityId,
+					file: body.file,
+					originalFilename: body.file.name,
+					mimeType: body.file.type,
+				},
+				userId,
+			);
 
-      return {
-        attachment,
-      };
-    },
-    {
-      body: t.Object({
-        relatedEntityType: t.Union([t.Literal("task"), t.Literal("subtask")]),
-        relatedEntityId: t.String(),
-        file: t.File({
-          maxSize: 50 * 1024 * 1024, // 50MB
-        }),
-      }),
-      detail: {
-        tags: ["Attachments"],
-        summary: "Upload a new attachment",
-        description: `
+			return {
+				attachment,
+			};
+		},
+		{
+			body: t.Object({
+				relatedEntityType: t.Union([t.Literal("task"), t.Literal("subtask")]),
+				relatedEntityId: t.String(),
+				file: t.File({
+					maxSize: 50 * 1024 * 1024, // 50MB
+				}),
+			}),
+			detail: {
+				tags: ["Attachments"],
+				summary: "Upload a new attachment",
+				description: `
 Upload a file attachment to a task or subtask.
 
 **Authentication Required:**
@@ -135,69 +133,69 @@ Upload a file attachment to a task or subtask.
 **Response:**
 - Created attachment object with ID and all metadata
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Attachment uploaded successfully",
-          },
-          400: {
-            description:
-              "Validation error, file too large, or invalid MIME type",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to upload to this task/subtask",
-          },
-          404: {
-            description: "Task or subtask not found",
-          },
-        },
-      },
-    }
-  )
-  // GET /attachments - List attachments for a task or subtask
-  .get(
-    "/",
-    async ({ query, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new AttachmentError(
-          AttachmentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Attachment uploaded successfully",
+					},
+					400: {
+						description:
+							"Validation error, file too large, or invalid MIME type",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to upload to this task/subtask",
+					},
+					404: {
+						description: "Task or subtask not found",
+					},
+				},
+			},
+		},
+	)
+	// GET /attachments - List attachments for a task or subtask
+	.get(
+		"/",
+		async ({ query, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new AttachmentError(
+					AttachmentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      // Validate required query parameters
-      if (!query.relatedEntityType || !query.relatedEntityId) {
-        throw new AttachmentError(
-          AttachmentErrorCode.UNAUTHORIZED,
-          "relatedEntityType and relatedEntityId are required",
-          400
-        );
-      }
+			// Validate required query parameters
+			if (!query.relatedEntityType || !query.relatedEntityId) {
+				throw new AttachmentError(
+					AttachmentErrorCode.UNAUTHORIZED,
+					"relatedEntityType and relatedEntityId are required",
+					400,
+				);
+			}
 
-      const attachments = await attachmentService.listAttachments(
-        query.relatedEntityType,
-        query.relatedEntityId,
-        userId
-      );
+			const attachments = await attachmentService.listAttachments(
+				query.relatedEntityType,
+				query.relatedEntityId,
+				userId,
+			);
 
-      return {
-        attachments,
-      };
-    },
-    {
-      query: t.Object({
-        relatedEntityType: t.Union([t.Literal("task"), t.Literal("subtask")]),
-        relatedEntityId: t.String(),
-      }),
-      detail: {
-        tags: ["Attachments"],
-        summary: "List attachments for a task or subtask",
-        description: `
+			return {
+				attachments,
+			};
+		},
+		{
+			query: t.Object({
+				relatedEntityType: t.Union([t.Literal("task"), t.Literal("subtask")]),
+				relatedEntityId: t.String(),
+			}),
+			detail: {
+				tags: ["Attachments"],
+				summary: "List attachments for a task or subtask",
+				description: `
 Get all attachments for a specific task or subtask.
 
 **Authentication Required:**
@@ -226,59 +224,59 @@ Get all attachments for a specific task or subtask.
 - Show file list in UI
 - Download attachments
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of attachments",
-          },
-          400: {
-            description: "Missing required query parameters",
-          },
-          401: {
-            description: "Authentication required",
-          },
-        },
-      },
-    }
-  )
-  // GET /attachments/:id - Get attachment details
-  .get(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new AttachmentError(
-          AttachmentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of attachments",
+					},
+					400: {
+						description: "Missing required query parameters",
+					},
+					401: {
+						description: "Authentication required",
+					},
+				},
+			},
+		},
+	)
+	// GET /attachments/:id - Get attachment details
+	.get(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new AttachmentError(
+					AttachmentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const attachment = await attachmentService.getAttachment(
-        params.id,
-        userId
-      );
+			const attachment = await attachmentService.getAttachment(
+				params.id,
+				userId,
+			);
 
-      if (!attachment) {
-        throw new AttachmentError(
-          AttachmentErrorCode.ATTACHMENT_NOT_FOUND,
-          "Attachment not found or access denied",
-          404
-        );
-      }
+			if (!attachment) {
+				throw new AttachmentError(
+					AttachmentErrorCode.ATTACHMENT_NOT_FOUND,
+					"Attachment not found or access denied",
+					404,
+				);
+			}
 
-      return {
-        attachment,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Attachments"],
-        summary: "Get attachment details",
-        description: `
+			return {
+				attachment,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Attachments"],
+				summary: "Get attachment details",
+				description: `
 Get detailed information about a specific attachment.
 
 **Authentication Required:**
@@ -298,68 +296,68 @@ Get detailed information about a specific attachment.
 - Verify file information before download
 - Show attachment metadata in UI
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Attachment details",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Attachment not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // GET /attachments/:id/url - Get secure download URL
-  .get(
-    "/:id/url",
-    async ({ params, query, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new AttachmentError(
-          AttachmentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Attachment details",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Attachment not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// GET /attachments/:id/url - Get secure download URL
+	.get(
+		"/:id/url",
+		async ({ params, query, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new AttachmentError(
+					AttachmentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      // Parse expiration time (default: 1 hour)
-      const expiresIn = query.expiresIn ? parseInt(query.expiresIn, 10) : 3600;
+			// Parse expiration time (default: 1 hour)
+			const expiresIn = query.expiresIn ? parseInt(query.expiresIn, 10) : 3600;
 
-      // Validate expiration time (max 24 hours)
-      if (expiresIn < 60 || expiresIn > 86400) {
-        throw new AttachmentError(
-          AttachmentErrorCode.UNAUTHORIZED,
-          "Expiration time must be between 60 and 86400 seconds",
-          400
-        );
-      }
+			// Validate expiration time (max 24 hours)
+			if (expiresIn < 60 || expiresIn > 86400) {
+				throw new AttachmentError(
+					AttachmentErrorCode.UNAUTHORIZED,
+					"Expiration time must be between 60 and 86400 seconds",
+					400,
+				);
+			}
 
-      const url = await attachmentService.getAttachmentUrl(
-        params.id,
-        userId,
-        expiresIn
-      );
+			const url = await attachmentService.getAttachmentUrl(
+				params.id,
+				userId,
+				expiresIn,
+			);
 
-      return {
-        url,
-        expiresIn,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      query: t.Object({
-        expiresIn: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Attachments"],
-        summary: "Get secure download URL",
-        description: `
+			return {
+				url,
+				expiresIn,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			query: t.Object({
+				expiresIn: t.Optional(t.String()),
+			}),
+			detail: {
+				tags: ["Attachments"],
+				summary: "Get secure download URL",
+				description: `
 Generate a secure, time-limited URL for downloading an attachment.
 
 **Authentication Required:**
@@ -404,83 +402,83 @@ const { url } = await response.json();
 window.location.href = url;
 \`\`\`
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Secure download URL generated",
-          },
-          400: {
-            description: "Invalid expiration time",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Attachment not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // GET /attachments/:id/download - Download attachment file
-  .get(
-    "/:id/download",
-    async ({ params, query, set }) => {
-      // Verify token
-      if (!query.token) {
-        throw new AttachmentError(
-          AttachmentErrorCode.UNAUTHORIZED,
-          "Download token required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Secure download URL generated",
+					},
+					400: {
+						description: "Invalid expiration time",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Attachment not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// GET /attachments/:id/download - Download attachment file
+	.get(
+		"/:id/download",
+		async ({ params, query, set }) => {
+			// Verify token
+			if (!query.token) {
+				throw new AttachmentError(
+					AttachmentErrorCode.UNAUTHORIZED,
+					"Download token required",
+					401,
+				);
+			}
 
-      const attachmentId = await attachmentService.verifyToken(query.token);
+			const attachmentId = await attachmentService.verifyToken(query.token);
 
-      if (!attachmentId || attachmentId !== params.id) {
-        throw new AttachmentError(
-          AttachmentErrorCode.UNAUTHORIZED,
-          "Invalid or expired download token",
-          401
-        );
-      }
+			if (!attachmentId || attachmentId !== params.id) {
+				throw new AttachmentError(
+					AttachmentErrorCode.UNAUTHORIZED,
+					"Invalid or expired download token",
+					401,
+				);
+			}
 
-      // Get attachment file
-      const { filePath, attachment } =
-        await attachmentService.getAttachmentFilePath(params.id);
+			// Get attachment file
+			const { filePath, attachment } =
+				await attachmentService.getAttachmentFilePath(params.id);
 
-      // Read file
-      const file = Bun.file(filePath);
+			// Read file
+			const file = Bun.file(filePath);
 
-      if (!(await file.exists())) {
-        throw new AttachmentError(
-          AttachmentErrorCode.ATTACHMENT_NOT_FOUND,
-          "Attachment file not found",
-          404
-        );
-      }
+			if (!(await file.exists())) {
+				throw new AttachmentError(
+					AttachmentErrorCode.ATTACHMENT_NOT_FOUND,
+					"Attachment file not found",
+					404,
+				);
+			}
 
-      // Set response headers
-      set.headers["Content-Type"] = attachment.mimeType;
-      set.headers[
-        "Content-Disposition"
-      ] = `attachment; filename="${attachment.originalFilename}"`;
-      set.headers["Content-Length"] = attachment.fileSize.toString();
+			// Set response headers
+			set.headers["Content-Type"] = attachment.mimeType;
+			set.headers[
+				"Content-Disposition"
+			] = `attachment; filename="${attachment.originalFilename}"`;
+			set.headers["Content-Length"] = attachment.fileSize.toString();
 
-      // Return file
-      return file;
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      query: t.Object({
-        token: t.String(),
-      }),
-      detail: {
-        tags: ["Attachments"],
-        summary: "Download attachment file",
-        description: `
+			// Return file
+			return file;
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			query: t.Object({
+				token: t.String(),
+			}),
+			detail: {
+				tags: ["Attachments"],
+				summary: "Download attachment file",
+				description: `
 Download an attachment file using a secure token.
 
 **Authentication:**
@@ -509,55 +507,55 @@ Download an attachment file using a secure token.
 3. This endpoint validates token and returns file
 4. Browser downloads the file
         `,
-        responses: {
-          200: {
-            description: "File download",
-            content: {
-              "application/octet-stream": {
-                schema: {
-                  type: "string",
-                  format: "binary",
-                },
-              },
-            },
-          },
-          401: {
-            description: "Invalid or expired download token",
-          },
-          404: {
-            description: "Attachment or file not found",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /attachments/:id - Delete an attachment
-  .delete(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new AttachmentError(
-          AttachmentErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				responses: {
+					200: {
+						description: "File download",
+						content: {
+							"application/octet-stream": {
+								schema: {
+									type: "string",
+									format: "binary",
+								},
+							},
+						},
+					},
+					401: {
+						description: "Invalid or expired download token",
+					},
+					404: {
+						description: "Attachment or file not found",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /attachments/:id - Delete an attachment
+	.delete(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new AttachmentError(
+					AttachmentErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await attachmentService.deleteAttachment(params.id, userId);
+			await attachmentService.deleteAttachment(params.id, userId);
 
-      return {
-        message: "Attachment deleted successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Attachments"],
-        summary: "Delete an attachment",
-        description: `
+			return {
+				message: "Attachment deleted successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Attachments"],
+				summary: "Delete an attachment",
+				description: `
 Delete an attachment and its associated file.
 
 **Authentication Required:**
@@ -580,18 +578,18 @@ Delete an attachment and its associated file.
 
 **Note:** If file deletion fails but database deletion succeeds, the orphaned file will be cleaned up by a background job.
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Attachment deleted successfully",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Attachment not found or access denied",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Attachment deleted successfully",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Attachment not found or access denied",
+					},
+				},
+			},
+		},
+	);

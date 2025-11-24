@@ -1,10 +1,11 @@
 import { Elysia, t } from "elysia";
 import { config } from "../config";
+import { auth } from "../middleware/auth";
 import { rateLimit } from "../middleware/rate-limit";
 import {
-  ActivityLogError,
-  ActivityLogErrorCode,
-  activityLogService,
+	ActivityLogError,
+	ActivityLogErrorCode,
+	activityLogService,
 } from "../services/activity-log.service";
 
 /**
@@ -12,127 +13,124 @@ import {
  * Provides endpoints for viewing activity logs across projects, tasks, and subtasks
  */
 export const activityLogRoutes = new Elysia({ prefix: "/activity-logs" })
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to all activity log endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "activity-logs",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle ActivityLogError
-    if (error instanceof ActivityLogError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.derive(auth)
+	// Apply rate limiting to all activity log endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "activity-logs",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle ActivityLogError
+		if (error instanceof ActivityLogError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in activity log routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // GET /activity-logs - List activity logs with filters
-  .get(
-    "/",
-    async ({ query, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ActivityLogError(
-          ActivityLogErrorCode.FORBIDDEN,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in activity log routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// GET /activity-logs - List activity logs with filters
+	.get(
+		"/",
+		async ({ query, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ActivityLogError(
+					ActivityLogErrorCode.FORBIDDEN,
+					"Authentication required",
+					401,
+				);
+			}
 
-      // Parse query parameters
-      const filters: any = {
-        projectId: query.projectId,
-        taskId: query.taskId,
-        subtaskId: query.subtaskId,
-        userId: query.userId,
-        activityType: query.activityType,
-        entityType: query.entityType,
-        entityId: query.entityId,
-        limit: query.limit ? parseInt(query.limit) : undefined,
-        offset: query.offset ? parseInt(query.offset) : undefined,
-      };
+			// Parse query parameters
+			const filters: any = {
+				projectId: query.projectId,
+				taskId: query.taskId,
+				subtaskId: query.subtaskId,
+				userId: query.userId,
+				activityType: query.activityType,
+				entityType: query.entityType,
+				entityId: query.entityId,
+				limit: query.limit ? parseInt(query.limit) : undefined,
+				offset: query.offset ? parseInt(query.offset) : undefined,
+			};
 
-      // Parse date filters
-      if (query.dateFrom) {
-        filters.dateFrom = new Date(query.dateFrom);
-      }
-      if (query.dateTo) {
-        filters.dateTo = new Date(query.dateTo);
-      }
+			// Parse date filters
+			if (query.dateFrom) {
+				filters.dateFrom = new Date(query.dateFrom);
+			}
+			if (query.dateTo) {
+				filters.dateTo = new Date(query.dateTo);
+			}
 
-      const activities = await activityLogService.listActivities(
-        filters,
-        userId
-      );
+			const activities = await activityLogService.listActivities(
+				filters,
+				userId,
+			);
 
-      return {
-        activities,
-      };
-    },
-    {
-      query: t.Object({
-        projectId: t.Optional(t.String()),
-        taskId: t.Optional(t.String()),
-        subtaskId: t.Optional(t.String()),
-        userId: t.Optional(t.String()),
-        activityType: t.Optional(
-          t.Union([
-            t.Literal("create"),
-            t.Literal("update"),
-            t.Literal("delete"),
-            t.Literal("status_change"),
-            t.Literal("assignment_change"),
-            t.Literal("comment_added"),
-            t.Literal("attachment_added"),
-            t.Literal("member_added"),
-            t.Literal("member_removed"),
-          ])
-        ),
-        entityType: t.Optional(t.String()),
-        entityId: t.Optional(t.String()),
-        dateFrom: t.Optional(t.String()),
-        dateTo: t.Optional(t.String()),
-        limit: t.Optional(t.String()),
-        offset: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Activity Logs"],
-        summary: "List activity logs with filters",
-        description: `
+			return {
+				activities,
+			};
+		},
+		{
+			query: t.Object({
+				projectId: t.Optional(t.String()),
+				taskId: t.Optional(t.String()),
+				subtaskId: t.Optional(t.String()),
+				userId: t.Optional(t.String()),
+				activityType: t.Optional(
+					t.Union([
+						t.Literal("create"),
+						t.Literal("update"),
+						t.Literal("delete"),
+						t.Literal("status_change"),
+						t.Literal("assignment_change"),
+						t.Literal("comment_added"),
+						t.Literal("attachment_added"),
+						t.Literal("member_added"),
+						t.Literal("member_removed"),
+					]),
+				),
+				entityType: t.Optional(t.String()),
+				entityId: t.Optional(t.String()),
+				dateFrom: t.Optional(t.String()),
+				dateTo: t.Optional(t.String()),
+				limit: t.Optional(t.String()),
+				offset: t.Optional(t.String()),
+			}),
+			detail: {
+				tags: ["Activity Logs"],
+				summary: "List activity logs with filters",
+				description: `
 Get activity logs with optional filtering across projects, tasks, and subtasks.
 
 **Authentication Required:**
@@ -185,112 +183,112 @@ Get activity logs with optional filtering across projects, tasks, and subtasks.
 - Debug issues by reviewing change history
 - Monitor team activity
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of activity logs",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to access these activity logs",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of activity logs",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to access these activity logs",
+					},
+				},
+			},
+		},
+	);
 
 // Project-specific activity logs route
 export const projectActivityRoutes = new Elysia()
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to project activity endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "project-activity",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle ActivityLogError
-    if (error instanceof ActivityLogError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.decorate("authenticated", false as boolean)
+	.decorate("userId", null as string | null)
+	.decorate("sessionId", null as string | null)
+	.decorate("accessToken", null as string | null)
+	// Apply rate limiting to project activity endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "project-activity",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle ActivityLogError
+		if (error instanceof ActivityLogError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in project activity routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // GET /projects/:id/activity - Get activity logs for a specific project
-  .get(
-    "/projects/:id/activity",
-    async ({ params, query, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ActivityLogError(
-          ActivityLogErrorCode.FORBIDDEN,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in project activity routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// GET /projects/:id/activity - Get activity logs for a specific project
+	.get(
+		"/projects/:id/activity",
+		async ({ params, query, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ActivityLogError(
+					ActivityLogErrorCode.FORBIDDEN,
+					"Authentication required",
+					401,
+				);
+			}
 
-      // Parse pagination parameters
-      const limit = query.limit ? parseInt(query.limit) : undefined;
-      const offset = query.offset ? parseInt(query.offset) : undefined;
+			// Parse pagination parameters
+			const limit = query.limit ? parseInt(query.limit) : undefined;
+			const offset = query.offset ? parseInt(query.offset) : undefined;
 
-      const activities = await activityLogService.getProjectActivity(
-        params.id,
-        userId,
-        limit,
-        offset
-      );
+			const activities = await activityLogService.getProjectActivity(
+				params.id,
+				userId,
+				limit,
+				offset,
+			);
 
-      return {
-        activities,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      query: t.Object({
-        limit: t.Optional(t.String()),
-        offset: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Projects"],
-        summary: "Get activity logs for a project",
-        description: `
+			return {
+				activities,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			query: t.Object({
+				limit: t.Optional(t.String()),
+				offset: t.Optional(t.String()),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "Get activity logs for a project",
+				description: `
 Get all activity logs for a specific project.
 
 **Authentication Required:**
@@ -326,115 +324,115 @@ Get all activity logs for a specific project.
 - Audit project modifications
 - Monitor team activity on a project
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of activity logs for the project",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to access this project",
-          },
-          404: {
-            description: "Project not found",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of activity logs for the project",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to access this project",
+					},
+					404: {
+						description: "Project not found",
+					},
+				},
+			},
+		},
+	);
 
 // Task-specific activity logs route
 export const taskActivityRoutes = new Elysia()
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to task activity endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "task-activity",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle ActivityLogError
-    if (error instanceof ActivityLogError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.decorate("authenticated", false as boolean)
+	.decorate("userId", null as string | null)
+	.decorate("sessionId", null as string | null)
+	.decorate("accessToken", null as string | null)
+	// Apply rate limiting to task activity endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "task-activity",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle ActivityLogError
+		if (error instanceof ActivityLogError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in task activity routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // GET /tasks/:id/activity - Get activity logs for a specific task
-  .get(
-    "/tasks/:id/activity",
-    async ({ params, query, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new ActivityLogError(
-          ActivityLogErrorCode.FORBIDDEN,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in task activity routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// GET /tasks/:id/activity - Get activity logs for a specific task
+	.get(
+		"/tasks/:id/activity",
+		async ({ params, query, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new ActivityLogError(
+					ActivityLogErrorCode.FORBIDDEN,
+					"Authentication required",
+					401,
+				);
+			}
 
-      // Parse pagination parameters
-      const limit = query.limit ? parseInt(query.limit) : undefined;
-      const offset = query.offset ? parseInt(query.offset) : undefined;
+			// Parse pagination parameters
+			const limit = query.limit ? parseInt(query.limit) : undefined;
+			const offset = query.offset ? parseInt(query.offset) : undefined;
 
-      const activities = await activityLogService.getTaskActivity(
-        params.id,
-        userId,
-        limit,
-        offset
-      );
+			const activities = await activityLogService.getTaskActivity(
+				params.id,
+				userId,
+				limit,
+				offset,
+			);
 
-      return {
-        activities,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      query: t.Object({
-        limit: t.Optional(t.String()),
-        offset: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Tasks"],
-        summary: "Get activity logs for a task",
-        description: `
+			return {
+				activities,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			query: t.Object({
+				limit: t.Optional(t.String()),
+				offset: t.Optional(t.String()),
+			}),
+			detail: {
+				tags: ["Tasks"],
+				summary: "Get activity logs for a task",
+				description: `
 Get all activity logs for a specific task.
 
 **Authentication Required:**
@@ -470,21 +468,21 @@ Get all activity logs for a specific task.
 - Audit task modifications
 - Monitor activity on a specific task
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "List of activity logs for the task",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to access this task",
-          },
-          404: {
-            description: "Task not found",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "List of activity logs for the task",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to access this task",
+					},
+					404: {
+						description: "Task not found",
+					},
+				},
+			},
+		},
+	);

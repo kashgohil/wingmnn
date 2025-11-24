@@ -1,10 +1,11 @@
 import { Elysia, t } from "elysia";
 import { config } from "../config";
+import { auth } from "../middleware/auth";
 import { rateLimit } from "../middleware/rate-limit";
 import {
-  SubtaskError,
-  SubtaskErrorCode,
-  subtaskService,
+	SubtaskError,
+	SubtaskErrorCode,
+	subtaskService,
 } from "../services/subtask.service";
 
 /**
@@ -12,104 +13,101 @@ import {
  * Provides endpoints for subtask management, status updates, and assignments
  */
 export const subtaskRoutes = new Elysia({ prefix: "/subtasks" })
-  .decorate("authenticated", false as boolean)
-  .decorate("userId", null as string | null)
-  .decorate("sessionId", null as string | null)
-  .decorate("accessToken", null as string | null)
-  // Apply rate limiting to all subtask endpoints
-  .onBeforeHandle(
-    rateLimit({
-      max: config.API_RATE_LIMIT,
-      window: config.API_RATE_WINDOW,
-      endpoint: "subtasks",
-    })
-  )
-  .onError(({ code, error, set }) => {
-    // Handle SubtaskError
-    if (error instanceof SubtaskError) {
-      set.status = error.statusCode;
-      return {
-        error: error.code,
-        message: error.message,
-      };
-    }
+	.derive(auth)
+	// Apply rate limiting to all subtask endpoints
+	.onBeforeHandle(
+		rateLimit({
+			max: config.API_RATE_LIMIT,
+			window: config.API_RATE_WINDOW,
+			endpoint: "subtasks",
+		}),
+	)
+	.onError(({ code, error, set }) => {
+		// Handle SubtaskError
+		if (error instanceof SubtaskError) {
+			set.status = error.statusCode;
+			return {
+				error: error.code,
+				message: error.message,
+			};
+		}
 
-    // Handle validation errors
-    if (code === "VALIDATION") {
-      set.status = 400;
-      return {
-        error: "VALIDATION_ERROR",
-        message: "Invalid request data",
-      };
-    }
+		// Handle validation errors
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return {
+				error: "VALIDATION_ERROR",
+				message: "Invalid request data",
+			};
+		}
 
-    // Handle NOT_FOUND errors
-    if (String(code) === "NOT_FOUND") {
-      set.status = 404;
-      return {
-        error: "NOT_FOUND",
-        message: "Resource not found",
-      };
-    }
+		// Handle NOT_FOUND errors
+		if (String(code) === "NOT_FOUND") {
+			set.status = 404;
+			return {
+				error: "NOT_FOUND",
+				message: "Resource not found",
+			};
+		}
 
-    // Log unexpected errors
-    console.error("Unexpected error in subtask routes:", error);
-    set.status = 500;
-    return {
-      error: "INTERNAL_ERROR",
-      message: "An unexpected error occurred",
-    };
-  })
-  // POST /subtasks - Create a new subtask
-  .post(
-    "/",
-    async ({ body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new SubtaskError(
-          SubtaskErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+		// Log unexpected errors
+		console.error("Unexpected error in subtask routes:", error);
+		set.status = 500;
+		return {
+			error: "INTERNAL_ERROR",
+			message: "An unexpected error occurred",
+		};
+	})
+	// POST /subtasks - Create a new subtask
+	.post(
+		"/",
+		async ({ body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new SubtaskError(
+					SubtaskErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      // Parse dates if provided
-      const createData: any = { ...body };
-      if (body.startDate) {
-        createData.startDate = new Date(body.startDate);
-      }
-      if (body.dueDate) {
-        createData.dueDate = new Date(body.dueDate);
-      }
+			// Parse dates if provided
+			const createData: any = { ...body };
+			if (body.startDate) {
+				createData.startDate = new Date(body.startDate);
+			}
+			if (body.dueDate) {
+				createData.dueDate = new Date(body.dueDate);
+			}
 
-      const subtask = await subtaskService.createSubtask(createData, userId);
+			const subtask = await subtaskService.createSubtask(createData, userId);
 
-      return {
-        subtask,
-      };
-    },
-    {
-      body: t.Object({
-        taskId: t.String(),
-        title: t.String({ minLength: 1, maxLength: 500 }),
-        description: t.Optional(t.String({ maxLength: 5000 })),
-        statusId: t.Optional(t.String()),
-        priority: t.Optional(
-          t.Union([
-            t.Literal("low"),
-            t.Literal("medium"),
-            t.Literal("high"),
-            t.Literal("critical"),
-          ])
-        ),
-        assignedTo: t.Optional(t.String()),
-        startDate: t.Optional(t.String()),
-        dueDate: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Subtasks"],
-        summary: "Create a new subtask",
-        description: `
+			return {
+				subtask,
+			};
+		},
+		{
+			body: t.Object({
+				taskId: t.String(),
+				title: t.String({ minLength: 1, maxLength: 500 }),
+				description: t.Optional(t.String({ maxLength: 5000 })),
+				statusId: t.Optional(t.String()),
+				priority: t.Optional(
+					t.Union([
+						t.Literal("low"),
+						t.Literal("medium"),
+						t.Literal("high"),
+						t.Literal("critical"),
+					]),
+				),
+				assignedTo: t.Optional(t.String()),
+				startDate: t.Optional(t.String()),
+				dueDate: t.Optional(t.String()),
+			}),
+			detail: {
+				tags: ["Subtasks"],
+				summary: "Create a new subtask",
+				description: `
 Create a new subtask under a parent task.
 
 **Authentication Required:**
@@ -141,62 +139,62 @@ Create a new subtask under a parent task.
 **Response:**
 - Created subtask object with ID and all metadata
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Subtask created successfully",
-          },
-          400: {
-            description: "Validation error",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          403: {
-            description: "Not authorized to create subtasks in this project",
-          },
-          404: {
-            description: "Parent task not found",
-          },
-        },
-      },
-    }
-  )
-  // GET /subtasks/:id - Get subtask details
-  .get(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new SubtaskError(
-          SubtaskErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Subtask created successfully",
+					},
+					400: {
+						description: "Validation error",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to create subtasks in this project",
+					},
+					404: {
+						description: "Parent task not found",
+					},
+				},
+			},
+		},
+	)
+	// GET /subtasks/:id - Get subtask details
+	.get(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new SubtaskError(
+					SubtaskErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const subtask = await subtaskService.getSubtask(params.id, userId);
+			const subtask = await subtaskService.getSubtask(params.id, userId);
 
-      if (!subtask) {
-        throw new SubtaskError(
-          SubtaskErrorCode.SUBTASK_NOT_FOUND,
-          "Subtask not found or access denied",
-          404
-        );
-      }
+			if (!subtask) {
+				throw new SubtaskError(
+					SubtaskErrorCode.SUBTASK_NOT_FOUND,
+					"Subtask not found or access denied",
+					404,
+				);
+			}
 
-      return {
-        subtask,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Subtasks"],
-        summary: "Get subtask details",
-        description: `
+			return {
+				subtask,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Subtasks"],
+				summary: "Get subtask details",
+				description: `
 Get detailed information about a specific subtask.
 
 **Authentication Required:**
@@ -209,75 +207,75 @@ Get detailed information about a specific subtask.
 **Response:**
 - Complete subtask object with all metadata
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Subtask details",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Subtask not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // PUT /subtasks/:id - Update subtask details
-  .put(
-    "/:id",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new SubtaskError(
-          SubtaskErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Subtask details",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Subtask not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// PUT /subtasks/:id - Update subtask details
+	.put(
+		"/:id",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new SubtaskError(
+					SubtaskErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      // Parse dates if provided
-      const updateData: any = { ...body };
-      if (body.startDate) {
-        updateData.startDate = new Date(body.startDate);
-      }
-      if (body.dueDate) {
-        updateData.dueDate = new Date(body.dueDate);
-      }
+			// Parse dates if provided
+			const updateData: any = { ...body };
+			if (body.startDate) {
+				updateData.startDate = new Date(body.startDate);
+			}
+			if (body.dueDate) {
+				updateData.dueDate = new Date(body.dueDate);
+			}
 
-      const subtask = await subtaskService.updateSubtask(
-        params.id,
-        updateData,
-        userId
-      );
+			const subtask = await subtaskService.updateSubtask(
+				params.id,
+				updateData,
+				userId,
+			);
 
-      return {
-        subtask,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        title: t.Optional(t.String({ minLength: 1, maxLength: 500 })),
-        description: t.Optional(t.String({ maxLength: 5000 })),
-        priority: t.Optional(
-          t.Union([
-            t.Literal("low"),
-            t.Literal("medium"),
-            t.Literal("high"),
-            t.Literal("critical"),
-          ])
-        ),
-        startDate: t.Optional(t.String()),
-        dueDate: t.Optional(t.String()),
-      }),
-      detail: {
-        tags: ["Subtasks"],
-        summary: "Update subtask details",
-        description: `
+			return {
+				subtask,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				title: t.Optional(t.String({ minLength: 1, maxLength: 500 })),
+				description: t.Optional(t.String({ maxLength: 5000 })),
+				priority: t.Optional(
+					t.Union([
+						t.Literal("low"),
+						t.Literal("medium"),
+						t.Literal("high"),
+						t.Literal("critical"),
+					]),
+				),
+				startDate: t.Optional(t.String()),
+				dueDate: t.Optional(t.String()),
+			}),
+			detail: {
+				tags: ["Subtasks"],
+				summary: "Update subtask details",
+				description: `
 Update subtask properties.
 
 **Authentication Required:**
@@ -299,51 +297,51 @@ Update subtask properties.
 **Response:**
 - Updated subtask object with new values
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Subtask updated successfully",
-          },
-          400: {
-            description: "Validation error",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Subtask not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /subtasks/:id - Delete a subtask
-  .delete(
-    "/:id",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new SubtaskError(
-          SubtaskErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Subtask updated successfully",
+					},
+					400: {
+						description: "Validation error",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Subtask not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /subtasks/:id - Delete a subtask
+	.delete(
+		"/:id",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new SubtaskError(
+					SubtaskErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await subtaskService.deleteSubtask(params.id, userId);
+			await subtaskService.deleteSubtask(params.id, userId);
 
-      return {
-        message: "Subtask deleted successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Subtasks"],
-        summary: "Delete a subtask",
-        description: `
+			return {
+				message: "Subtask deleted successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Subtasks"],
+				summary: "Delete a subtask",
+				description: `
 Delete a subtask (soft delete).
 
 **Authentication Required:**
@@ -368,55 +366,55 @@ Delete a subtask (soft delete).
 **Response:**
 - Success message on successful deletion
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Subtask deleted successfully",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Subtask not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // PATCH /subtasks/:id/status - Update subtask status
-  .patch(
-    "/:id/status",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new SubtaskError(
-          SubtaskErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Subtask deleted successfully",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Subtask not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// PATCH /subtasks/:id/status - Update subtask status
+	.patch(
+		"/:id/status",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new SubtaskError(
+					SubtaskErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      const subtask = await subtaskService.updateSubtaskStatus(
-        params.id,
-        body.statusId,
-        userId
-      );
+			const subtask = await subtaskService.updateSubtaskStatus(
+				params.id,
+				body.statusId,
+				userId,
+			);
 
-      return {
-        subtask,
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        statusId: t.String(),
-      }),
-      detail: {
-        tags: ["Subtasks"],
-        summary: "Update subtask status",
-        description: `
+			return {
+				subtask,
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				statusId: t.String(),
+			}),
+			detail: {
+				tags: ["Subtasks"],
+				summary: "Update subtask status",
+				description: `
 Update the status of a subtask.
 
 **Authentication Required:**
@@ -437,55 +435,55 @@ Update the status of a subtask.
 **Response:**
 - Updated subtask object with new status
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Subtask status updated successfully",
-          },
-          400: {
-            description:
-              "Invalid status or status doesn't belong to subtask workflow",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Subtask not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // POST /subtasks/:id/assign - Assign subtask to a user
-  .post(
-    "/:id/assign",
-    async ({ params, body, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new SubtaskError(
-          SubtaskErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Subtask status updated successfully",
+					},
+					400: {
+						description:
+							"Invalid status or status doesn't belong to subtask workflow",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Subtask not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// POST /subtasks/:id/assign - Assign subtask to a user
+	.post(
+		"/:id/assign",
+		async ({ params, body, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new SubtaskError(
+					SubtaskErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await subtaskService.assignSubtask(params.id, body.assigneeId, userId);
+			await subtaskService.assignSubtask(params.id, body.assigneeId, userId);
 
-      return {
-        message: "Subtask assigned successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      body: t.Object({
-        assigneeId: t.String(),
-      }),
-      detail: {
-        tags: ["Subtasks"],
-        summary: "Assign subtask to a user",
-        description: `
+			return {
+				message: "Subtask assigned successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				assigneeId: t.String(),
+			}),
+			detail: {
+				tags: ["Subtasks"],
+				summary: "Assign subtask to a user",
+				description: `
 Assign a subtask to a user.
 
 **Authentication Required:**
@@ -507,51 +505,51 @@ Assign a subtask to a user.
 **Response:**
 - Success message on successful assignment
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Subtask assigned successfully",
-          },
-          400: {
-            description: "Assignee is not a project member",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Subtask not found or access denied",
-          },
-        },
-      },
-    }
-  )
-  // DELETE /subtasks/:id/assign - Unassign subtask
-  .delete(
-    "/:id/assign",
-    async ({ params, authenticated, userId }) => {
-      // Check authentication
-      if (!authenticated || !userId) {
-        throw new SubtaskError(
-          SubtaskErrorCode.UNAUTHORIZED,
-          "Authentication required",
-          401
-        );
-      }
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Subtask assigned successfully",
+					},
+					400: {
+						description: "Assignee is not a project member",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Subtask not found or access denied",
+					},
+				},
+			},
+		},
+	)
+	// DELETE /subtasks/:id/assign - Unassign subtask
+	.delete(
+		"/:id/assign",
+		async ({ params, authenticated, userId }) => {
+			// Check authentication
+			if (!authenticated || !userId) {
+				throw new SubtaskError(
+					SubtaskErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
 
-      await subtaskService.unassignSubtask(params.id, userId);
+			await subtaskService.unassignSubtask(params.id, userId);
 
-      return {
-        message: "Subtask unassigned successfully",
-      };
-    },
-    {
-      params: t.Object({
-        id: t.String(),
-      }),
-      detail: {
-        tags: ["Subtasks"],
-        summary: "Unassign subtask",
-        description: `
+			return {
+				message: "Subtask unassigned successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				tags: ["Subtasks"],
+				summary: "Unassign subtask",
+				description: `
 Remove the assignment from a subtask.
 
 **Authentication Required:**
@@ -567,18 +565,18 @@ Remove the assignment from a subtask.
 **Response:**
 - Success message on successful unassignment
         `,
-        security: [{ bearerAuth: [] }],
-        responses: {
-          200: {
-            description: "Subtask unassigned successfully",
-          },
-          401: {
-            description: "Authentication required",
-          },
-          404: {
-            description: "Subtask not found or access denied",
-          },
-        },
-      },
-    }
-  );
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Subtask unassigned successfully",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					404: {
+						description: "Subtask not found or access denied",
+					},
+				},
+			},
+		},
+	);
