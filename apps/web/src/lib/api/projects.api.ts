@@ -168,6 +168,36 @@ export async function updateProject(id: string, params: UpdateProjectParams) {
 }
 
 /**
+ * Update project status
+ */
+export async function updateProjectStatus(
+	id: string,
+	status: Project["status"],
+) {
+	const [response, error] = await catchError(
+		api.projects({ id }).status.patch({ status }),
+	);
+
+	if (error) {
+		throw new Error(
+			error instanceof Error
+				? error.message
+				: "Failed to update project status",
+		);
+	}
+
+	if (response?.error) {
+		throw new Error(
+			typeof response.error === "object" && "message" in response.error
+				? String(response.error.message)
+				: "Failed to update project status",
+		);
+	}
+
+	return (response?.data as { project?: Project })?.project;
+}
+
+/**
  * Delete a project
  */
 export async function deleteProject(id: string) {

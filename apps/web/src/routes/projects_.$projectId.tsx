@@ -11,6 +11,14 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
 	Popover,
 	PopoverContent,
 	PopoverTrigger,
@@ -24,11 +32,13 @@ import {
 } from "@/components/ui/tooltip";
 import type { Project } from "@/lib/api/projects.api";
 import type { Task } from "@/lib/api/tasks.api";
-import { useProject } from "@/lib/hooks/use-projects";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useProject, useUpdateProjectStatus } from "@/lib/hooks/use-projects";
 import { useTasks } from "@/lib/hooks/use-tasks";
 import { useUserProfile } from "@/lib/hooks/use-users";
 import { generateMetadata } from "@/lib/metadata";
 import { getModuleBySlug } from "@/lib/modules";
+import { toast } from "@/lib/toast";
 import { createFileRoute } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -52,6 +62,33 @@ const viewTabs = [
 ] as const;
 type ViewTab = (typeof viewTabs)[number];
 
+const PROJECT_STATUS_OPTIONS: Array<{
+	value: Project["status"];
+	label: string;
+	hint: string;
+}> = [
+	{
+		value: "active",
+		label: "Active",
+		hint: "Project is moving forward",
+	},
+	{
+		value: "on_hold",
+		label: "On Hold",
+		hint: "Temporarily paused work",
+	},
+	{
+		value: "completed",
+		label: "Completed",
+		hint: "All work is finished",
+	},
+	{
+		value: "archived",
+		label: "Archived",
+		hint: "Read-only historical record",
+	},
+];
+
 export const Route = createFileRoute("/projects_/$projectId")({
 	component: ProjectDetailsPage,
 	head: ({ params }) =>
@@ -66,6 +103,7 @@ export const Route = createFileRoute("/projects_/$projectId")({
 function ProjectDetailsPage() {
 	const { projectId } = Route.useParams();
 	const Icon = module?.icon;
+	const { user } = useAuth();
 	const { data: project, isLoading, error } = useProject(projectId);
 	const { data: projectTasks = [], isLoading: tasksLoading } = useTasks({
 		projectId,
@@ -74,7 +112,10 @@ function ProjectDetailsPage() {
 	const [activeView, setActiveView] = useState<ViewTab>("board");
 	const [initialViewApplied, setInitialViewApplied] = useState(false);
 	const [infoOpen, setInfoOpen] = useState(false);
+	const [statusMenuOpen, setStatusMenuOpen] = useState(false);
 	const infoPopoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const { mutate: updateProjectStatus, isPending: isUpdatingProjectStatus } =
+		useUpdateProjectStatus();
 
 	useEffect(() => {
 		const preferredView = project?.settings?.selectedView;
@@ -216,6 +257,37 @@ function ProjectDetailsPage() {
 		useUserProfile(ownerId);
 
 	const isProjectLoaded = !isLoading && !!project;
+	const isOwner = !!(project && user?.id && user.id === project.ownerId);
+
+	const handleStatusChange = (
+		value: Project["status"],
+		afterSettled?: () => void,
+	) => {
+		if (!project || value === project.status) {
+			return;
+		}
+
+		updateProjectStatus(
+			{ id: project.id, status: value },
+			{
+				onSuccess: () => {
+					toast.success(`Project marked as ${getProjectStatusLabel(value)}`, {
+						description: "Status updated successfully.",
+					});
+				},
+				onError: (mutationError) => {
+					const message =
+						mutationError instanceof Error
+							? mutationError.message
+							: "Failed to update project status";
+					toast.error(message);
+				},
+				onSettled: () => {
+					afterSettled?.();
+				},
+			},
+		);
+	};
 
 	if (error) {
 		return (
@@ -263,22 +335,79 @@ function ProjectDetailsPage() {
 									</div>
 								</div>
 								<div className="flex flex-wrap items-center justify-end gap-2">
-									{project?.status && (
-										<TooltipProvider>
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<div className="inline-flex">
-														<Button className="uppercase tracking-wide h-10 px-3 pointer-events-none disabled:opacity-100 disabled:cursor-default">
-															{project.status}
-														</Button>
-													</div>
-												</TooltipTrigger>
-												<TooltipContent side="bottom">
-													Project status is read-only
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
-									)}
+									{project?.status &&
+										project &&
+										(isOwner ? (
+											<DropdownMenu
+												open={statusMenuOpen}
+												onOpenChange={setStatusMenuOpen}
+											>
+												<DropdownMenuTrigger asChild>
+													<Button
+														className="uppercase tracking-wide h-10 px-3"
+														aria-label="Project status"
+														disabled={isUpdatingProjectStatus}
+													>
+														{getProjectStatusLabel(project.status)}
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent
+													align="end"
+													className="w-64 p-0"
+												>
+													<DropdownMenuLabel className="px-3 py-2">
+														Select project status
+													</DropdownMenuLabel>
+													<DropdownMenuSeparator />
+													{PROJECT_STATUS_OPTIONS.map((option) => (
+														<DropdownMenuItem
+															key={option.value}
+															disabled={isUpdatingProjectStatus}
+															selected={option.value === project.status}
+															onSelect={(event: Event) => {
+																event.preventDefault();
+																handleStatusChange(option.value, () =>
+																	setStatusMenuOpen(false),
+																);
+															}}
+															className="flex flex-col items-start gap-1 whitespace-normal"
+														>
+															<span className="font-semibold">
+																{option.label}
+															</span>
+															<span className="text-xs text-muted-foreground">
+																{option.hint}
+															</span>
+														</DropdownMenuItem>
+													))}
+												</DropdownMenuContent>
+											</DropdownMenu>
+										) : (
+											<TooltipProvider>
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<div className="inline-flex">
+															<Button className="uppercase tracking-wide h-10 px-3 pointer-events-none disabled:opacity-100 disabled:cursor-default">
+																{getProjectStatusLabel(project.status)}
+															</Button>
+														</div>
+													</TooltipTrigger>
+													<TooltipContent side="bottom">
+														<div className="space-y-1">
+															<p className="font-semibold">
+																{getProjectStatusLabel(project.status)}
+															</p>
+															<p className="text-xs text-muted-foreground">
+																{getProjectStatusDescription(project.status)}
+															</p>
+															<p className="text-[11px] text-muted-foreground/80">
+																Only the owner can change this status.
+															</p>
+														</div>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+										))}
 									{project && (
 										<Popover
 											open={infoOpen}
@@ -938,6 +1067,20 @@ function ProjectAnalyticsPanel({
 			</Card>
 		</div>
 	);
+}
+
+function getProjectStatusLabel(status: Project["status"]) {
+	const match = PROJECT_STATUS_OPTIONS.find(
+		(option) => option.value === status,
+	);
+	return match?.label ?? status;
+}
+
+function getProjectStatusDescription(status: Project["status"]) {
+	const match = PROJECT_STATUS_OPTIONS.find(
+		(option) => option.value === status,
+	);
+	return match?.hint ?? "Status details unavailable.";
 }
 
 function formatDate(value: string | null | undefined) {

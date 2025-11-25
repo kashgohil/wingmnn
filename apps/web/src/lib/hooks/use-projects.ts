@@ -3,8 +3,13 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+	CreateProjectParams,
+	ListProjectsParams,
+	Project,
+	UpdateProjectParams,
+} from "../api/projects.api";
 import * as projectsApi from "../api/projects.api";
-import type { CreateProjectParams, ListProjectsParams, UpdateProjectParams } from "../api/projects.api";
 
 /**
  * Fetch user's projects
@@ -39,7 +44,8 @@ export function useCreateProject() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (params: CreateProjectParams) => projectsApi.createProject(params),
+		mutationFn: (params: CreateProjectParams) =>
+			projectsApi.createProject(params),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["projects"] });
 		},
@@ -63,6 +69,22 @@ export function useUpdateProject() {
 }
 
 /**
+ * Update a project's status
+ */
+export function useUpdateProjectStatus() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, status }: { id: string; status: Project["status"] }) =>
+			projectsApi.updateProjectStatus(id, status),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ["projects"] });
+			queryClient.invalidateQueries({ queryKey: ["projects", variables.id] });
+		},
+	});
+}
+
+/**
  * Delete a project
  */
 export function useDeleteProject() {
@@ -75,4 +97,3 @@ export function useDeleteProject() {
 		},
 	});
 }
-
