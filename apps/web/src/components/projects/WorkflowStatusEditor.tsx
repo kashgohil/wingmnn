@@ -3,39 +3,67 @@
  * Manages statuses for a workflow
  */
 
+import type { Workflow, WorkflowStatus } from "@/lib/api/workflows.api";
+import {
+	useCreateStatus,
+	useDeleteStatus,
+	useUpdateStatus,
+} from "@/lib/hooks/use-workflows";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import {
-	useCreateStatus,
-	useUpdateStatus,
-	useDeleteStatus,
-	useReorderStatuses,
-} from "@/lib/hooks/use-workflows";
-import type { Workflow, WorkflowStatus } from "@/lib/api/workflows.api";
-import { Plus, Trash2, GripVertical } from "lucide-react";
-import { Badge } from "../ui/badge";
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "../ui/select";
+import { Textarea } from "../ui/textarea";
 
 interface WorkflowStatusEditorProps {
 	workflow: Workflow;
 }
 
 export function WorkflowStatusEditor({ workflow }: WorkflowStatusEditorProps) {
-	const [editingStatus, setEditingStatus] = useState<WorkflowStatus | null>(null);
+	const [editingStatus, setEditingStatus] = useState<WorkflowStatus | null>(
+		null,
+	);
 	const [statusName, setStatusName] = useState("");
 	const [statusDescription, setStatusDescription] = useState("");
-	const [statusPhase, setStatusPhase] = useState<WorkflowStatus["phase"]>("backlog");
+	const [statusPhase, setStatusPhase] =
+		useState<WorkflowStatus["phase"]>("backlog");
 	const [statusColor, setStatusColor] = useState("#808080");
 
 	const createStatus = useCreateStatus();
 	const updateStatus = useUpdateStatus();
 	const deleteStatus = useDeleteStatus();
-	const reorderStatuses = useReorderStatuses();
 
 	const statuses = workflow.statuses || [];
+	const phaseOrder: WorkflowStatus["phase"][] = [
+		"backlog",
+		"planning",
+		"in_progress",
+		"feedback",
+		"closed",
+	];
+	const phaseLabels: Record<WorkflowStatus["phase"], string> = {
+		backlog: "Backlog",
+		planning: "Planning",
+		in_progress: "In Progress",
+		feedback: "Feedback",
+		closed: "Closed",
+	};
+	const sortedStatuses = [...statuses].sort((a, b) => a.position - b.position);
+	const groupedStatuses = phaseOrder
+		.map((phase) => ({
+			phase,
+			statuses: sortedStatuses.filter((status) => status.phase === phase),
+		}))
+		.filter((group) => group.statuses.length > 0);
 
 	const handleCreateStatus = async () => {
 		if (!statusName.trim()) {
@@ -115,7 +143,7 @@ export function WorkflowStatusEditor({ workflow }: WorkflowStatusEditorProps) {
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="gap-4 flex flex-col h-full">
 			<div>
 				<h3 className="font-bold text-lg mb-2">{workflow.name}</h3>
 				<p className="text-sm text-muted-foreground mb-4">
@@ -124,52 +152,77 @@ export function WorkflowStatusEditor({ workflow }: WorkflowStatusEditorProps) {
 			</div>
 
 			{/* Status List */}
-			<div className="space-y-2">
-				<Label>Statuses</Label>
-				<div className="space-y-2 max-h-64 overflow-y-auto">
-					{statuses
-						.sort((a, b) => a.position - b.position)
-						.map((status) => (
+			<div className="-2 flex-1 overflow-hidden flex flex-col">
+				<Label className="mb-2">Statuses</Label>
+				<div className="space-y-3 overflow-y-auto flex-1 pr-2 -mr-2">
+					{groupedStatuses.length > 0 ? (
+						groupedStatuses.map((group) => (
 							<div
-								key={status.id}
-								className="flex items-center gap-2 p-2 retro-border rounded-none"
+								key={group.phase}
+								className="border border-border bg-muted/20"
 							>
-								<GripVertical className="h-4 w-4 text-muted-foreground" />
-								<div
-									className="w-4 h-4 rounded"
-									style={{ backgroundColor: status.colorCode }}
-								/>
-								<div className="flex-1">
-									<div className="font-medium">{status.name}</div>
-									<div className="text-xs text-muted-foreground">
-										{status.phase}
+								<div className="flex items-center justify-between px-3 py-2 border-b border-border/60 bg-background/70">
+									<div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+										<span>{phaseLabels[group.phase]}</span>
+										<Badge
+											variant="outline"
+											className="text-[10px]"
+										>
+											{group.statuses.length}{" "}
+											{group.statuses.length === 1 ? "status" : "statuses"}
+										</Badge>
 									</div>
+									<Badge variant="secondary">{group.phase}</Badge>
 								</div>
-								<Badge variant="outline">{status.phase}</Badge>
-								<Button
-									variant="ghost"
-									size="icon-sm"
-									onClick={() => handleEditStatus(status)}
-								>
-									Edit
-								</Button>
-								<Button
-									variant="ghost"
-									size="icon-sm"
-									onClick={() => handleDeleteStatus(status.id)}
-								>
-									<Trash2 className="h-4 w-4" />
-								</Button>
+								<div className="space-y-2 p-3">
+									{group.statuses.map((status) => (
+										<div
+											key={status.id}
+											className="flex items-center gap-2 p-2 retro-border rounded-none bg-background/60"
+										>
+											<GripVertical className="h-4 w-4 text-muted-foreground" />
+											<div
+												className="w-4 h-4 rounded"
+												style={{ backgroundColor: status.colorCode }}
+											/>
+											<div className="flex-1">
+												<div className="font-medium">{status.name}</div>
+												{status.description && (
+													<div className="text-xs text-muted-foreground line-clamp-2">
+														{status.description}
+													</div>
+												)}
+											</div>
+											<Button
+												variant="ghost"
+												size="icon-sm"
+												onClick={() => handleEditStatus(status)}
+											>
+												Edit
+											</Button>
+											<Button
+												variant="ghost"
+												size="icon-sm"
+												onClick={() => handleDeleteStatus(status.id)}
+											>
+												<Trash2 className="h-4 w-4" />
+											</Button>
+										</div>
+									))}
+								</div>
 							</div>
-						))}
+						))
+					) : (
+						<div className="text-center text-sm text-muted-foreground py-8 border border-dashed border-border/60">
+							No statuses yet. Create one below to start defining this workflow.
+						</div>
+					)}
 				</div>
 			</div>
 
 			{/* Add/Edit Status Form */}
 			<div className="space-y-4 pt-4 border-t">
-				<Label>
-					{editingStatus ? "Edit Status" : "Add New Status"}
-				</Label>
+				<Label>{editingStatus ? "Edit Status" : "Add New Status"}</Label>
 				<div className="space-y-2">
 					<Input
 						placeholder="Status name"
@@ -212,7 +265,10 @@ export function WorkflowStatusEditor({ workflow }: WorkflowStatusEditorProps) {
 					<div className="flex gap-2">
 						{editingStatus ? (
 							<>
-								<Button onClick={handleUpdateStatus} className="flex-1">
+								<Button
+									onClick={handleUpdateStatus}
+									className="flex-1"
+								>
 									Update
 								</Button>
 								<Button
@@ -224,7 +280,10 @@ export function WorkflowStatusEditor({ workflow }: WorkflowStatusEditorProps) {
 								</Button>
 							</>
 						) : (
-							<Button onClick={handleCreateStatus} className="w-full">
+							<Button
+								onClick={handleCreateStatus}
+								className="w-full"
+							>
 								<Plus className="h-4 w-4 mr-2" />
 								Add Status
 							</Button>
@@ -235,4 +294,3 @@ export function WorkflowStatusEditor({ workflow }: WorkflowStatusEditorProps) {
 		</div>
 	);
 }
-
