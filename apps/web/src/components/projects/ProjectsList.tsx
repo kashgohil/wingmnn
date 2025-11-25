@@ -96,7 +96,7 @@ export function ProjectsList() {
 
 	return (
 		<Card>
-			<CardHeader>
+			<CardHeader className="mb-4 p-0">
 				<CardTitle>My Projects</CardTitle>
 			</CardHeader>
 			<CardContent>

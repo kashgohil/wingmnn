@@ -357,6 +357,7 @@ export function ProjectCreationDialog({
 												<SelectItem value="low">Low</SelectItem>
 												<SelectItem value="medium">Medium</SelectItem>
 												<SelectItem value="high">High</SelectItem>
+												<SelectItem value="critical">Critical</SelectItem>
 											</SelectContent>
 										</Select>
 										<p className="text-xs text-muted-foreground mt-1">
