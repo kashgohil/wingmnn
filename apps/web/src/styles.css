@@ -492,22 +492,6 @@ code {
 		box-sizing: border-box;
 	}
 
-	/* Toast styling to match retro theme */
-	[data-sonner-toast] {
-		font-family: "Share Tech Mono", "Courier New", monospace !important;
-	}
-
-	[data-sonner-toast] [data-title] {
-		font-weight: 700 !important;
-		text-transform: uppercase !important;
-		letter-spacing: 0.05em !important;
-	}
-
-	[data-sonner-toast] [data-description] {
-		font-size: 0.875rem !important;
-		line-height: 1.25rem !important;
-	}
-
 	/* Fix legend item alignment - icon and text side by side */
 	.recharts-legend-item {
 		display: inline-flex !important;
@@ -531,16 +515,97 @@ code {
 	/* Toast styling to match retro theme */
 	[data-sonner-toast] {
 		font-family: "Share Tech Mono", "Courier New", monospace !important;
+		border-radius: 0 !important;
+		border: 3px solid var(--border) !important;
+		box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.15),
+			inset 2px 2px 0 rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+		background-color: var(--card) !important;
+		color: var(--card-foreground) !important;
 	}
 
 	[data-sonner-toast] [data-title] {
 		font-weight: 700 !important;
 		text-transform: uppercase !important;
 		letter-spacing: 0.05em !important;
+		font-family: "Share Tech Mono", "Courier New", monospace !important;
 	}
 
 	[data-sonner-toast] [data-description] {
 		font-size: 0.875rem !important;
 		line-height: 1.25rem !important;
+		font-family: "Share Tech Mono", "Courier New", monospace !important;
+		color: var(--muted-foreground) !important;
+	}
+
+	/* Dark mode toast border adjustments */
+	.dark [data-sonner-toast] {
+		border-color: var(--border) !important;
+		box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.2),
+			inset 2px 2px 0 rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+	}
+
+	/* Toast action button styling */
+	[data-sonner-toast] [data-button] {
+		border-radius: 0 !important;
+		font-family: "Share Tech Mono", "Courier New", monospace !important;
+		text-transform: uppercase !important;
+		letter-spacing: 0.05em !important;
+		font-weight: 700 !important;
+		border: 3px solid !important;
+		position: relative !important;
+		transition: all 0.1s !important;
+	}
+
+	/* Toast background accents based on type */
+	[data-sonner-toast][data-type="success"] {
+		background-color: color-mix(
+			in srgb,
+			var(--chart-3) 20%,
+			var(--card)
+		) !important;
+		border-color: color-mix(
+			in srgb,
+			var(--chart-3) 60%,
+			var(--border)
+		) !important;
+	}
+
+	[data-sonner-toast][data-type="error"] {
+		background-color: color-mix(
+			in srgb,
+			var(--destructive) 20%,
+			var(--card)
+		) !important;
+		border-color: color-mix(
+			in srgb,
+			var(--destructive) 60%,
+			var(--border)
+		) !important;
+	}
+
+	[data-sonner-toast][data-type="info"] {
+		background-color: color-mix(
+			in srgb,
+			var(--accent) 20%,
+			var(--card)
+		) !important;
+		border-color: color-mix(
+			in srgb,
+			var(--accent) 60%,
+			var(--border)
+		) !important;
+	}
+
+	[data-sonner-toast][data-type="warning"] {
+		background-color: color-mix(
+			in srgb,
+			var(--chart-4) 25%,
+			var(--card)
+		) !important;
+		border-color: color-mix(
+			in srgb,
+			var(--chart-4) 60%,
+			var(--border)
+		) !important;
 	}
 }

@@ -1,10 +1,13 @@
 import { useTheme } from "@/hooks/use-theme";
+import { useModuleColor } from "@/lib/ModuleColorContext";
 import { Toaster as Sonner } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
 	const { theme } = useTheme();
+
+	const moduleColorVar = useModuleColor();
 
 	return (
 		<Sonner
@@ -27,6 +30,17 @@ const Toaster = ({ ...props }: ToasterProps) => {
 				},
 			}}
 			{...props}
+			style={
+				{
+					"--primary": `var(${moduleColorVar})`,
+					"--ring": `var(${moduleColorVar})`,
+					"--chart-1": `var(${moduleColorVar})`,
+					"--primary-border-dark": `color-mix(in srgb, var(${moduleColorVar}) 85%, black)`,
+					"--primary-hover": `color-mix(in srgb, var(${moduleColorVar}) 110%, white)`,
+					"--primary-active": `color-mix(in srgb, var(${moduleColorVar}) 95%, black)`,
+					...props.style,
+				} as React.CSSProperties
+			}
 		/>
 	);
 };
