@@ -1,9 +1,10 @@
+import { useAuth } from "@/lib/auth/auth-context";
+import { navigateWithRedirect } from "@/lib/auth/redirect-utils";
+import { tokenManager } from "@/lib/auth/token-manager";
 import { generateMetadata } from "@/lib/metadata";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useAuth } from "../../../lib/auth/auth-context";
-import { tokenManager } from "../../../lib/auth/token-manager";
 
 export const Route = createFileRoute("/auth/google/callback")({
 	component: OAuthCallback,
@@ -96,11 +97,8 @@ function OAuthCallback() {
 					// Invalidate auth query to trigger refetch with new token
 					await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
 
-					// Get intended destination from query params or default to home
-					const redirectTo = params.get("redirect") || "/dashboard";
-
 					// Redirect - the auth context will have the user data
-					navigate({ to: redirectTo });
+					navigateWithRedirect(navigate);
 					return;
 				}
 

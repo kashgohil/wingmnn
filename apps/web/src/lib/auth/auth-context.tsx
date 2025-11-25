@@ -13,6 +13,7 @@ import { catchError } from "@wingmnn/utils/catch-error";
 import type { ReactNode } from "react";
 import React, { createContext, useContext, useState } from "react";
 import { api } from "../eden-client";
+import { navigateWithRedirect } from "./redirect-utils";
 import { tokenManager } from "./token-manager";
 
 // Auth context value interface
@@ -244,10 +245,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			queryClient.invalidateQueries({ queryKey: ["auth"] });
 			setError(null);
 
-			// Navigate to intended destination using TanStack Router
-			const params = new URLSearchParams(window.location.search);
-			const redirectTo = params.get("redirect") || "/dashboard";
-			navigate({ to: redirectTo });
+			// Navigate to intended destination using redirect helper
+			navigateWithRedirect(navigate);
 		},
 	});
 
@@ -264,13 +263,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			await loginMutation.mutateAsync({ email, password });
 
 			// Handle redirect to intended destination after successful login
-			if (typeof window !== "undefined") {
-				const params = new URLSearchParams(window.location.search);
-				const redirectTo = params.get("redirect") || "/dashboard";
-
-				// Navigate to intended destination using TanStack Router
-				navigate({ to: redirectTo });
-			}
+			navigateWithRedirect(navigate);
 		},
 		[clearError, loginMutation, navigate],
 	);
@@ -281,13 +274,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			await registerMutation.mutateAsync({ email, password, name });
 
 			// Handle redirect to intended destination after successful registration
-			if (typeof window !== "undefined") {
-				const params = new URLSearchParams(window.location.search);
-				const redirectTo = params.get("redirect") || "/dashboard";
-
-				// Navigate to intended destination using TanStack Router
-				navigate({ to: redirectTo });
-			}
+			navigateWithRedirect(navigate);
 		},
 		[clearError, registerMutation, navigate],
 	);

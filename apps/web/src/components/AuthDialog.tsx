@@ -2,6 +2,7 @@ import { catchError } from "@wingmnn/utils/catch-error";
 import { useEffect, useState } from "react";
 import { getApiBaseUrl } from "../lib/api/base-url";
 import { useAuth } from "../lib/auth/auth-context";
+import { rememberRedirectHint } from "../lib/auth/redirect-utils";
 import { GoogleIcon } from "./icons/GoogleIcon";
 import { Button } from "./ui/button";
 import {
@@ -106,6 +107,13 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
 		e.preventDefault();
 		setIsSubmitting(true);
 
+		const redirectParam =
+			typeof window !== "undefined"
+				? new URLSearchParams(window.location.search).get("redirect")
+				: null;
+		const shouldCloseDialog = !redirectParam;
+		rememberRedirectHint(redirectParam);
+
 		const [, error] = await catchError(login(email, password));
 		setIsSubmitting(false);
 
@@ -115,11 +123,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
 		}
 
 		// Redirect is now handled by AuthProvider
-		// Only close dialog if no redirect occurred
-		const params = new URLSearchParams(window.location.search);
-		const redirectTo = params.get("redirect");
-
-		if (!redirectTo) {
+		if (shouldCloseDialog) {
 			onSuccess();
 		}
 	}
@@ -218,6 +222,13 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
 
 		setIsSubmitting(true);
 
+		const redirectParam =
+			typeof window !== "undefined"
+				? new URLSearchParams(window.location.search).get("redirect")
+				: null;
+		const shouldCloseDialog = !redirectParam;
+		rememberRedirectHint(redirectParam);
+
 		const [, error] = await catchError(register(email, password, name));
 		setIsSubmitting(false);
 
@@ -227,11 +238,7 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
 		}
 
 		// Redirect is now handled by AuthProvider
-		// Only close dialog if no redirect occurred
-		const params = new URLSearchParams(window.location.search);
-		const redirectTo = params.get("redirect");
-
-		if (!redirectTo) {
+		if (shouldCloseDialog) {
 			onSuccess();
 		}
 	}

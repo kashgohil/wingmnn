@@ -11,6 +11,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth/auth-context";
+import { rememberRedirectHint } from "../lib/auth/redirect-utils";
 import { AuthDialog } from "./AuthDialog";
 import { ModuleSidebar } from "./ModuleSidebar";
 import { SoftRetroGridBackground } from "./backgrounds/RetroGridPatterns";
@@ -27,13 +28,17 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 	useEffect(() => {
 		if (!isLoading && !isAuthenticated) {
 			// Store intended destination in query params
-			const currentPath = window.location.pathname;
+			const redirectValue =
+				typeof window !== "undefined"
+					? `${window.location.pathname}${window.location.search}${window.location.hash}`
+					: "/dashboard";
+			rememberRedirectHint(redirectValue);
 
 			// Show auth dialog
 			setShowAuthDialog(true);
 
 			// Redirect to home with redirect query param
-			navigate({ to: "/", search: { redirect: currentPath } });
+			navigate({ to: "/", search: { redirect: redirectValue } });
 		}
 	}, [isAuthenticated, isLoading, navigate]);
 
