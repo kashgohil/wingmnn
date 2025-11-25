@@ -3,7 +3,7 @@
  * Manages widget visibility and configuration
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 export type WidgetId =
 	| "task-count"
@@ -58,6 +58,60 @@ function loadWidgetConfig(): WidgetConfig[] {
 	return defaultWidgets;
 }
 
+type WidgetStore = {
+	subscribe: (listener: () => void) => () => void;
+	getSnapshot: () => WidgetConfig[];
+	getServerSnapshot: () => WidgetConfig[];
+	toggleWidget: (widgetId: WidgetId) => void;
+	updateWidgetConfig: (newConfig: WidgetConfig[]) => void;
+};
+
+function createWidgetStore(): WidgetStore {
+	let config = loadWidgetConfig();
+	const listeners = new Set<() => void>();
+
+	const notify = () => {
+		for (const listener of listeners) {
+			listener();
+		}
+	};
+
+	const setConfig = (nextConfig: WidgetConfig[], persist = true) => {
+		config = nextConfig;
+		if (persist) {
+			saveWidgetConfig(config);
+		}
+		notify();
+	};
+
+	if (typeof window !== "undefined") {
+		window.addEventListener("storage", (event) => {
+			if (event.key === STORAGE_KEY) {
+				setConfig(loadWidgetConfig(), false);
+			}
+		});
+	}
+
+	return {
+		subscribe: (listener) => {
+			listeners.add(listener);
+			return () => listeners.delete(listener);
+		},
+		getSnapshot: () => config,
+		getServerSnapshot: () => defaultWidgets,
+		toggleWidget: (widgetId) => {
+			setConfig(
+				config.map((w) =>
+					w.id === widgetId ? { ...w, visible: !w.visible } : w,
+				),
+			);
+		},
+		updateWidgetConfig: (newConfig) => setConfig(newConfig),
+	};
+}
+
+const widgetStore = createWidgetStore();
+
 function saveWidgetConfig(config: WidgetConfig[]) {
 	if (typeof window === "undefined") {
 		return;
@@ -71,11 +125,11 @@ function saveWidgetConfig(config: WidgetConfig[]) {
 }
 
 export function useWidgetVisibility() {
-	const [config, setConfig] = useState<WidgetConfig[]>(loadWidgetConfig);
-
-	useEffect(() => {
-		setConfig(loadWidgetConfig());
-	}, []);
+	const config = useSyncExternalStore(
+		widgetStore.subscribe,
+		widgetStore.getSnapshot,
+		widgetStore.getServerSnapshot,
+	);
 
 	const isWidgetVisible = useCallback(
 		(widgetId: WidgetId): boolean => {
@@ -85,13 +139,7 @@ export function useWidgetVisibility() {
 	);
 
 	const toggleWidget = useCallback((widgetId: WidgetId) => {
-		setConfig((prev) => {
-			const updated = prev.map((w) =>
-				w.id === widgetId ? { ...w, visible: !w.visible } : w,
-			);
-			saveWidgetConfig(updated);
-			return updated;
-		});
+		widgetStore.toggleWidget(widgetId);
 	}, []);
 
 	const getWidgetConfig = useCallback(() => {
@@ -99,8 +147,7 @@ export function useWidgetVisibility() {
 	}, [config]);
 
 	const updateWidgetConfig = useCallback((newConfig: WidgetConfig[]) => {
-		setConfig(newConfig);
-		saveWidgetConfig(newConfig);
+		widgetStore.updateWidgetConfig(newConfig);
 	}, []);
 
 	return {
