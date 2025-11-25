@@ -22,6 +22,7 @@ import { subtaskRoutes } from "./routes/subtasks";
 import { tagRoutes, taskTagRoutes } from "./routes/tags";
 import { taskRoutes } from "./routes/tasks";
 import { timeEntryRoutes } from "./routes/time-entries";
+import { userRoutes } from "./routes/users";
 import { workflowRoutes } from "./routes/workflows";
 import { cleanupService } from "./services/cleanup.service";
 import { initializeOAuthProviders } from "./services/oauth.service";
@@ -101,6 +102,7 @@ const apiRoutes = new Elysia({ prefix: "/api" })
 	.use(projectActivityRoutes)
 	.use(taskActivityRoutes)
 	.use(notificationRoutes)
+	.use(userRoutes)
 	.use(tagRoutes)
 	.use(taskTagRoutes)
 	.get("/", () => "Hello Elysia");

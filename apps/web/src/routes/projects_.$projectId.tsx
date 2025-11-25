@@ -1,6 +1,6 @@
 import { ModuleColorProvider } from "@/components/ModuleColorProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { Badge } from "@/components/ui/badge";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,6 +10,11 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	Tooltip,
@@ -21,23 +26,31 @@ import type { Project } from "@/lib/api/projects.api";
 import type { Task } from "@/lib/api/tasks.api";
 import { useProject } from "@/lib/hooks/use-projects";
 import { useTasks } from "@/lib/hooks/use-tasks";
+import { useUserProfile } from "@/lib/hooks/use-users";
 import { generateMetadata } from "@/lib/metadata";
 import { getModuleBySlug } from "@/lib/modules";
 import { createFileRoute } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 import {
+	BarChart3,
 	CalendarDays,
 	Clock3,
+	Info,
 	KanbanSquare,
 	List,
 	Settings,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const module = getModuleBySlug("projects");
-const workViewOrder = ["board", "list", "timeline", "calendar"] as const;
-type WorkView = (typeof workViewOrder)[number];
-type PrimaryTab = "overview" | "analytics";
+const viewTabs = [
+	"board",
+	"list",
+	"timeline",
+	"calendar",
+	"analytics",
+] as const;
+type ViewTab = (typeof viewTabs)[number];
 
 export const Route = createFileRoute("/projects_/$projectId")({
 	component: ProjectDetailsPage,
@@ -58,22 +71,35 @@ function ProjectDetailsPage() {
 		projectId,
 	});
 	const [settingsOpen, setSettingsOpen] = useState(false);
-	const [activeTab, setActiveTab] = useState<PrimaryTab>("overview");
-	const [workView, setWorkView] = useState<WorkView>("board");
+	const [activeView, setActiveView] = useState<ViewTab>("board");
 	const [initialViewApplied, setInitialViewApplied] = useState(false);
+	const [infoOpen, setInfoOpen] = useState(false);
+	const infoPopoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	useEffect(() => {
 		const preferredView = project?.settings?.selectedView;
 
 		if (!initialViewApplied && preferredView) {
-			if (preferredView === "overview" || preferredView === "analytics") {
-				setActiveTab(preferredView);
-			} else if (workViewOrder.includes(preferredView as WorkView)) {
-				setWorkView(preferredView as WorkView);
+			if (preferredView === "overview") {
+				setActiveView("board");
+				setInitialViewApplied(true);
+				return;
 			}
-			setInitialViewApplied(true);
+
+			if (viewTabs.includes(preferredView as ViewTab)) {
+				setActiveView(preferredView as ViewTab);
+				setInitialViewApplied(true);
+			}
 		}
 	}, [project?.settings?.selectedView, initialViewApplied]);
+
+	useEffect(() => {
+		return () => {
+			if (infoPopoverTimeoutRef.current) {
+				clearTimeout(infoPopoverTimeoutRef.current);
+			}
+		};
+	}, []);
 
 	const taskStats = useMemo(() => {
 		const stats = {
@@ -168,6 +194,27 @@ function ProjectDetailsPage() {
 		return buckets;
 	}, [projectTasks]);
 
+	const infoDetails = useMemo(() => {
+		if (!project) return [];
+		return [
+			{ label: "Priority", value: getPriorityLabel(project.priority) },
+			{ label: "Category", value: project.category ?? "None" },
+			{ label: "Key", value: project.key ?? "None" },
+			{
+				label: "Start Date",
+				value: project.startDate ? formatDate(project.startDate) : "TBD",
+			},
+			{
+				label: "End Date",
+				value: project.endDate ? formatDate(project.endDate) : "TBD",
+			},
+		];
+	}, [project]);
+
+	const ownerId = project?.ownerId;
+	const { data: ownerProfile, isLoading: ownerLoading } =
+		useUserProfile(ownerId);
+
 	const isProjectLoaded = !isLoading && !!project;
 
 	if (error) {
@@ -215,314 +262,426 @@ function ProjectDetailsPage() {
 										)}
 									</div>
 								</div>
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<Button
-												variant="outline"
-												size="icon"
-												onClick={() => setSettingsOpen(true)}
-												aria-label="Project settings"
+								<div className="flex flex-wrap items-center justify-end gap-2">
+									{project?.status && (
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<div className="inline-flex">
+														<Button className="uppercase tracking-wide h-10 px-3 pointer-events-none disabled:opacity-100 disabled:cursor-default">
+															{project.status}
+														</Button>
+													</div>
+												</TooltipTrigger>
+												<TooltipContent side="bottom">
+													Project status is read-only
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+									)}
+									{project && (
+										<Popover
+											open={infoOpen}
+											onOpenChange={setInfoOpen}
+										>
+											<PopoverTrigger asChild>
+												<Button
+													variant="outline"
+													size="icon"
+													aria-label="Project info"
+													onMouseEnter={() => {
+														if (infoPopoverTimeoutRef.current) {
+															clearTimeout(infoPopoverTimeoutRef.current);
+															infoPopoverTimeoutRef.current = null;
+														}
+														setInfoOpen(true);
+													}}
+													onMouseLeave={() => {
+														infoPopoverTimeoutRef.current = setTimeout(() => {
+															setInfoOpen(false);
+														}, 100);
+													}}
+												>
+													<Info className="h-5 w-5" />
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent
+												align="end"
+												className="w-72 space-y-4 p-4"
+												onMouseEnter={() => {
+													if (infoPopoverTimeoutRef.current) {
+														clearTimeout(infoPopoverTimeoutRef.current);
+														infoPopoverTimeoutRef.current = null;
+													}
+													setInfoOpen(true);
+												}}
+												onMouseLeave={() => {
+													infoPopoverTimeoutRef.current = setTimeout(() => {
+														setInfoOpen(false);
+													}, 100);
+												}}
 											>
-												<Settings className="h-5 w-5" />
-											</Button>
-										</TooltipTrigger>
-										<TooltipContent>Project settings</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
-							</div>
+												{ownerId && (
+													<div className="rounded-none border border-border/60 bg-muted/40 p-3 space-y-2">
+														<p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+															Owner
+														</p>
+														<div className="flex items-center gap-3">
+															<Avatar
+																name={
+																	ownerProfile?.name ??
+																	(ownerLoading
+																		? "Loading owner"
+																		: "Unassigned")
+																}
+																size="sm"
+															/>
+															<div className="flex-1">
+																<p className="text-sm font-semibold">
+																	{ownerLoading
+																		? "Fetching owner..."
+																		: ownerProfile?.name ?? "Unassigned"}
+																</p>
+																<p className="text-xs text-muted-foreground">
+																	{ownerLoading
+																		? "Retrieving profile details"
+																		: ownerProfile?.bio || "Project owner"}
+																</p>
+															</div>
+														</div>
+													</div>
+												)}
+												<div className="space-y-2 text-sm">
+													{infoDetails.map(({ label, value }) => (
+														<div
+															key={label}
+															className="flex items-center justify-between gap-3"
+														>
+															<span className="text-muted-foreground">
+																{label}:
+															</span>
+															<span className="font-semibold text-right text-foreground">
+																{value}
+															</span>
+														</div>
+													))}
+												</div>
+											</PopoverContent>
+										</Popover>
+									)}
 
-							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-								<SummaryStat
-									label="Total tasks"
-									value={taskStats.total}
-								/>
-								<SummaryStat
-									label="Completed"
-									value={taskStats.completed}
-									trend="positive"
-								/>
-								<SummaryStat
-									label="In progress"
-									value={taskStats.inProgress}
-								/>
-								<SummaryStat
-									label="Overdue"
-									value={taskStats.overdue}
-									trend={taskStats.overdue ? "negative" : undefined}
-								/>
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<Button
+													variant="outline"
+													size="icon"
+													onClick={() => setSettingsOpen(true)}
+													aria-label="Project settings"
+												>
+													<Settings className="h-5 w-5" />
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent side="bottom">
+												Project settings
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								</div>
 							</div>
 						</header>
 
 						<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
 							<Tabs
-								value={activeTab}
-								onValueChange={(value) => setActiveTab(value as PrimaryTab)}
+								value={activeView}
+								onValueChange={(value) => setActiveView(value as ViewTab)}
 							>
-								<TabsList>
-									<TabsTrigger value="overview">Overview</TabsTrigger>
-									<TabsTrigger value="analytics">Analytics</TabsTrigger>
-								</TabsList>
+								<div className="overflow-x-auto">
+									<TabsList className="inline-flex min-w-full justify-start gap-2">
+										<TabTrigger
+											icon={KanbanSquare}
+											value="board"
+											label="Board"
+										/>
+										<TabTrigger
+											icon={List}
+											value="list"
+											label="List"
+										/>
+										<TabTrigger
+											icon={Clock3}
+											value="timeline"
+											label="Timeline"
+										/>
+										<TabTrigger
+											icon={CalendarDays}
+											value="calendar"
+											label="Calendar"
+										/>
+										<TabTrigger
+											icon={BarChart3}
+											value="analytics"
+											label="Analytics"
+										/>
+									</TabsList>
+								</div>
 
 								<TabsContent
-									value="overview"
-									className="mt-6 space-y-6"
+									value="board"
+									className="mt-6"
 								>
-									<ProjectOverview
-										project={project}
-										loading={isLoading}
-										taskStats={taskStats}
-										tasksLoading={tasksLoading}
-									/>
-
-									<Card>
-										<CardHeader>
-											<CardTitle>Work views</CardTitle>
-										</CardHeader>
-										<CardContent>
-											<Tabs
-												value={workView}
-												onValueChange={(value) =>
-													setWorkView(value as WorkView)
-												}
-											>
-												<div className="overflow-x-auto">
-													<TabsList className="inline-flex min-w-full justify-start gap-2">
-														<TabTrigger
-															icon={KanbanSquare}
-															value="board"
-															label="Board"
-														/>
-														<TabTrigger
-															icon={List}
-															value="list"
-															label="List"
-														/>
-														<TabTrigger
-															icon={Clock3}
-															value="timeline"
-															label="Timeline"
-														/>
-														<TabTrigger
-															icon={CalendarDays}
-															value="calendar"
-															label="Calendar"
-														/>
-													</TabsList>
-												</div>
-
-												<TabsContent
-													value="board"
-													className="mt-6"
+									{tasksLoading ? (
+										<LoadingState label="Loading board..." />
+									) : tasksByStatus.length ? (
+										<div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+											{tasksByStatus.map((column) => (
+												<Card
+													key={column.statusId}
+													className="bg-muted/40"
 												>
-													{tasksLoading ? (
-														<LoadingState label="Loading board..." />
-													) : tasksByStatus.length ? (
-														<div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-															{tasksByStatus.map((column) => (
-																<Card
-																	key={column.statusId}
-																	className="bg-muted/40"
+													<CardHeader>
+														<CardTitle className="text-base font-semibold">
+															{column.label}{" "}
+															<span className="text-sm text-muted-foreground">
+																({column.tasks.length})
+															</span>
+														</CardTitle>
+													</CardHeader>
+													<CardContent className="space-y-3">
+														{column.tasks.map((task) => (
+															<div
+																key={task.id}
+																className="rounded-none border border-border bg-background p-3"
+															>
+																<p className="font-medium">{task.title}</p>
+																{task.description && (
+																	<p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+																		{task.description}
+																	</p>
+																)}
+																<div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+																	<span>
+																		Priority: {getPriorityLabel(task.priority)}
+																	</span>
+																	<span>Progress: {task.progress ?? 0}%</span>
+																</div>
+															</div>
+														))}
+													</CardContent>
+												</Card>
+											))}
+										</div>
+									) : (
+										<EmptyState message="No tasks yet. Create tasks to populate the board." />
+									)}
+								</TabsContent>
+
+								<TabsContent
+									value="list"
+									className="mt-6"
+								>
+									{tasksLoading ? (
+										<LoadingState label="Loading tasks..." />
+									) : projectTasks.length ? (
+										<Card>
+											<CardHeader>
+												<CardTitle>Task List</CardTitle>
+											</CardHeader>
+											<CardContent className="overflow-x-auto">
+												<table className="min-w-full text-sm">
+													<thead>
+														<tr className="text-left text-muted-foreground">
+															<th className="py-2 pr-4 font-medium">Title</th>
+															<th className="py-2 pr-4 font-medium">
+																Priority
+															</th>
+															<th className="py-2 pr-4 font-medium">Due</th>
+															<th className="py-2 pr-4 font-medium">
+																Progress
+															</th>
+														</tr>
+													</thead>
+													<tbody>
+														{projectTasks.map((task) => (
+															<tr
+																key={task.id}
+																className="border-t border-border/80"
+															>
+																<td className="py-3 pr-4 font-medium">
+																	{task.title}
+																</td>
+																<td className="py-3 pr-4">
+																	{getPriorityLabel(task.priority)}
+																</td>
+																<td className="py-3 pr-4">
+																	{task.dueDate
+																		? formatDate(task.dueDate)
+																		: "—"}
+																</td>
+																<td className="py-3 pr-4">
+																	{task.progress ?? 0}%
+																</td>
+															</tr>
+														))}
+													</tbody>
+												</table>
+											</CardContent>
+										</Card>
+									) : (
+										<EmptyState message="No tasks have been added to this project." />
+									)}
+								</TabsContent>
+
+								<TabsContent
+									value="timeline"
+									className="mt-6"
+								>
+									{tasksLoading ? (
+										<LoadingState label="Building timeline..." />
+									) : timelineEntries.length ? (
+										<Card>
+											<CardHeader>
+												<CardTitle>Timeline</CardTitle>
+											</CardHeader>
+											<CardContent className="space-y-4">
+												{timelineEntries.map((entry) => (
+													<div
+														key={entry.id}
+														className="relative pl-6"
+													>
+														<div className="absolute left-0 top-2 h-3 w-3 -translate-x-1/2 rounded-full border border-border bg-background" />
+														<p className="text-xs uppercase tracking-wide text-muted-foreground">
+															{entry.date}
+														</p>
+														<p className="font-semibold">{entry.title}</p>
+														{entry.description && (
+															<p className="text-sm text-muted-foreground">
+																{entry.description}
+															</p>
+														)}
+														<div className="text-xs text-muted-foreground">
+															Progress {entry.progress}% · Priority{" "}
+															{getPriorityLabel(entry.priority)}
+														</div>
+													</div>
+												))}
+											</CardContent>
+										</Card>
+									) : (
+										<EmptyState message="No dated tasks yet. Add start or due dates to see a timeline." />
+									)}
+								</TabsContent>
+
+								<TabsContent
+									value="calendar"
+									className="mt-6"
+								>
+									{tasksLoading ? (
+										<LoadingState label="Loading calendar..." />
+									) : Object.keys(calendarBuckets).length ? (
+										<div className="grid gap-4 md:grid-cols-2">
+											{Object.entries(calendarBuckets).map(
+												([bucket, tasks]) => (
+													<Card key={bucket}>
+														<CardHeader>
+															<CardTitle className="text-base font-semibold">
+																{bucket}{" "}
+																<span className="text-sm text-muted-foreground">
+																	({tasks.length})
+																</span>
+															</CardTitle>
+														</CardHeader>
+														<CardContent className="space-y-3">
+															{tasks.map((task) => (
+																<div
+																	key={task.id}
+																	className="rounded-none border border-dashed border-border/70 p-3"
 																>
-																	<CardHeader>
-																		<CardTitle className="text-base font-semibold">
-																			{column.label}{" "}
-																			<span className="text-sm text-muted-foreground">
-																				({column.tasks.length})
-																			</span>
-																		</CardTitle>
-																	</CardHeader>
-																	<CardContent className="space-y-3">
-																		{column.tasks.map((task) => (
-																			<div
-																				key={task.id}
-																				className="rounded-none border border-border bg-background p-3"
-																			>
-																				<p className="font-medium">
-																					{task.title}
-																				</p>
-																				{task.description && (
-																					<p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-																						{task.description}
-																					</p>
-																				)}
-																				<div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-																					<span>Priority: {task.priority}</span>
-																					<span>
-																						Progress: {task.progress ?? 0}%
-																					</span>
-																				</div>
-																			</div>
-																		))}
-																	</CardContent>
-																</Card>
+																	<p className="font-medium">{task.title}</p>
+																	<p className="text-xs text-muted-foreground">
+																		Due{" "}
+																		{task.dueDate
+																			? formatDate(task.dueDate)
+																			: "TBD"}
+																	</p>
+																</div>
 															))}
-														</div>
-													) : (
-														<EmptyState message="No tasks yet. Create tasks to populate the board." />
-													)}
-												</TabsContent>
-
-												<TabsContent
-													value="list"
-													className="mt-6"
-												>
-													{tasksLoading ? (
-														<LoadingState label="Loading tasks..." />
-													) : projectTasks.length ? (
-														<Card>
-															<CardHeader>
-																<CardTitle>Task List</CardTitle>
-															</CardHeader>
-															<CardContent className="overflow-x-auto">
-																<table className="min-w-full text-sm">
-																	<thead>
-																		<tr className="text-left text-muted-foreground">
-																			<th className="py-2 pr-4 font-medium">
-																				Title
-																			</th>
-																			<th className="py-2 pr-4 font-medium">
-																				Priority
-																			</th>
-																			<th className="py-2 pr-4 font-medium">
-																				Due
-																			</th>
-																			<th className="py-2 pr-4 font-medium">
-																				Progress
-																			</th>
-																		</tr>
-																	</thead>
-																	<tbody>
-																		{projectTasks.map((task) => (
-																			<tr
-																				key={task.id}
-																				className="border-t border-border/80"
-																			>
-																				<td className="py-3 pr-4 font-medium">
-																					{task.title}
-																				</td>
-																				<td className="py-3 pr-4 capitalize">
-																					{task.priority}
-																				</td>
-																				<td className="py-3 pr-4">
-																					{task.dueDate
-																						? formatDate(task.dueDate)
-																						: "—"}
-																				</td>
-																				<td className="py-3 pr-4">
-																					{task.progress ?? 0}%
-																				</td>
-																			</tr>
-																		))}
-																	</tbody>
-																</table>
-															</CardContent>
-														</Card>
-													) : (
-														<EmptyState message="No tasks have been added to this project." />
-													)}
-												</TabsContent>
-
-												<TabsContent
-													value="timeline"
-													className="mt-6"
-												>
-													{tasksLoading ? (
-														<LoadingState label="Building timeline..." />
-													) : timelineEntries.length ? (
-														<Card>
-															<CardHeader>
-																<CardTitle>Timeline</CardTitle>
-															</CardHeader>
-															<CardContent className="space-y-4">
-																{timelineEntries.map((entry) => (
-																	<div
-																		key={entry.id}
-																		className="relative pl-6"
-																	>
-																		<div className="absolute left-0 top-2 h-3 w-3 -translate-x-1/2 rounded-full border border-border bg-background" />
-																		<p className="text-xs uppercase tracking-wide text-muted-foreground">
-																			{entry.date}
-																		</p>
-																		<p className="font-semibold">
-																			{entry.title}
-																		</p>
-																		{entry.description && (
-																			<p className="text-sm text-muted-foreground">
-																				{entry.description}
-																			</p>
-																		)}
-																		<div className="text-xs text-muted-foreground">
-																			Progress {entry.progress}% · Priority{" "}
-																			{entry.priority}
-																		</div>
-																	</div>
-																))}
-															</CardContent>
-														</Card>
-													) : (
-														<EmptyState message="No dated tasks yet. Add start or due dates to see a timeline." />
-													)}
-												</TabsContent>
-
-												<TabsContent
-													value="calendar"
-													className="mt-6"
-												>
-													{tasksLoading ? (
-														<LoadingState label="Loading calendar..." />
-													) : Object.keys(calendarBuckets).length ? (
-														<div className="grid gap-4 md:grid-cols-2">
-															{Object.entries(calendarBuckets).map(
-																([bucket, tasks]) => (
-																	<Card key={bucket}>
-																		<CardHeader>
-																			<CardTitle className="text-base font-semibold">
-																				{bucket}{" "}
-																				<span className="text-sm text-muted-foreground">
-																					({tasks.length})
-																				</span>
-																			</CardTitle>
-																		</CardHeader>
-																		<CardContent className="space-y-3">
-																			{tasks.map((task) => (
-																				<div
-																					key={task.id}
-																					className="rounded-none border border-dashed border-border/70 p-3"
-																				>
-																					<p className="font-medium">
-																						{task.title}
-																					</p>
-																					<p className="text-xs text-muted-foreground">
-																						Due{" "}
-																						{task.dueDate
-																							? formatDate(task.dueDate)
-																							: "TBD"}
-																					</p>
-																				</div>
-																			))}
-																		</CardContent>
-																	</Card>
-																),
-															)}
-														</div>
-													) : (
-														<EmptyState message="Dates haven't been scheduled for this project." />
-													)}
-												</TabsContent>
-											</Tabs>
-										</CardContent>
-									</Card>
+														</CardContent>
+													</Card>
+												),
+											)}
+										</div>
+									) : (
+										<EmptyState message="Dates haven't been scheduled for this project." />
+									)}
 								</TabsContent>
 
 								<TabsContent
 									value="analytics"
-									className="mt-6"
+									className="mt-6 space-y-6"
 								>
-									<ProjectAnalyticsPanel
-										tasks={projectTasks}
-										loading={tasksLoading}
-									/>
+									{tasksLoading ? (
+										<LoadingState label="Loading analytics..." />
+									) : (
+										<>
+											<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+												<SummaryStat
+													label="Total tasks"
+													value={taskStats.total}
+												/>
+												<SummaryStat
+													label="Completed"
+													value={taskStats.completed}
+													trend="positive"
+												/>
+												<SummaryStat
+													label="In progress"
+													value={taskStats.inProgress}
+												/>
+												<SummaryStat
+													label="Overdue"
+													value={taskStats.overdue}
+													trend={taskStats.overdue ? "negative" : undefined}
+												/>
+											</div>
+
+											<Card>
+												<CardHeader>
+													<CardTitle>Progress Snapshot</CardTitle>
+												</CardHeader>
+												<CardContent>
+													<div className="space-y-3">
+														<ProgressRow
+															label="Completed"
+															value={taskStats.completed}
+															total={taskStats.total}
+														/>
+														<ProgressRow
+															label="In Progress"
+															value={taskStats.inProgress}
+															total={taskStats.total}
+														/>
+														<ProgressRow
+															label="Upcoming"
+															value={taskStats.upcoming}
+															total={taskStats.total}
+														/>
+														<ProgressRow
+															label="Overdue"
+															value={taskStats.overdue}
+															total={taskStats.total}
+															emphasize
+														/>
+													</div>
+												</CardContent>
+											</Card>
+
+											<ProjectAnalyticsPanel
+												tasks={projectTasks}
+												loading={false}
+											/>
+										</>
+									)}
 								</TabsContent>
 							</Tabs>
 						</section>
@@ -562,144 +721,6 @@ function SummaryStat({
 					<span className="text-xs text-destructive">Needs attention</span>
 				)}
 			</div>
-		</div>
-	);
-}
-
-function ProjectOverview({
-	project,
-	taskStats,
-	loading,
-	tasksLoading,
-}: {
-	project?: Project | null;
-	taskStats: {
-		total: number;
-		completed: number;
-		inProgress: number;
-		overdue: number;
-		upcoming: number;
-	};
-	loading: boolean;
-	tasksLoading: boolean;
-}) {
-	if (loading) {
-		return <LoadingState label="Loading project..." />;
-	}
-
-	if (!project) {
-		return <EmptyState message="Project not found." />;
-	}
-
-	return (
-		<div className="grid gap-6 lg:grid-cols-5">
-			<Card className="lg:col-span-3 retro-border border border-border/70 bg-card/80">
-				<CardContent className="space-y-6 p-6">
-					<div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-						<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-							{module?.icon && (
-								<div
-									className="p-4 retro-border rounded-none"
-									style={{ backgroundColor: `var(${module?.colorVar})` }}
-								>
-									<module.icon className="h-10 w-10 text-primary-foreground" />
-								</div>
-							)}
-							<div>
-								<p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-									Project
-								</p>
-								<h2 className="text-2xl font-bold font-mono uppercase tracking-wider">
-									{project.name}
-								</h2>
-								{project.description && (
-									<p className="mt-2 max-w-2xl text-muted-foreground">
-										{project.description}
-									</p>
-								)}
-							</div>
-						</div>
-						<div className="flex flex-wrap gap-2">
-							{project.status && (
-								<Badge
-									variant={
-										project.status === "active" ? "default" : "secondary"
-									}
-								>
-									Status: {project.status}
-								</Badge>
-							)}
-							{project.priority && (
-								<Badge variant="outline">Priority: {project.priority}</Badge>
-							)}
-							{project.category && (
-								<Badge variant="outline">Category: {project.category}</Badge>
-							)}
-							{project.key && (
-								<Badge variant="outline">Key: {project.key}</Badge>
-							)}
-						</div>
-					</div>
-
-					<div className="grid gap-4 sm:grid-cols-2">
-						<Detail
-							label="Owner"
-							value={
-								project.ownerId
-									? `User ${project.ownerId.slice(0, 6)}`
-									: "Unassigned"
-							}
-						/>
-						<Detail
-							label="Workflow"
-							value={project.workflowId ? project.workflowId : "Default"}
-						/>
-						<Detail
-							label="Start Date"
-							value={project.startDate ? formatDate(project.startDate) : "TBD"}
-						/>
-						<Detail
-							label="End Date"
-							value={project.endDate ? formatDate(project.endDate) : "TBD"}
-						/>
-					</div>
-				</CardContent>
-			</Card>
-
-			<Card className="lg:col-span-2">
-				<CardHeader>
-					<CardTitle>Progress Snapshot</CardTitle>
-				</CardHeader>
-				<CardContent>
-					{tasksLoading ? (
-						<LoadingState label="Loading stats..." />
-					) : (
-						<div className="space-y-3">
-							<ProgressRow
-								label="Completed"
-								value={taskStats.completed}
-								total={taskStats.total}
-							/>
-							<ProgressRow
-								label="In Progress"
-								value={taskStats.inProgress}
-								total={taskStats.total}
-							/>
-							<ProgressRow
-								label="Upcoming"
-								value={taskStats.upcoming}
-								total={taskStats.total}
-							/>
-							<ProgressRow
-								label="Overdue"
-								value={taskStats.overdue}
-								total={taskStats.total}
-								emphasize
-							/>
-						</div>
-					)}
-				</CardContent>
-			</Card>
 		</div>
 	);
 }
@@ -774,7 +795,7 @@ function TabTrigger({
 }: {
 	icon: LucideIcon;
 	label: string;
-	value: WorkView;
+	value: ViewTab;
 }) {
 	return (
 		<TabsTrigger
@@ -927,4 +948,21 @@ function formatDate(value: string | null | undefined) {
 		day: "numeric",
 		year: "numeric",
 	});
+}
+
+const PRIORITY_LABELS: Record<
+	NonNullable<Project["priority"] | Task["priority"]>,
+	string
+> = {
+	low: "Low",
+	medium: "Medium",
+	high: "High",
+	critical: "Critical",
+};
+
+function getPriorityLabel(
+	priority: Project["priority"] | Task["priority"] | null | undefined,
+) {
+	if (!priority) return "Unset";
+	return PRIORITY_LABELS[priority] ?? priority;
 }
