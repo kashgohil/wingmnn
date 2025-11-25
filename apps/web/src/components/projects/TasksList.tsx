@@ -3,14 +3,20 @@
  * Displays tasks currently assigned to the user
  */
 
-import { useState, useMemo } from "react";
-import { useMyTasks } from "@/lib/hooks/use-tasks";
 import { useProjects } from "@/lib/hooks/use-projects";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { useMyTasks } from "@/lib/hooks/use-tasks";
+import { ArrowUpDown } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Badge } from "../ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Button } from "../ui/button";
-import { ArrowUpDown, Filter } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "../ui/select";
 
 type SortField = "title" | "priority" | "dueDate" | "createdAt";
 type SortDirection = "asc" | "desc";
@@ -44,7 +50,8 @@ export function TasksList() {
 				</CardHeader>
 				<CardContent>
 					<div className="text-destructive">
-						Error loading tasks: {error instanceof Error ? error.message : "Unknown error"}
+						Error loading tasks:{" "}
+						{error instanceof Error ? error.message : "Unknown error"}
 					</div>
 				</CardContent>
 			</Card>
@@ -94,7 +101,8 @@ export function TasksList() {
 					comparison = aDate - bDate;
 					break;
 				case "createdAt":
-					comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+					comparison =
+						new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 					break;
 			}
 
@@ -111,7 +119,7 @@ export function TasksList() {
 
 	return (
 		<Card>
-			<CardHeader>
+			<CardHeader className="mb-4 p-0">
 				<div className="flex items-center justify-between">
 					<CardTitle>My Tasks ({filteredAndSortedTasks.length})</CardTitle>
 					<div className="flex items-center gap-2">
@@ -119,7 +127,9 @@ export function TasksList() {
 							variant="ghost"
 							size="sm"
 							onClick={toggleSortDirection}
-							title={`Sort ${sortDirection === "asc" ? "Descending" : "Ascending"}`}
+							title={`Sort ${
+								sortDirection === "asc" ? "Descending" : "Ascending"
+							}`}
 						>
 							<ArrowUpDown className="h-4 w-4" />
 						</Button>
@@ -129,7 +139,10 @@ export function TasksList() {
 			<CardContent>
 				{/* Filters */}
 				<div className="flex flex-wrap gap-2 mb-4">
-					<Select value={filterPriority} onValueChange={setFilterPriority}>
+					<Select
+						value={filterPriority}
+						onValueChange={setFilterPriority}
+					>
 						<SelectTrigger className="w-[140px]">
 							<SelectValue placeholder="Priority" />
 						</SelectTrigger>
@@ -141,20 +154,29 @@ export function TasksList() {
 							<SelectItem value="low">Low</SelectItem>
 						</SelectContent>
 					</Select>
-					<Select value={filterProject} onValueChange={setFilterProject}>
+					<Select
+						value={filterProject}
+						onValueChange={setFilterProject}
+					>
 						<SelectTrigger className="w-[180px]">
 							<SelectValue placeholder="Project" />
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="all">All Projects</SelectItem>
 							{projects.map((project) => (
-								<SelectItem key={project.id} value={project.id}>
+								<SelectItem
+									key={project.id}
+									value={project.id}
+								>
 									{project.name}
 								</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
-					<Select value={sortField} onValueChange={(value) => setSortField(value as SortField)}>
+					<Select
+						value={sortField}
+						onValueChange={(value) => setSortField(value as SortField)}
+					>
 						<SelectTrigger className="w-[140px]">
 							<SelectValue placeholder="Sort by" />
 						</SelectTrigger>
@@ -175,61 +197,73 @@ export function TasksList() {
 				) : (
 					<div className="space-y-3">
 						{filteredAndSortedTasks.map((task) => {
-						const isOverdue = task.dueDate && new Date(task.dueDate) < now;
-						const priorityColors = {
-							critical: "bg-red-500",
-							high: "bg-orange-500",
-							medium: "bg-yellow-500",
-							low: "bg-blue-500",
-						};
+							const isOverdue = task.dueDate && new Date(task.dueDate) < now;
+							const priorityColors = {
+								critical: "bg-red-500",
+								high: "bg-orange-500",
+								medium: "bg-yellow-500",
+								low: "bg-blue-500",
+							};
 
-						return (
-							<div
-								key={task.id}
-								className="flex items-start justify-between p-3 retro-border rounded-none hover:bg-accent/50 transition-colors"
-							>
-								<div className="flex-1">
-									<div className="flex items-center gap-2">
-										<div
-											className={`w-2 h-2 rounded-full ${priorityColors[task.priority]}`}
-										/>
-										<h4 className="font-medium">{task.title}</h4>
-										{isOverdue && (
-											<Badge variant="destructive" className="text-xs">
-												Overdue
-											</Badge>
-										)}
-									</div>
-									{task.description && (
-										<p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-											{task.description}
-										</p>
-									)}
-									{task.dueDate && (
-										<p
-											className={`text-xs mt-1 ${
-												isOverdue ? "text-destructive" : "text-muted-foreground"
-											}`}
-										>
-											Due: {new Date(task.dueDate).toLocaleDateString()}
-										</p>
-									)}
-									{(() => {
-										const project = projects.find((p) => p.id === task.projectId);
-										return project ? (
-											<p className="text-xs text-muted-foreground mt-1">
-												Project: {project.name}
+							return (
+								<div
+									key={task.id}
+									className="flex items-start justify-between p-3 retro-border rounded-none hover:bg-accent/50 transition-colors"
+								>
+									<div className="flex-1">
+										<div className="flex items-center gap-2">
+											<div
+												className={`w-2 h-2 rounded-full ${
+													priorityColors[task.priority]
+												}`}
+											/>
+											<h4 className="font-medium">{task.title}</h4>
+											{isOverdue && (
+												<Badge
+													variant="destructive"
+													className="text-xs"
+												>
+													Overdue
+												</Badge>
+											)}
+										</div>
+										{task.description && (
+											<p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+												{task.description}
 											</p>
-										) : null;
-									})()}
+										)}
+										{task.dueDate && (
+											<p
+												className={`text-xs mt-1 ${
+													isOverdue
+														? "text-destructive"
+														: "text-muted-foreground"
+												}`}
+											>
+												Due: {new Date(task.dueDate).toLocaleDateString()}
+											</p>
+										)}
+										{(() => {
+											const project = projects.find(
+												(p) => p.id === task.projectId,
+											);
+											return project ? (
+												<p className="text-xs text-muted-foreground mt-1">
+													Project: {project.name}
+												</p>
+											) : null;
+										})()}
+									</div>
+									<div className="flex items-center gap-2 ml-4">
+										<Badge
+											variant="outline"
+											className="text-xs"
+										>
+											{task.priority}
+										</Badge>
+									</div>
 								</div>
-								<div className="flex items-center gap-2 ml-4">
-									<Badge variant="outline" className="text-xs">
-										{task.priority}
-									</Badge>
-								</div>
-							</div>
-						);
+							);
 						})}
 					</div>
 				)}
@@ -237,4 +271,3 @@ export function TasksList() {
 		</Card>
 	);
 }
-

@@ -6,9 +6,16 @@
 import { useAuth } from "@/lib/auth/auth-context";
 import { useProjects } from "@/lib/hooks/use-projects";
 import { useMyTasks } from "@/lib/hooks/use-tasks";
+import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Badge } from "../ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import {
+	Card,
+	CardContent,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "../ui/card";
 
 export function ProjectsList() {
 	const { data: projects = [], isLoading, error } = useProjects();
@@ -110,61 +117,72 @@ export function ProjectsList() {
 						};
 
 						return (
-							<Card
+							<Link
 								key={project.id}
-								variant="outlined"
-								padding="md"
-								className="cursor-pointer hover:shadow-md transition-shadow"
+								to="/projects/$projectId"
+								params={{ projectId: project.id }}
+								className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary rounded-none"
 							>
-								<CardHeader>
-									<div className="flex items-start justify-between">
-										<CardTitle className="text-lg">{project.name}</CardTitle>
-										<Badge
-											variant={
-												project.status === "active" ? "default" : "secondary"
-											}
-										>
-											{project.status}
-										</Badge>
-									</div>
-								</CardHeader>
-								<CardContent>
-									{project.description && (
-										<p className="text-sm text-muted-foreground line-clamp-2">
-											{project.description}
-										</p>
-									)}
-									<div className="mt-4 space-y-2">
-										<div className="flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">
-												Total Tasks:
-											</span>
-											<span className="font-medium">{stats.totalTasks}</span>
+								<Card
+									variant="outlined"
+									padding="md"
+									className="cursor-pointer hover:shadow-md transition-shadow h-full flex flex-col"
+								>
+									<CardHeader>
+										<div className="flex items-start justify-between">
+											<CardTitle className="text-lg">{project.name}</CardTitle>
+											<Badge
+												variant={
+													project.status === "active" ? "default" : "secondary"
+												}
+											>
+												{project.status}
+											</Badge>
 										</div>
-										<div className="flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">
-												Assigned to Me:
-											</span>
-											<span className="font-medium">{stats.myTasks}</span>
+									</CardHeader>
+									<CardContent className="flex-1">
+										{project.description && (
+											<p className="text-sm text-muted-foreground line-clamp-2">
+												{project.description}
+											</p>
+										)}
+										<div className="mt-4 space-y-2">
+											<div className="flex items-center justify-between text-xs">
+												<span className="text-muted-foreground">
+													Total Tasks:
+												</span>
+												<span className="font-medium">{stats.totalTasks}</span>
+											</div>
+											<div className="flex items-center justify-between text-xs">
+												<span className="text-muted-foreground">
+													Assigned to Me:
+												</span>
+												<span className="font-medium">{stats.myTasks}</span>
+											</div>
+											<div className="flex items-center justify-between text-xs">
+												<span className="text-muted-foreground">
+													Completion:
+												</span>
+												<span className="font-medium">
+													{stats.completionRate}%
+												</span>
+											</div>
+											<div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+												<div
+													className="h-full bg-primary transition-all progress-bar-fill"
+													style={{ width: `${stats.completionRate}%` }}
+												/>
+											</div>
 										</div>
-										<div className="flex items-center justify-between text-xs">
-											<span className="text-muted-foreground">Completion:</span>
-											<span className="font-medium">
-												{stats.completionRate}%
-											</span>
+									</CardContent>
+									<CardFooter>
+										<div className="mt-4 text-xs text-muted-foreground">
+											Created:{" "}
+											{new Date(project.createdAt).toLocaleDateString()}
 										</div>
-										<div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
-											<div
-												className="h-full bg-primary transition-all progress-bar-fill"
-												style={{ width: `${stats.completionRate}%` }}
-											/>
-										</div>
-									</div>
-									<div className="mt-4 text-xs text-muted-foreground">
-										Created: {new Date(project.createdAt).toLocaleDateString()}
-									</div>
-								</CardContent>
-							</Card>
+									</CardFooter>
+								</Card>
+							</Link>
 						);
 					})}
 				</div>

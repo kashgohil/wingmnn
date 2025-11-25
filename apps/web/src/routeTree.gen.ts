@@ -35,6 +35,7 @@ import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects_.$projectId'
 import { Route as InfoModuleRouteImport } from './routes/info/$module'
 import { Route as AuthGoogleCallbackRouteImport } from './routes/auth/google/callback'
 
@@ -168,6 +169,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/projects_/$projectId',
+  path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InfoModuleRoute = InfoModuleRouteImport.update({
   id: '/info/$module',
   path: '/info/$module',
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/wellness': typeof WellnessRoute
   '/info/$module': typeof InfoModuleRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/wellness': typeof WellnessRoute
   '/info/$module': typeof InfoModuleRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRoutesById {
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/wellness': typeof WellnessRoute
   '/info/$module': typeof InfoModuleRoute
+  '/projects_/$projectId': typeof ProjectsProjectIdRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRouteTypes {
@@ -300,6 +309,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wellness'
     | '/info/$module'
+    | '/projects/$projectId'
     | '/auth/google/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wellness'
     | '/info/$module'
+    | '/projects/$projectId'
     | '/auth/google/callback'
   id:
     | '__root__'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wellness'
     | '/info/$module'
+    | '/projects_/$projectId'
     | '/auth/google/callback'
   fileRoutesById: FileRoutesById
 }
@@ -391,6 +403,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WellnessRoute: typeof WellnessRoute
   InfoModuleRoute: typeof InfoModuleRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   AuthGoogleCallbackRoute: typeof AuthGoogleCallbackRoute
 }
 
@@ -578,6 +591,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects_/$projectId': {
+      id: '/projects_/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/info/$module': {
       id: '/info/$module'
       path: '/info/$module'
@@ -623,6 +643,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WellnessRoute: WellnessRoute,
   InfoModuleRoute: InfoModuleRoute,
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   AuthGoogleCallbackRoute: AuthGoogleCallbackRoute,
 }
 export const routeTree = rootRouteImport

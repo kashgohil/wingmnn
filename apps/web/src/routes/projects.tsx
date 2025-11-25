@@ -144,11 +144,11 @@ function ProjectsModule() {
 									{/* Spotlight Stats */}
 									<SpotlightStats />
 
-									{/* Projects List */}
-									<ProjectsList />
-
 									{/* Tasks List */}
 									<TasksList />
+
+									{/* Projects List */}
+									<ProjectsList />
 								</TabsContent>
 
 								<TabsContent value="analytics">

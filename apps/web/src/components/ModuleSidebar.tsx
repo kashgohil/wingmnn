@@ -1,10 +1,11 @@
 import { useTheme } from "@/hooks/use-theme";
+import { listNotifications } from "@/lib/api/notifications.api";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getModuleByPathname, modules } from "@/lib/modules";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "@tanstack/react-router";
 import { catchError } from "@wingmnn/utils/catch-error";
-import { useQuery } from "@tanstack/react-query";
 import {
 	Bell,
 	HelpCircle,
@@ -16,7 +17,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { WingmnnIcon } from "./icons/wingmnnIcon";
+import { NotificationsDrawer } from "./NotificationsDrawer";
 import { Avatar } from "./ui/avatar";
+import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import {
@@ -25,9 +28,6 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "./ui/tooltip";
-import { NotificationsDrawer } from "./NotificationsDrawer";
-import { listNotifications } from "@/lib/api/notifications.api";
-import { Badge } from "./ui/badge";
 
 export function ModuleSidebar() {
 	const location = useLocation();
@@ -128,7 +128,7 @@ export function ModuleSidebar() {
 					<nav className="flex-1 flex flex-col p-3 gap-1">
 						{modules.map((module) => {
 							const Icon = module.icon;
-							const isActive = location.pathname === `/${module.slug}`;
+							const isActive = location.pathname.includes(`/${module.slug}`);
 
 							return (
 								<Tooltip key={module.slug}>
@@ -183,7 +183,9 @@ export function ModuleSidebar() {
 									variant="menu"
 									onClick={() => setNotificationsOpen(true)}
 									className="justify-center p-2! relative"
-									aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+									aria-label={`Notifications${
+										unreadCount > 0 ? ` (${unreadCount} unread)` : ""
+									}`}
 								>
 									<Bell className="h-5 w-5" />
 									{unreadCount > 0 && (
@@ -198,7 +200,8 @@ export function ModuleSidebar() {
 							</TooltipTrigger>
 							<TooltipContent side="right">
 								<p>
-									Notifications{unreadCount > 0 ? ` (${unreadCount} unread)` : ""}
+									Notifications
+									{unreadCount > 0 ? ` (${unreadCount} unread)` : ""}
 								</p>
 							</TooltipContent>
 						</Tooltip>

@@ -1,0 +1,930 @@
+import { ModuleColorProvider } from "@/components/ModuleColorProvider";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { Project } from "@/lib/api/projects.api";
+import type { Task } from "@/lib/api/tasks.api";
+import { useProject } from "@/lib/hooks/use-projects";
+import { useTasks } from "@/lib/hooks/use-tasks";
+import { generateMetadata } from "@/lib/metadata";
+import { getModuleBySlug } from "@/lib/modules";
+import { createFileRoute } from "@tanstack/react-router";
+import type { LucideIcon } from "lucide-react";
+import {
+	CalendarDays,
+	Clock3,
+	KanbanSquare,
+	List,
+	Settings,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
+const module = getModuleBySlug("projects");
+const workViewOrder = ["board", "list", "timeline", "calendar"] as const;
+type WorkView = (typeof workViewOrder)[number];
+type PrimaryTab = "overview" | "analytics";
+
+export const Route = createFileRoute("/projects_/$projectId")({
+	component: ProjectDetailsPage,
+	head: ({ params }) =>
+		generateMetadata({
+			title: `Project ${params.projectId}`,
+			description: "Deep dive into a single project, its work, and analytics.",
+			noindex: true,
+			path: `/projects/${params.projectId}`,
+		}),
+});
+
+function ProjectDetailsPage() {
+	const { projectId } = Route.useParams();
+	const Icon = module?.icon;
+	const { data: project, isLoading, error } = useProject(projectId);
+	const { data: projectTasks = [], isLoading: tasksLoading } = useTasks({
+		projectId,
+	});
+	const [settingsOpen, setSettingsOpen] = useState(false);
+	const [activeTab, setActiveTab] = useState<PrimaryTab>("overview");
+	const [workView, setWorkView] = useState<WorkView>("board");
+	const [initialViewApplied, setInitialViewApplied] = useState(false);
+
+	useEffect(() => {
+		const preferredView = project?.settings?.selectedView;
+
+		if (!initialViewApplied && preferredView) {
+			if (preferredView === "overview" || preferredView === "analytics") {
+				setActiveTab(preferredView);
+			} else if (workViewOrder.includes(preferredView as WorkView)) {
+				setWorkView(preferredView as WorkView);
+			}
+			setInitialViewApplied(true);
+		}
+	}, [project?.settings?.selectedView, initialViewApplied]);
+
+	const taskStats = useMemo(() => {
+		const stats = {
+			total: projectTasks.length,
+			completed: 0,
+			inProgress: 0,
+			overdue: 0,
+			upcoming: 0,
+		};
+
+		if (!projectTasks.length) {
+			return stats;
+		}
+
+		const now = Date.now();
+
+		projectTasks.forEach((task) => {
+			if (task.progress === 100) {
+				stats.completed += 1;
+				return;
+			}
+			stats.inProgress += 1;
+			if (task.dueDate) {
+				const due = new Date(task.dueDate).getTime();
+				if (due < now) {
+					stats.overdue += 1;
+				} else {
+					stats.upcoming += 1;
+				}
+			}
+		});
+
+		return stats;
+	}, [projectTasks]);
+
+	const tasksByStatus = useMemo(() => {
+		if (!projectTasks.length) return [];
+		const grouped = projectTasks.reduce<Record<string, typeof projectTasks>>(
+			(acc, task) => {
+				const key = task.statusId ?? "unassigned";
+				acc[key] = acc[key] || [];
+				acc[key].push(task);
+				return acc;
+			},
+			{},
+		);
+
+		return Object.entries(grouped).map(([statusId, tasks]) => ({
+			statusId,
+			label:
+				statusId === "unassigned"
+					? "Unassigned"
+					: `Status ${statusId.slice(0, 6)}`,
+			tasks,
+		}));
+	}, [projectTasks]);
+
+	const timelineEntries = useMemo(() => {
+		return [...projectTasks]
+			.sort((a, b) => {
+				const aDate = a.dueDate || a.startDate || a.createdAt;
+				const bDate = b.dueDate || b.startDate || b.createdAt;
+				return new Date(aDate).getTime() - new Date(bDate).getTime();
+			})
+			.map((task) => ({
+				id: task.id,
+				title: task.title,
+				date: formatDate(task.dueDate || task.startDate || task.createdAt),
+				priority: task.priority,
+				progress: task.progress ?? 0,
+				description: task.description,
+			}));
+	}, [projectTasks]);
+
+	const calendarBuckets = useMemo(() => {
+		const buckets: Record<string, typeof projectTasks> = {};
+		projectTasks.forEach((task) => {
+			const due = task.dueDate
+				? new Date(task.dueDate)
+				: task.startDate
+				? new Date(task.startDate)
+				: null;
+			const key = due
+				? due.toLocaleDateString(undefined, {
+						month: "short",
+						year: "numeric",
+				  })
+				: "No date";
+			buckets[key] = buckets[key] || [];
+			buckets[key].push(task);
+		});
+		return buckets;
+	}, [projectTasks]);
+
+	const isProjectLoaded = !isLoading && !!project;
+
+	if (error) {
+		return (
+			<div className="p-8">
+				<Card>
+					<CardHeader>
+						<CardTitle>Unable to load project</CardTitle>
+					</CardHeader>
+					<CardContent>
+						{error instanceof Error ? error.message : "Unknown error"}
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
+	return (
+		<ProtectedRoute>
+			<ModuleColorProvider moduleSlug="projects">
+				<div className="min-h-screen text-foreground p-6 md:p-8">
+					<div className="mx-auto flex max-w-7xl flex-col gap-8">
+						<header className="flex flex-col gap-6 rounded-none">
+							<div className="flex flex-wrap items-center justify-between gap-4">
+								<div className="flex flex-wrap items-center gap-4">
+									{Icon && (
+										<div
+											className="retro-border p-6"
+											style={{ backgroundColor: `var(${module?.colorVar})` }}
+										>
+											<Icon className="h-12 w-12 text-primary-foreground" />
+										</div>
+									)}
+									<div>
+										<p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
+											Projects
+										</p>
+										<h1 className="text-4xl font-mono font-bold md:text-4xl">
+											{project?.name ?? "Loading project..."}
+										</h1>
+										{project?.description && (
+											<p className="mt-2 max-w-2xl text-muted-foreground">
+												{project.description}
+											</p>
+										)}
+									</div>
+								</div>
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<Button
+												variant="outline"
+												size="icon"
+												onClick={() => setSettingsOpen(true)}
+												aria-label="Project settings"
+											>
+												<Settings className="h-5 w-5" />
+											</Button>
+										</TooltipTrigger>
+										<TooltipContent>Project settings</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							</div>
+
+							<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+								<SummaryStat
+									label="Total tasks"
+									value={taskStats.total}
+								/>
+								<SummaryStat
+									label="Completed"
+									value={taskStats.completed}
+									trend="positive"
+								/>
+								<SummaryStat
+									label="In progress"
+									value={taskStats.inProgress}
+								/>
+								<SummaryStat
+									label="Overdue"
+									value={taskStats.overdue}
+									trend={taskStats.overdue ? "negative" : undefined}
+								/>
+							</div>
+						</header>
+
+						<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
+							<Tabs
+								value={activeTab}
+								onValueChange={(value) => setActiveTab(value as PrimaryTab)}
+							>
+								<TabsList>
+									<TabsTrigger value="overview">Overview</TabsTrigger>
+									<TabsTrigger value="analytics">Analytics</TabsTrigger>
+								</TabsList>
+
+								<TabsContent
+									value="overview"
+									className="mt-6 space-y-6"
+								>
+									<ProjectOverview
+										project={project}
+										loading={isLoading}
+										taskStats={taskStats}
+										tasksLoading={tasksLoading}
+									/>
+
+									<Card>
+										<CardHeader>
+											<CardTitle>Work views</CardTitle>
+										</CardHeader>
+										<CardContent>
+											<Tabs
+												value={workView}
+												onValueChange={(value) =>
+													setWorkView(value as WorkView)
+												}
+											>
+												<div className="overflow-x-auto">
+													<TabsList className="inline-flex min-w-full justify-start gap-2">
+														<TabTrigger
+															icon={KanbanSquare}
+															value="board"
+															label="Board"
+														/>
+														<TabTrigger
+															icon={List}
+															value="list"
+															label="List"
+														/>
+														<TabTrigger
+															icon={Clock3}
+															value="timeline"
+															label="Timeline"
+														/>
+														<TabTrigger
+															icon={CalendarDays}
+															value="calendar"
+															label="Calendar"
+														/>
+													</TabsList>
+												</div>
+
+												<TabsContent
+													value="board"
+													className="mt-6"
+												>
+													{tasksLoading ? (
+														<LoadingState label="Loading board..." />
+													) : tasksByStatus.length ? (
+														<div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+															{tasksByStatus.map((column) => (
+																<Card
+																	key={column.statusId}
+																	className="bg-muted/40"
+																>
+																	<CardHeader>
+																		<CardTitle className="text-base font-semibold">
+																			{column.label}{" "}
+																			<span className="text-sm text-muted-foreground">
+																				({column.tasks.length})
+																			</span>
+																		</CardTitle>
+																	</CardHeader>
+																	<CardContent className="space-y-3">
+																		{column.tasks.map((task) => (
+																			<div
+																				key={task.id}
+																				className="rounded-none border border-border bg-background p-3"
+																			>
+																				<p className="font-medium">
+																					{task.title}
+																				</p>
+																				{task.description && (
+																					<p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+																						{task.description}
+																					</p>
+																				)}
+																				<div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+																					<span>Priority: {task.priority}</span>
+																					<span>
+																						Progress: {task.progress ?? 0}%
+																					</span>
+																				</div>
+																			</div>
+																		))}
+																	</CardContent>
+																</Card>
+															))}
+														</div>
+													) : (
+														<EmptyState message="No tasks yet. Create tasks to populate the board." />
+													)}
+												</TabsContent>
+
+												<TabsContent
+													value="list"
+													className="mt-6"
+												>
+													{tasksLoading ? (
+														<LoadingState label="Loading tasks..." />
+													) : projectTasks.length ? (
+														<Card>
+															<CardHeader>
+																<CardTitle>Task List</CardTitle>
+															</CardHeader>
+															<CardContent className="overflow-x-auto">
+																<table className="min-w-full text-sm">
+																	<thead>
+																		<tr className="text-left text-muted-foreground">
+																			<th className="py-2 pr-4 font-medium">
+																				Title
+																			</th>
+																			<th className="py-2 pr-4 font-medium">
+																				Priority
+																			</th>
+																			<th className="py-2 pr-4 font-medium">
+																				Due
+																			</th>
+																			<th className="py-2 pr-4 font-medium">
+																				Progress
+																			</th>
+																		</tr>
+																	</thead>
+																	<tbody>
+																		{projectTasks.map((task) => (
+																			<tr
+																				key={task.id}
+																				className="border-t border-border/80"
+																			>
+																				<td className="py-3 pr-4 font-medium">
+																					{task.title}
+																				</td>
+																				<td className="py-3 pr-4 capitalize">
+																					{task.priority}
+																				</td>
+																				<td className="py-3 pr-4">
+																					{task.dueDate
+																						? formatDate(task.dueDate)
+																						: "—"}
+																				</td>
+																				<td className="py-3 pr-4">
+																					{task.progress ?? 0}%
+																				</td>
+																			</tr>
+																		))}
+																	</tbody>
+																</table>
+															</CardContent>
+														</Card>
+													) : (
+														<EmptyState message="No tasks have been added to this project." />
+													)}
+												</TabsContent>
+
+												<TabsContent
+													value="timeline"
+													className="mt-6"
+												>
+													{tasksLoading ? (
+														<LoadingState label="Building timeline..." />
+													) : timelineEntries.length ? (
+														<Card>
+															<CardHeader>
+																<CardTitle>Timeline</CardTitle>
+															</CardHeader>
+															<CardContent className="space-y-4">
+																{timelineEntries.map((entry) => (
+																	<div
+																		key={entry.id}
+																		className="relative pl-6"
+																	>
+																		<div className="absolute left-0 top-2 h-3 w-3 -translate-x-1/2 rounded-full border border-border bg-background" />
+																		<p className="text-xs uppercase tracking-wide text-muted-foreground">
+																			{entry.date}
+																		</p>
+																		<p className="font-semibold">
+																			{entry.title}
+																		</p>
+																		{entry.description && (
+																			<p className="text-sm text-muted-foreground">
+																				{entry.description}
+																			</p>
+																		)}
+																		<div className="text-xs text-muted-foreground">
+																			Progress {entry.progress}% · Priority{" "}
+																			{entry.priority}
+																		</div>
+																	</div>
+																))}
+															</CardContent>
+														</Card>
+													) : (
+														<EmptyState message="No dated tasks yet. Add start or due dates to see a timeline." />
+													)}
+												</TabsContent>
+
+												<TabsContent
+													value="calendar"
+													className="mt-6"
+												>
+													{tasksLoading ? (
+														<LoadingState label="Loading calendar..." />
+													) : Object.keys(calendarBuckets).length ? (
+														<div className="grid gap-4 md:grid-cols-2">
+															{Object.entries(calendarBuckets).map(
+																([bucket, tasks]) => (
+																	<Card key={bucket}>
+																		<CardHeader>
+																			<CardTitle className="text-base font-semibold">
+																				{bucket}{" "}
+																				<span className="text-sm text-muted-foreground">
+																					({tasks.length})
+																				</span>
+																			</CardTitle>
+																		</CardHeader>
+																		<CardContent className="space-y-3">
+																			{tasks.map((task) => (
+																				<div
+																					key={task.id}
+																					className="rounded-none border border-dashed border-border/70 p-3"
+																				>
+																					<p className="font-medium">
+																						{task.title}
+																					</p>
+																					<p className="text-xs text-muted-foreground">
+																						Due{" "}
+																						{task.dueDate
+																							? formatDate(task.dueDate)
+																							: "TBD"}
+																					</p>
+																				</div>
+																			))}
+																		</CardContent>
+																	</Card>
+																),
+															)}
+														</div>
+													) : (
+														<EmptyState message="Dates haven't been scheduled for this project." />
+													)}
+												</TabsContent>
+											</Tabs>
+										</CardContent>
+									</Card>
+								</TabsContent>
+
+								<TabsContent
+									value="analytics"
+									className="mt-6"
+								>
+									<ProjectAnalyticsPanel
+										tasks={projectTasks}
+										loading={tasksLoading}
+									/>
+								</TabsContent>
+							</Tabs>
+						</section>
+					</div>
+				</div>
+				<ProjectSettingsDialog
+					open={settingsOpen}
+					onOpenChange={setSettingsOpen}
+					project={project}
+					loading={!isProjectLoaded}
+				/>
+			</ModuleColorProvider>
+		</ProtectedRoute>
+	);
+}
+
+function SummaryStat({
+	label,
+	value,
+	trend,
+}: {
+	label: string;
+	value: number;
+	trend?: "positive" | "negative";
+}) {
+	return (
+		<div className="rounded-none border border-dashed border-border/60 bg-background/60 p-4">
+			<p className="text-sm uppercase tracking-wide text-muted-foreground">
+				{label}
+			</p>
+			<div className="mt-2 flex items-end gap-2">
+				<p className="text-3xl font-semibold">{value}</p>
+				{trend === "positive" && (
+					<span className="text-xs text-emerald-500">On track</span>
+				)}
+				{trend === "negative" && (
+					<span className="text-xs text-destructive">Needs attention</span>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function ProjectOverview({
+	project,
+	taskStats,
+	loading,
+	tasksLoading,
+}: {
+	project?: Project | null;
+	taskStats: {
+		total: number;
+		completed: number;
+		inProgress: number;
+		overdue: number;
+		upcoming: number;
+	};
+	loading: boolean;
+	tasksLoading: boolean;
+}) {
+	if (loading) {
+		return <LoadingState label="Loading project..." />;
+	}
+
+	if (!project) {
+		return <EmptyState message="Project not found." />;
+	}
+
+	return (
+		<div className="grid gap-6 lg:grid-cols-5">
+			<Card className="lg:col-span-3 retro-border border border-border/70 bg-card/80">
+				<CardContent className="space-y-6 p-6">
+					<div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+						<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+							{module?.icon && (
+								<div
+									className="p-4 retro-border rounded-none"
+									style={{ backgroundColor: `var(${module?.colorVar})` }}
+								>
+									<module.icon className="h-10 w-10 text-primary-foreground" />
+								</div>
+							)}
+							<div>
+								<p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+									Project
+								</p>
+								<h2 className="text-2xl font-bold font-mono uppercase tracking-wider">
+									{project.name}
+								</h2>
+								{project.description && (
+									<p className="mt-2 max-w-2xl text-muted-foreground">
+										{project.description}
+									</p>
+								)}
+							</div>
+						</div>
+						<div className="flex flex-wrap gap-2">
+							{project.status && (
+								<Badge
+									variant={
+										project.status === "active" ? "default" : "secondary"
+									}
+								>
+									Status: {project.status}
+								</Badge>
+							)}
+							{project.priority && (
+								<Badge variant="outline">Priority: {project.priority}</Badge>
+							)}
+							{project.category && (
+								<Badge variant="outline">Category: {project.category}</Badge>
+							)}
+							{project.key && (
+								<Badge variant="outline">Key: {project.key}</Badge>
+							)}
+						</div>
+					</div>
+
+					<div className="grid gap-4 sm:grid-cols-2">
+						<Detail
+							label="Owner"
+							value={
+								project.ownerId
+									? `User ${project.ownerId.slice(0, 6)}`
+									: "Unassigned"
+							}
+						/>
+						<Detail
+							label="Workflow"
+							value={project.workflowId ? project.workflowId : "Default"}
+						/>
+						<Detail
+							label="Start Date"
+							value={project.startDate ? formatDate(project.startDate) : "TBD"}
+						/>
+						<Detail
+							label="End Date"
+							value={project.endDate ? formatDate(project.endDate) : "TBD"}
+						/>
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card className="lg:col-span-2">
+				<CardHeader>
+					<CardTitle>Progress Snapshot</CardTitle>
+				</CardHeader>
+				<CardContent>
+					{tasksLoading ? (
+						<LoadingState label="Loading stats..." />
+					) : (
+						<div className="space-y-3">
+							<ProgressRow
+								label="Completed"
+								value={taskStats.completed}
+								total={taskStats.total}
+							/>
+							<ProgressRow
+								label="In Progress"
+								value={taskStats.inProgress}
+								total={taskStats.total}
+							/>
+							<ProgressRow
+								label="Upcoming"
+								value={taskStats.upcoming}
+								total={taskStats.total}
+							/>
+							<ProgressRow
+								label="Overdue"
+								value={taskStats.overdue}
+								total={taskStats.total}
+								emphasize
+							/>
+						</div>
+					)}
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+	return (
+		<div>
+			<p className="text-xs uppercase tracking-wide text-muted-foreground">
+				{label}
+			</p>
+			<p className="text-sm font-medium text-foreground">{value}</p>
+		</div>
+	);
+}
+
+function ProgressRow({
+	label,
+	value,
+	total,
+	emphasize,
+}: {
+	label: string;
+	value: number;
+	total: number;
+	emphasize?: boolean;
+}) {
+	const percent = total ? Math.round((value / total) * 100) : 0;
+	return (
+		<div>
+			<div className="flex items-center justify-between text-sm">
+				<span
+					className={emphasize ? "text-destructive font-semibold" : undefined}
+				>
+					{label}
+				</span>
+				<span className={!total ? "text-muted-foreground" : "text-foreground"}>
+					{value}
+				</span>
+			</div>
+			<div className="mt-2 h-1.5 rounded-full bg-muted">
+				<div
+					className={`h-full rounded-full ${
+						emphasize ? "bg-destructive" : "bg-primary"
+					}`}
+					style={{ width: `${percent}%` }}
+				/>
+			</div>
+		</div>
+	);
+}
+
+function LoadingState({ label }: { label: string }) {
+	return (
+		<div className="rounded-none border border-dashed border-border/70 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+			{label}
+		</div>
+	);
+}
+
+function EmptyState({ message }: { message: string }) {
+	return (
+		<div className="rounded-none border border-dashed border-border/70 bg-muted/20 p-8 text-center text-muted-foreground">
+			{message}
+		</div>
+	);
+}
+
+function TabTrigger({
+	icon: IconComponent,
+	label,
+	value,
+}: {
+	icon: LucideIcon;
+	label: string;
+	value: WorkView;
+}) {
+	return (
+		<TabsTrigger
+			value={value}
+			className="flex items-center gap-2"
+		>
+			<IconComponent className="h-4 w-4" />
+			{label}
+		</TabsTrigger>
+	);
+}
+
+function ProjectSettingsDialog({
+	open,
+	onOpenChange,
+	project,
+	loading,
+}: {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	project?: Project | null;
+	loading: boolean;
+}) {
+	return (
+		<Dialog
+			open={open}
+			onOpenChange={onOpenChange}
+		>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Project Settings</DialogTitle>
+					<DialogDescription>
+						View the configuration currently applied to this project. Additional
+						editing tools are in progress.
+					</DialogDescription>
+				</DialogHeader>
+				{loading ? (
+					<LoadingState label="Loading settings..." />
+				) : project ? (
+					<div className="space-y-4">
+						<Detail
+							label="Default View"
+							value={project.settings?.selectedView ?? "Overview"}
+						/>
+						<Detail
+							label="Time Tracking"
+							value={
+								project.settings?.enableTimeTracking ? "Enabled" : "Disabled"
+							}
+						/>
+						<Detail
+							label="Notifications"
+							value={
+								project.settings?.enableNotifications ? "Enabled" : "Disabled"
+							}
+						/>
+						<Detail
+							label="Created"
+							value={formatDate(project.createdAt)}
+						/>
+						<Detail
+							label="Updated"
+							value={formatDate(project.updatedAt)}
+						/>
+					</div>
+				) : (
+					<EmptyState message="Project not found." />
+				)}
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function ProjectAnalyticsPanel({
+	tasks,
+	loading,
+}: {
+	tasks: Task[];
+	loading: boolean;
+}) {
+	if (loading) {
+		return <LoadingState label="Loading analytics..." />;
+	}
+
+	if (!tasks.length) {
+		return <EmptyState message="Add tasks to unlock analytics." />;
+	}
+
+	const priorityBreakdown = tasks.reduce<Record<string, number>>(
+		(acc, task) => {
+			acc[task.priority] = (acc[task.priority] || 0) + 1;
+			return acc;
+		},
+		{},
+	);
+
+	const statusBreakdown = tasks.reduce<Record<string, number>>((acc, task) => {
+		const key = task.statusId ?? "unassigned";
+		acc[key] = (acc[key] || 0) + 1;
+		return acc;
+	}, {});
+
+	return (
+		<div className="grid gap-6 lg:grid-cols-2">
+			<Card>
+				<CardHeader>
+					<CardTitle>Priority Breakdown</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-3">
+					{Object.entries(priorityBreakdown).map(([priority, count]) => (
+						<div
+							key={priority}
+							className="flex items-center justify-between rounded-none border border-border/60 px-3 py-2"
+						>
+							<span className="capitalize">{priority}</span>
+							<span className="font-semibold">{count}</span>
+						</div>
+					))}
+				</CardContent>
+			</Card>
+			<Card>
+				<CardHeader>
+					<CardTitle>Status Snapshot</CardTitle>
+				</CardHeader>
+				<CardContent className="space-y-3">
+					{Object.entries(statusBreakdown).map(([statusId, count]) => (
+						<div
+							key={statusId}
+							className="flex items-center justify-between rounded-none border border-border/60 px-3 py-2"
+						>
+							<span>
+								{statusId === "unassigned"
+									? "Unassigned"
+									: `Status ${statusId.slice(0, 6)}`}
+							</span>
+							<span className="font-semibold">{count}</span>
+						</div>
+					))}
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
+
+function formatDate(value: string | null | undefined) {
+	if (!value) return "—";
+	const date = new Date(value);
+	return date.toLocaleDateString(undefined, {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+	});
+}
