@@ -7,6 +7,7 @@ import { addProjectMember } from "@/lib/api/projects.api";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useCreateProject } from "@/lib/hooks/use-projects";
 import { useWorkflows } from "@/lib/hooks/use-workflows";
+import { toast } from "@/lib/toast";
 import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
@@ -166,9 +167,18 @@ export function ProjectCreationDialog({
 
 			resetForm();
 			onOpenChange(false);
+			toast.success("Project created successfully", {
+				description: `"${name.trim()}" has been created and is ready to use.`,
+			});
 		} catch (error) {
 			console.error("Failed to create project:", error);
-			// Error handling could be improved with a toast notification
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to create project. Please try again.";
+			toast.error("Failed to create project", {
+				description: errorMessage,
+			});
 		}
 	};
 

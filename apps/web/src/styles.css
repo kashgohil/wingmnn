@@ -492,6 +492,22 @@ code {
 		box-sizing: border-box;
 	}
 
+	/* Toast styling to match retro theme */
+	[data-sonner-toast] {
+		font-family: "Share Tech Mono", "Courier New", monospace !important;
+	}
+
+	[data-sonner-toast] [data-title] {
+		font-weight: 700 !important;
+		text-transform: uppercase !important;
+		letter-spacing: 0.05em !important;
+	}
+
+	[data-sonner-toast] [data-description] {
+		font-size: 0.875rem !important;
+		line-height: 1.25rem !important;
+	}
+
 	/* Fix legend item alignment - icon and text side by side */
 	.recharts-legend-item {
 		display: inline-flex !important;
@@ -510,5 +526,21 @@ code {
 	.recharts-legend-item .recharts-surface {
 		display: inline-block !important;
 		vertical-align: middle !important;
+	}
+
+	/* Toast styling to match retro theme */
+	[data-sonner-toast] {
+		font-family: "Share Tech Mono", "Courier New", monospace !important;
+	}
+
+	[data-sonner-toast] [data-title] {
+		font-weight: 700 !important;
+		text-transform: uppercase !important;
+		letter-spacing: 0.05em !important;
+	}
+
+	[data-sonner-toast] [data-description] {
+		font-size: 0.875rem !important;
+		line-height: 1.25rem !important;
 	}
 }

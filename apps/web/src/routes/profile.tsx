@@ -58,6 +58,7 @@ import { useAuth } from "../lib/auth/auth-context";
 import { api } from "../lib/eden-client";
 import { useProjects } from "../lib/hooks/use-projects";
 import { useMyTasks } from "../lib/hooks/use-tasks";
+import { toast } from "../lib/toast";
 
 export const Route = createFileRoute("/profile")({
 	component: Profile,
@@ -925,9 +926,16 @@ function EditProfileDialog({ open, onOpenChange }: EditProfileDialogProps) {
 			queryClient.setQueryData(["auth", "user"], data);
 			onOpenChange(false);
 			setError(null);
+			toast.success("Profile updated successfully", {
+				description: "Your profile information has been saved.",
+			});
 		},
 		onError: (error: Error) => {
-			setError(error.message || "Failed to update profile");
+			const errorMessage = error.message || "Failed to update profile";
+			setError(errorMessage);
+			toast.error("Failed to update profile", {
+				description: errorMessage,
+			});
 		},
 	});
 
