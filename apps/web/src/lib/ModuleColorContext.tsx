@@ -1,6 +1,6 @@
 /**
  * ModuleColorContext
- * 
+ *
  * Provides the current module's color to components that need it,
  * especially for dialogs and other portal-rendered components.
  */
@@ -13,9 +13,20 @@ interface ModuleColorContextValue {
 
 const ModuleColorContext = createContext<ModuleColorContextValue | null>(null);
 
-export function useModuleColor() {
+export function useModuleColorStyles() {
 	const context = useContext(ModuleColorContext);
-	return context?.moduleColorVar || "--primary";
+	const moduleColorVar = context?.moduleColorVar;
+
+	return moduleColorVar
+		? ({
+				"--primary": `var(${moduleColorVar})`,
+				"--ring": `var(${moduleColorVar})`,
+				"--chart-1": `var(${moduleColorVar})`,
+				"--primary-border-dark": `color-mix(in srgb, var(${moduleColorVar}) 85%, black)`,
+				"--primary-hover": `color-mix(in srgb, var(${moduleColorVar}) 110%, white)`,
+				"--primary-active": `color-mix(in srgb, var(${moduleColorVar}) 95%, black)`,
+		  } as React.CSSProperties)
+		: undefined;
 }
 
 export function ModuleColorProvider({
@@ -31,4 +42,3 @@ export function ModuleColorProvider({
 		</ModuleColorContext.Provider>
 	);
 }
-

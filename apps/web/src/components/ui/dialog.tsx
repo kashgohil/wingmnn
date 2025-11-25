@@ -2,7 +2,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import * as React from "react";
 
-import { useModuleColor } from "@/lib/ModuleColorContext";
+import { useModuleColorStyles } from "@/lib/ModuleColorContext";
 import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
@@ -29,7 +29,7 @@ const DialogContent = React.forwardRef<
 	React.ElementRef<typeof DialogPrimitive.Content>,
 	React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => {
-	const moduleColorVar = useModuleColor();
+	const moduleColorStyles = useModuleColorStyles();
 
 	return (
 		<DialogPortal>
@@ -41,17 +41,12 @@ const DialogContent = React.forwardRef<
 					className,
 				)}
 				style={
-					{
-						// Apply module color to dialog (works even in portal)
-						"--primary": `var(${moduleColorVar})`,
-						"--ring": `var(${moduleColorVar})`,
-						"--chart-1": `var(${moduleColorVar})`,
-						// For retro button borders
-						"--primary-border-dark": `color-mix(in srgb, var(${moduleColorVar}) 85%, black)`,
-						"--primary-hover": `color-mix(in srgb, var(${moduleColorVar}) 110%, white)`,
-						"--primary-active": `color-mix(in srgb, var(${moduleColorVar}) 95%, black)`,
-						...props.style,
-					} as React.CSSProperties
+					moduleColorStyles
+						? ({
+								...moduleColorStyles,
+								...props.style,
+						  } as React.CSSProperties)
+						: props.style
 				}
 				{...props}
 			>

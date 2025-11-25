@@ -1,4 +1,4 @@
-import { useModuleColor } from "@/lib/ModuleColorContext";
+import { useModuleColorStyles } from "@/lib/ModuleColorContext";
 import { cn } from "@/lib/utils";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import * as React from "react";
@@ -37,7 +37,7 @@ function DatePickerPopoverContent({
 	align = "start",
 	...props
 }: React.ComponentProps<typeof PopoverContent>) {
-	const moduleColorVar = useModuleColor();
+	const moduleColorStyles = useModuleColorStyles();
 
 	return (
 		<PopoverContent
@@ -49,17 +49,13 @@ function DatePickerPopoverContent({
 			)}
 			align={align}
 			style={
-				{
-					// Apply module color to popover content (works even in portal)
-					"--primary": `var(${moduleColorVar})`,
-					"--ring": `var(${moduleColorVar})`,
-					"--chart-1": `var(${moduleColorVar})`,
-					// For retro button borders
-					"--primary-border-dark": `color-mix(in srgb, var(${moduleColorVar}) 85%, black)`,
-					"--primary-hover": `color-mix(in srgb, var(${moduleColorVar}) 110%, white)`,
-					"--primary-active": `color-mix(in srgb, var(${moduleColorVar}) 95%, black)`,
-					...props.style,
-				} as React.CSSProperties
+				moduleColorStyles
+					? ({
+							// Apply module color to popover content (works even in portal)
+							...moduleColorStyles,
+							...props.style,
+					  } as React.CSSProperties)
+					: props.style
 			}
 			{...props}
 		>
