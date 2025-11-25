@@ -138,6 +138,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			tokenManager.setUserData(data.user);
 			queryClient.setQueryData(["auth", "user"], data.user);
 			setError(null);
+			
+			// Handle redirect to intended destination after successful login
+			// Use setTimeout to ensure state updates have been processed
+			setTimeout(() => {
+				navigateWithRedirect(navigate);
+			}, 0);
 		},
 		onError: (error: Error) => {
 			setError(
@@ -219,6 +225,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			tokenManager.setUserData(data.user);
 			queryClient.setQueryData(["auth", "user"], data.user);
 			setError(null);
+			
+			// Handle redirect to intended destination after successful registration
+			// Use setTimeout to ensure state updates have been processed
+			setTimeout(() => {
+				navigateWithRedirect(navigate);
+			}, 0);
 		},
 		onError: (error: Error) => {
 			setError(
@@ -261,22 +273,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 		async (email: string, password: string) => {
 			clearError();
 			await loginMutation.mutateAsync({ email, password });
-
-			// Handle redirect to intended destination after successful login
-			navigateWithRedirect(navigate);
+			// Redirect is handled in onSuccess callback
 		},
-		[clearError, loginMutation, navigate],
+		[clearError, loginMutation],
 	);
 
 	const register = React.useCallback(
 		async (email: string, password: string, name: string) => {
 			clearError();
 			await registerMutation.mutateAsync({ email, password, name });
-
-			// Handle redirect to intended destination after successful registration
-			navigateWithRedirect(navigate);
+			// Redirect is handled in onSuccess callback
 		},
-		[clearError, registerMutation, navigate],
+		[clearError, registerMutation],
 	);
 
 	const value: AuthContextValue = {
