@@ -21,7 +21,22 @@ import { NotificationsDrawer } from "./NotificationsDrawer";
 import { Avatar } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "./ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import {
 	Tooltip,
 	TooltipContent,
@@ -34,6 +49,7 @@ export function ModuleSidebar() {
 	const { user, logout } = useAuth();
 	const { theme, setTheme } = useTheme();
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
+	const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
 	// Fetch notifications to show unread count
 	const { data: notifications = [] } = useQuery({
@@ -60,6 +76,14 @@ export function ModuleSidebar() {
 
 	const cycleTheme = () => {
 		setTheme(theme === "light" ? "dark" : "light");
+	};
+
+	const handleLogout = async () => {
+		const [, error] = await catchError(logout());
+		if (error) {
+			console.error("Logout failed:", error);
+		}
+		setLogoutDialogOpen(false);
 	};
 
 	// All module colors
@@ -248,10 +272,10 @@ export function ModuleSidebar() {
 						</Tooltip>
 
 						{/* Profile */}
-						<Popover>
+						<DropdownMenu>
 							<Tooltip>
 								<TooltipTrigger asChild>
-									<PopoverTrigger asChild>
+									<DropdownMenuTrigger asChild>
 										<Button
 											variant="menu"
 											className="justify-center p-0!"
@@ -263,19 +287,19 @@ export function ModuleSidebar() {
 												style={{ border: "none", boxShadow: "none" }}
 											/>
 										</Button>
-									</PopoverTrigger>
+									</DropdownMenuTrigger>
 								</TooltipTrigger>
 								<TooltipContent side="right">
 									<p>{user?.name || "Profile"}</p>
 								</TooltipContent>
 							</Tooltip>
 
-							<PopoverContent
+							<DropdownMenuContent
 								side="right"
-								align="start"
+								align="end"
 								className="w-56 p-0"
 							>
-								<div className="p-4 border-b border-border flex items-center gap-3">
+								<div className="p-3 border-b border-border flex items-center gap-3">
 									<Avatar
 										name={user?.name || "User"}
 										size="md"
@@ -284,47 +308,77 @@ export function ModuleSidebar() {
 										{user?.name}
 									</p>
 								</div>
-								<div className="p-2">
-									<Button
-										variant="menu-item"
-										asChild
-										className="justify-start text-left"
-									>
-										<Link to="/dashboard">
-											<LayoutDashboard className="h-4 w-4" />
-											Dashboard
-										</Link>
-									</Button>
-									<Button
-										variant="menu-item"
-										asChild
-										className="justify-start text-left"
-									>
-										<Link to="/profile">
-											<UserCircle className="h-4 w-4" />
-											Profile
-										</Link>
-									</Button>
-									<Button
-										variant="menu-item"
-										type="button"
-										className="justify-start text-left"
-										onClick={async () => {
-											const [, error] = await catchError(logout());
-											if (error) {
-												console.error("Logout failed:", error);
-											}
+								<div>
+									<DropdownMenuGroup>
+										<DropdownMenuItem
+											asChild
+											className="px-0 py-0"
+										>
+											<Link
+												to="/dashboard"
+												className="flex w-full items-center gap-2 px-3 py-2 text-left"
+											>
+												<LayoutDashboard className="h-4 w-4" />
+												Dashboard
+											</Link>
+										</DropdownMenuItem>
+										<DropdownMenuItem
+											asChild
+											className="px-0 py-0"
+										>
+											<Link
+												to="/profile"
+												className="flex w-full items-center gap-2 px-3 py-2 text-left"
+											>
+												<UserCircle className="h-4 w-4" />
+												Profile
+											</Link>
+										</DropdownMenuItem>
+									</DropdownMenuGroup>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										className="gap-2 text-destructive focus:text-destructive data-highlighted:text-destructive"
+										onSelect={(event: Event) => {
+											event.preventDefault();
+											setLogoutDialogOpen(true);
 										}}
 									>
 										<LogOut className="h-4 w-4" />
 										Logout
-									</Button>
+									</DropdownMenuItem>
 								</div>
-							</PopoverContent>
-						</Popover>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
 				</div>
 			</aside>
+			<Dialog
+				open={logoutDialogOpen}
+				onOpenChange={setLogoutDialogOpen}
+			>
+				<DialogContent className="max-w-sm">
+					<DialogHeader>
+						<DialogTitle>Log out?</DialogTitle>
+						<DialogDescription>
+							You will need to sign in again to access your workspace.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter className="gap-2 sm:gap-2">
+						<Button
+							variant="outline"
+							onClick={() => setLogoutDialogOpen(false)}
+						>
+							Stay signed in
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleLogout}
+						>
+							Log out
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 			<NotificationsDrawer
 				open={notificationsOpen}
 				onOpenChange={setNotificationsOpen}

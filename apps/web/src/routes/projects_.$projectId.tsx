@@ -51,7 +51,7 @@ import {
 	List,
 	Settings,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 const module = getModuleBySlug("projects");
 const viewTabs = [
@@ -62,6 +62,13 @@ const viewTabs = [
 	"analytics",
 ] as const;
 type ViewTab = (typeof viewTabs)[number];
+
+const PROJECT_VIEW_LABELS: Record<string, string> = {
+	board: "Board View",
+	list: "List View",
+	timeline: "Timeline View",
+	calendar: "Calendar View",
+};
 
 const PROJECT_STATUS_OPTIONS: Array<{
 	value: Project["status"];
@@ -856,13 +863,15 @@ function SummaryStat({
 	);
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value }: { label: string; value: ReactNode }) {
 	return (
-		<div>
+		<div className="space-y-1">
 			<p className="text-xs uppercase tracking-wide text-muted-foreground">
 				{label}
 			</p>
-			<p className="text-sm font-medium text-foreground">{value}</p>
+			<div className="text-sm font-medium text-foreground leading-relaxed">
+				{value}
+			</div>
 		</div>
 	);
 }
@@ -955,42 +964,112 @@ function ProjectSettingsDialog({
 			open={open}
 			onOpenChange={onOpenChange}
 		>
-			<DialogContent>
+			<DialogContent className="max-w-3xl">
 				<DialogHeader>
 					<DialogTitle>Project Settings</DialogTitle>
 					<DialogDescription>
-						View the configuration currently applied to this project. Additional
-						editing tools are in progress.
+						View every configuration that was captured during project creation.
+						Editing tools are coming soon.
 					</DialogDescription>
 				</DialogHeader>
 				{loading ? (
 					<LoadingState label="Loading settings..." />
 				) : project ? (
-					<div className="space-y-4">
-						<Detail
-							label="Default View"
-							value={project.settings?.selectedView ?? "Overview"}
-						/>
-						<Detail
-							label="Time Tracking"
-							value={
-								project.settings?.enableTimeTracking ? "Enabled" : "Disabled"
-							}
-						/>
-						<Detail
-							label="Notifications"
-							value={
-								project.settings?.enableNotifications ? "Enabled" : "Disabled"
-							}
-						/>
-						<Detail
-							label="Created"
-							value={formatDate(project.createdAt)}
-						/>
-						<Detail
-							label="Updated"
-							value={formatDate(project.updatedAt)}
-						/>
+					<div className="space-y-8">
+						<div>
+							<p className="text-xs uppercase tracking-wide text-muted-foreground">
+								Creation Step 1 · Basic Details
+							</p>
+							<div className="mt-3 grid gap-4 md:grid-cols-2">
+								<Detail
+									label="Project Name"
+									value={project.name}
+								/>
+								<Detail
+									label="Task Key Prefix"
+									value={project.key ?? "Not set"}
+								/>
+								<div className="md:col-span-2">
+									<Detail
+										label="Description"
+										value={
+											project.description?.trim() || "No description provided"
+										}
+									/>
+								</div>
+							</div>
+						</div>
+
+						<div>
+							<p className="text-xs uppercase tracking-wide text-muted-foreground">
+								Creation Step 3 · Configuration
+							</p>
+							<div className="mt-3 grid gap-4 md:grid-cols-2">
+								<Detail
+									label="Project Status"
+									value={
+										<div className="space-y-1">
+											<p>{getProjectStatusLabel(project.status)}</p>
+											<p className="text-xs text-muted-foreground">
+												{getProjectStatusDescription(project.status)}
+											</p>
+										</div>
+									}
+								/>
+								<Detail
+									label="Priority"
+									value={getPriorityLabel(project.priority)}
+								/>
+								<Detail
+									label="Category"
+									value={project.category ?? "Not set"}
+								/>
+								<Detail
+									label="Start Date"
+									value={formatDate(project.startDate)}
+								/>
+								<Detail
+									label="End Date"
+									value={formatDate(project.endDate)}
+								/>
+								<Detail
+									label="Default View"
+									value={getProjectViewLabel(project.settings?.selectedView)}
+								/>
+								<Detail
+									label="Time Tracking"
+									value={
+										project.settings?.enableTimeTracking
+											? "Enabled"
+											: "Disabled"
+									}
+								/>
+								<Detail
+									label="Notifications"
+									value={
+										project.settings?.enableNotifications
+											? "Enabled"
+											: "Disabled"
+									}
+								/>
+							</div>
+						</div>
+
+						<div>
+							<p className="text-xs uppercase tracking-wide text-muted-foreground">
+								Operational Metadata
+							</p>
+							<div className="mt-3 grid gap-4 md:grid-cols-2">
+								<Detail
+									label="Created"
+									value={formatDate(project.createdAt)}
+								/>
+								<Detail
+									label="Last Updated"
+									value={formatDate(project.updatedAt)}
+								/>
+							</div>
+						</div>
 					</div>
 				) : (
 					<EmptyState message="Project not found." />
@@ -1083,6 +1162,13 @@ function getProjectStatusDescription(status: Project["status"]) {
 		(option) => option.value === status,
 	);
 	return match?.hint ?? "Status details unavailable.";
+}
+
+function getProjectViewLabel(view?: string | null) {
+	if (!view) {
+		return "Overview";
+	}
+	return PROJECT_VIEW_LABELS[view] ?? view;
 }
 
 function formatDate(value: string | null | undefined) {
