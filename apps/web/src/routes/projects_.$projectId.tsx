@@ -44,6 +44,7 @@ import type { LucideIcon } from "lucide-react";
 import {
 	BarChart3,
 	CalendarDays,
+	ChevronDownIcon,
 	Clock3,
 	Info,
 	KanbanSquare,
@@ -344,11 +345,12 @@ function ProjectDetailsPage() {
 											>
 												<DropdownMenuTrigger asChild>
 													<Button
-														className="uppercase tracking-wide h-10 px-3"
+														className="uppercase tracking-wide h-10 pl-3 pr-2! gap-2"
 														aria-label="Project status"
 														disabled={isUpdatingProjectStatus}
 													>
 														{getProjectStatusLabel(project.status)}
+														<ChevronDownIcon className="size-4 opacity-50" />
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent
@@ -452,7 +454,7 @@ function ProjectDetailsPage() {
 											>
 												{ownerId && (
 													<div className="rounded-none border border-border/60 bg-muted/40 p-3 space-y-2">
-														<p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+														<p className="text-xs uppercase tracking-wide text-muted-foreground mb-0">
 															Owner
 														</p>
 														<div className="flex items-center gap-3">
@@ -474,7 +476,7 @@ function ProjectDetailsPage() {
 																<p className="text-xs text-muted-foreground">
 																	{ownerLoading
 																		? "Retrieving profile details"
-																		: ownerProfile?.bio || "Project owner"}
+																		: ownerProfile?.email || "Project owner"}
 																</p>
 															</div>
 														</div>
