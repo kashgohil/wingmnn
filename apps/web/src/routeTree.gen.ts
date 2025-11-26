@@ -170,7 +170,7 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
-  id: '/projects_/$projectId',
+  id: '/projects/$projectId',
   path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -276,7 +276,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/wellness': typeof WellnessRoute
   '/info/$module': typeof InfoModuleRoute
-  '/projects_/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/auth/google/callback': typeof AuthGoogleCallbackRoute
 }
 export interface FileRouteTypes {
@@ -371,7 +371,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wellness'
     | '/info/$module'
-    | '/projects_/$projectId'
+    | '/projects/$projectId'
     | '/auth/google/callback'
   fileRoutesById: FileRoutesById
 }
@@ -591,8 +591,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects_/$projectId': {
-      id: '/projects_/$projectId'
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
       path: '/projects/$projectId'
       fullPath: '/projects/$projectId'
       preLoaderRoute: typeof ProjectsProjectIdRouteImport

@@ -97,7 +97,7 @@ const PROJECT_STATUS_OPTIONS: Array<{
 	},
 ];
 
-export const Route = createFileRoute("/projects_/$projectId")({
+export const Route = createFileRoute("/projects/$projectId")({
 	component: ProjectDetailsPage,
 	head: ({ params }) =>
 		generateMetadata({

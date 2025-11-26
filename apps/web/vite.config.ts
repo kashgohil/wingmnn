@@ -13,7 +13,13 @@ const config = defineConfig({
 			projects: ["./tsconfig.json"],
 		}),
 		tailwindcss(),
-		tanstackStart(),
+		tanstackStart({
+			router: {
+				experimental: {
+					nonNestedRoutes: true,
+				},
+			},
+		}),
 		viteReact({
 			babel: {
 				plugins: ["babel-plugin-react-compiler"],
