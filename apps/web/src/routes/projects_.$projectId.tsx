@@ -30,7 +30,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Project } from "@/lib/api/projects.api";
+import { getProject, type Project } from "@/lib/api/projects.api";
 import type { Task } from "@/lib/api/tasks.api";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useProject, useUpdateProjectStatus } from "@/lib/hooks/use-projects";
@@ -54,6 +54,8 @@ import {
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 const module = getModuleBySlug("projects");
+const DEFAULT_PROJECT_DESCRIPTION =
+	"Deep dive into a single project, its work, and analytics.";
 const viewTabs = [
 	"board",
 	"list",
@@ -98,14 +100,32 @@ const PROJECT_STATUS_OPTIONS: Array<{
 ];
 
 export const Route = createFileRoute("/projects/$projectId")({
+	loader: async ({ params, context }) => {
+		const { projectId } = params;
+
+		if (!projectId) {
+			throw new Error("Project ID is required");
+		}
+
+		const project = await context.queryClient.ensureQueryData({
+			queryKey: ["projects", projectId],
+			queryFn: () => getProject(projectId),
+		});
+
+		return { project };
+	},
 	component: ProjectDetailsPage,
-	head: ({ params }) =>
-		generateMetadata({
-			title: `Project ${params.projectId}`,
-			description: "Deep dive into a single project, its work, and analytics.",
+	head: ({ params, loaderData }) => {
+		const project = loaderData?.project;
+		const title = project?.name ?? `Project ${params.projectId}`;
+
+		return generateMetadata({
+			title,
+			description: project?.description ?? DEFAULT_PROJECT_DESCRIPTION,
 			noindex: true,
 			path: `/projects/${params.projectId}`,
-		}),
+		});
+	},
 });
 
 function ProjectDetailsPage() {
