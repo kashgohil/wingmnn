@@ -449,7 +449,29 @@ Get detailed information about a specific project.
 			}),
 			body: t.Object({
 				name: t.Optional(t.String({ minLength: 1, maxLength: 200 })),
-				description: t.Optional(t.String({ maxLength: 2000 })),
+				description: t.Optional(
+					t.Union([t.String({ maxLength: 2000 }), t.Null()]),
+				),
+				key: t.Optional(t.Union([t.String({ maxLength: 3 }), t.Null()])),
+				startDate: t.Optional(t.Union([t.String(), t.Null()])),
+				endDate: t.Optional(t.Union([t.String(), t.Null()])),
+				priority: t.Optional(
+					t.Union([
+						t.Literal("low"),
+						t.Literal("medium"),
+						t.Literal("high"),
+						t.Literal("critical"),
+						t.Null(),
+					]),
+				),
+				category: t.Optional(t.Union([t.String({ maxLength: 100 }), t.Null()])),
+				settings: t.Optional(
+					t.Object({
+						enableTimeTracking: t.Optional(t.Boolean()),
+						enableNotifications: t.Optional(t.Boolean()),
+						selectedView: t.Optional(t.String()),
+					}),
+				),
 			}),
 			detail: {
 				tags: ["Projects"],

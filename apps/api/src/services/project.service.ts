@@ -11,6 +11,7 @@ import {
 	userGroupMembers,
 	workflows,
 } from "@wingmnn/db";
+import { validateDateRange } from "../utils/validation";
 
 /**
  * Project settings stored as JSON
@@ -78,7 +79,13 @@ export interface CreateProjectInput {
  */
 export interface UpdateProjectInput {
 	name?: string;
-	description?: string;
+	description?: string | null;
+	key?: string | null;
+	startDate?: string | Date | null;
+	endDate?: string | Date | null;
+	priority?: "low" | "medium" | "high" | "critical" | null;
+	category?: string | null;
+	settings?: ProjectSettings | null;
 }
 
 /**
@@ -378,14 +385,91 @@ export class ProjectService {
 			);
 		}
 
-		const updateData: any = {
+		const existingProject = await db
+			.select()
+			.from(projects)
+			.where(eq(projects.id, projectId))
+			.limit(1);
+
+		if (!existingProject.length) {
+			throw new ProjectError(
+				ProjectErrorCode.PROJECT_NOT_FOUND,
+				"Project not found",
+				404,
+			);
+		}
+
+		const project = existingProject[0];
+
+		const updateData: Record<string, unknown> = {
 			updatedAt: new Date(),
 			updatedBy: userId,
 		};
 
-		if (data.name !== undefined) updateData.name = data.name;
-		if (data.description !== undefined)
-			updateData.description = data.description;
+		if (data.name !== undefined) {
+			updateData.name = data.name;
+		}
+
+		if (data.description !== undefined) {
+			updateData.description =
+				data.description === null ? null : data.description;
+		}
+
+		if (data.key !== undefined) {
+			updateData.key =
+				data.key && data.key.trim().length
+					? data.key
+							.toUpperCase()
+							.replace(/[^A-Z]/g, "")
+							.slice(0, 3) || null
+					: null;
+		}
+
+		const parsedStartDate =
+			data.startDate === undefined
+				? undefined
+				: data.startDate
+				? typeof data.startDate === "string"
+					? new Date(data.startDate)
+					: data.startDate
+				: null;
+
+		const parsedEndDate =
+			data.endDate === undefined
+				? undefined
+				: data.endDate
+				? typeof data.endDate === "string"
+					? new Date(data.endDate)
+					: data.endDate
+				: null;
+
+		if (parsedStartDate !== undefined || parsedEndDate !== undefined) {
+			validateDateRange(
+				parsedStartDate ?? project.startDate,
+				parsedEndDate ?? project.endDate,
+			);
+		}
+
+		if (parsedStartDate !== undefined) {
+			updateData.startDate = parsedStartDate;
+		}
+
+		if (parsedEndDate !== undefined) {
+			updateData.endDate = parsedEndDate;
+		}
+
+		if (data.priority !== undefined) {
+			updateData.priority = data.priority;
+		}
+
+		if (data.category !== undefined) {
+			updateData.category =
+				data.category && data.category.trim().length ? data.category : null;
+		}
+
+		if (data.settings !== undefined) {
+			updateData.settings = data.settings;
+		}
 
 		const result = await db
 			.update(projects)

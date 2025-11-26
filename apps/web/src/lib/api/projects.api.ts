@@ -54,7 +54,13 @@ export interface CreateProjectParams {
 
 export interface UpdateProjectParams {
 	name?: string;
-	description?: string;
+	description?: string | null;
+	key?: string | null;
+	startDate?: string | null;
+	endDate?: string | null;
+	priority?: "low" | "medium" | "high" | "critical" | null;
+	category?: string | null;
+	settings?: ProjectSettings;
 }
 
 /**
