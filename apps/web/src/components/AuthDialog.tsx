@@ -2,7 +2,6 @@ import { catchError } from "@wingmnn/utils/catch-error";
 import { useEffect, useState } from "react";
 import { getApiBaseUrl } from "../lib/api/base-url";
 import { useAuth } from "../lib/auth/auth-context";
-import { rememberRedirectHint } from "../lib/auth/redirect-utils";
 import { GoogleIcon } from "./icons/GoogleIcon";
 import { Button } from "./ui/button";
 import {
@@ -98,24 +97,20 @@ export function AuthDialog({
 }
 
 function LoginForm({ onSuccess }: { onSuccess: () => void }) {
-	const { login, clearError } = useAuth();
+	const { login, isLoading, clearError } = useAuth();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
-		setIsSubmitting(true);
 
-		const redirectParam =
-			typeof window !== "undefined"
-				? new URLSearchParams(window.location.search).get("redirect")
-				: null;
+		const redirectParam = new URLSearchParams(window.location.search).get(
+			"redirect",
+		);
+
 		const shouldCloseDialog = !redirectParam;
-		rememberRedirectHint(redirectParam);
 
 		const [, error] = await catchError(login(email, password));
-		setIsSubmitting(false);
 
 		if (error) {
 			// Error is handled by auth context
@@ -153,7 +148,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
 					onChange={handleEmailChange}
 					placeholder="you@company.com"
 					required
-					disabled={isSubmitting}
+					disabled={isLoading}
 				/>
 			</div>
 			<div className="space-y-2">
@@ -165,16 +160,16 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
 					onChange={handlePasswordChange}
 					placeholder="••••••••"
 					required
-					disabled={isSubmitting}
+					disabled={isLoading}
 				/>
 			</div>
 			<div className="space-y-3">
 				<Button
 					className="w-full py-5 text-base"
 					type="submit"
-					disabled={isSubmitting}
+					disabled={isLoading}
 				>
-					{isSubmitting ? "Logging in..." : "Log in"}
+					{isLoading ? "Logging in..." : "Log in"}
 				</Button>
 				<Button
 					variant="outline"
@@ -205,11 +200,10 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
 }
 
 function SignupForm({ onSuccess }: { onSuccess: () => void }) {
-	const { register, clearError } = useAuth();
+	const { register, isLoading, clearError } = useAuth();
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -220,17 +214,13 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
 			return;
 		}
 
-		setIsSubmitting(true);
+		const redirectParam = new URLSearchParams(window.location.search).get(
+			"redirect",
+		);
 
-		const redirectParam =
-			typeof window !== "undefined"
-				? new URLSearchParams(window.location.search).get("redirect")
-				: null;
 		const shouldCloseDialog = !redirectParam;
-		rememberRedirectHint(redirectParam);
 
 		const [, error] = await catchError(register(email, password, name));
-		setIsSubmitting(false);
 
 		if (error) {
 			// Error is handled by auth context
@@ -272,7 +262,7 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
 					onChange={handleNameChange}
 					placeholder="Alex Wingman"
 					required
-					disabled={isSubmitting}
+					disabled={isLoading}
 				/>
 			</div>
 			<div className="space-y-2">
@@ -284,7 +274,7 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
 					onChange={handleEmailChange}
 					placeholder="ops@studio.com"
 					required
-					disabled={isSubmitting}
+					disabled={isLoading}
 				/>
 			</div>
 			<div className="space-y-2">
@@ -297,7 +287,7 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
 					placeholder="••••••••"
 					required
 					minLength={8}
-					disabled={isSubmitting}
+					disabled={isLoading}
 				/>
 				<p className="text-xs text-muted-foreground">
 					Must be at least 8 characters
@@ -306,9 +296,9 @@ function SignupForm({ onSuccess }: { onSuccess: () => void }) {
 			<Button
 				className="w-full py-5 text-base"
 				type="submit"
-				disabled={isSubmitting}
+				disabled={isLoading}
 			>
-				{isSubmitting ? "Creating account..." : "Create account"}
+				{isLoading ? "Creating account..." : "Create account"}
 			</Button>
 		</form>
 	);

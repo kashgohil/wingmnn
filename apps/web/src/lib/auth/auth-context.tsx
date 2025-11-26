@@ -13,7 +13,6 @@ import { catchError } from "@wingmnn/utils/catch-error";
 import type { ReactNode } from "react";
 import React, { createContext, useContext, useState } from "react";
 import { api } from "../eden-client";
-import { navigateWithRedirect } from "./redirect-utils";
 import { tokenManager } from "./token-manager";
 
 // Auth context value interface
@@ -51,8 +50,11 @@ interface AuthProviderProps {
 // Auth Provider Component
 export function AuthProvider({ children }: AuthProviderProps) {
 	const queryClient = useQueryClient();
-	const navigate = useNavigate();
 	const [error, setError] = useState<string | null>(null);
+
+	// Get navigate hook - should be available in the Wrap component
+	// If it's not (e.g., during SSR initialization), we'll handle it gracefully in callbacks
+	const navigate = useNavigate();
 
 	/**
 	 * Query to verify current authentication status
@@ -98,6 +100,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			email: string;
 			password: string;
 		}) => {
+			setError(null);
+
 			const [response, error] = await catchError(
 				api.auth.login.post({ email, password }),
 			);
@@ -138,12 +142,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			tokenManager.setUserData(data.user);
 			queryClient.setQueryData(["auth", "user"], data.user);
 			setError(null);
-			
-			// Handle redirect to intended destination after successful login
-			// Use setTimeout to ensure state updates have been processed
-			setTimeout(() => {
-				navigateWithRedirect(navigate);
-			}, 0);
+
+			// Redirect to dashboard after successful login
+			// Only navigate on client-side
+			if (typeof window !== "undefined") {
+				try {
+					navigate({ to: "/dashboard" });
+				} catch {
+					// Fallback if router context not available
+					window.location.href = "/dashboard";
+				}
+			}
 		},
 		onError: (error: Error) => {
 			setError(
@@ -165,6 +174,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			password: string;
 			name: string;
 		}) => {
+			setError(null);
+
 			const [response, error] = await catchError(
 				api.auth.register.post({
 					email,
@@ -225,12 +236,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			tokenManager.setUserData(data.user);
 			queryClient.setQueryData(["auth", "user"], data.user);
 			setError(null);
-			
-			// Handle redirect to intended destination after successful registration
-			// Use setTimeout to ensure state updates have been processed
-			setTimeout(() => {
-				navigateWithRedirect(navigate);
-			}, 0);
+
+			// Redirect to dashboard after successful registration
+			// Only navigate on client-side
+			if (typeof window !== "undefined") {
+				try {
+					navigate({ to: "/dashboard" });
+				} catch {
+					// Fallback if router context not available
+					window.location.href = "/dashboard";
+				}
+			}
 		},
 		onError: (error: Error) => {
 			setError(
@@ -257,8 +273,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			queryClient.invalidateQueries({ queryKey: ["auth"] });
 			setError(null);
 
-			// Navigate to intended destination using redirect helper
-			navigateWithRedirect(navigate);
+			// Redirect to home after logout
+			// Only navigate on client-side
+			if (typeof window !== "undefined") {
+				try {
+					navigate({ to: "/" });
+				} catch {
+					// Fallback if router context not available
+					window.location.href = "/";
+				}
+			}
 		},
 	});
 
@@ -271,18 +295,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 	const login = React.useCallback(
 		async (email: string, password: string) => {
-			clearError();
 			await loginMutation.mutateAsync({ email, password });
-			// Redirect is handled in onSuccess callback
 		},
 		[clearError, loginMutation],
 	);
 
 	const register = React.useCallback(
 		async (email: string, password: string, name: string) => {
-			clearError();
 			await registerMutation.mutateAsync({ email, password, name });
-			// Redirect is handled in onSuccess callback
 		},
 		[clearError, registerMutation],
 	);

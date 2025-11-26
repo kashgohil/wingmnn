@@ -25,14 +25,54 @@ export interface WidgetConfig {
 const STORAGE_KEY = "dashboard-widget-config";
 
 const defaultWidgets: WidgetConfig[] = [
-	{ id: "task-count", name: "Total Tasks", description: "Total number of tasks assigned to you", visible: true },
-	{ id: "priority-distribution", name: "Priority Distribution", description: "Tasks grouped by priority", visible: true },
-	{ id: "status-distribution", name: "Status Distribution", description: "Tasks grouped by status", visible: true },
-	{ id: "completion-rate", name: "Completion Rate", description: "Percentage of completed tasks", visible: true },
-	{ id: "overdue-tasks", name: "Overdue Tasks", description: "Tasks past their due date", visible: true },
-	{ id: "upcoming-deadlines", name: "Upcoming Deadlines", description: "Tasks due in the next 7 days", visible: true },
-	{ id: "time-spent", name: "Time Spent", description: "Time tracking analytics", visible: false },
-	{ id: "task-trend", name: "Task Trend", description: "Task completion trends over time", visible: false },
+	{
+		id: "task-count",
+		name: "Total Tasks",
+		description: "Total number of tasks assigned to you",
+		visible: true,
+	},
+	{
+		id: "priority-distribution",
+		name: "Priority Distribution",
+		description: "Tasks grouped by priority",
+		visible: true,
+	},
+	{
+		id: "status-distribution",
+		name: "Status Distribution",
+		description: "Tasks grouped by status",
+		visible: true,
+	},
+	{
+		id: "completion-rate",
+		name: "Completion Rate",
+		description: "Percentage of completed tasks",
+		visible: true,
+	},
+	{
+		id: "overdue-tasks",
+		name: "Overdue Tasks",
+		description: "Tasks past their due date",
+		visible: true,
+	},
+	{
+		id: "upcoming-deadlines",
+		name: "Upcoming Deadlines",
+		description: "Tasks due in the next 7 days",
+		visible: true,
+	},
+	{
+		id: "time-spent",
+		name: "Time Spent",
+		description: "Time tracking analytics",
+		visible: false,
+	},
+	{
+		id: "task-trend",
+		name: "Task Trend",
+		description: "Task completion trends over time",
+		visible: false,
+	},
 ];
 
 function loadWidgetConfig(): WidgetConfig[] {
@@ -84,13 +124,11 @@ function createWidgetStore(): WidgetStore {
 		notify();
 	};
 
-	if (typeof window !== "undefined") {
-		window.addEventListener("storage", (event) => {
-			if (event.key === STORAGE_KEY) {
-				setConfig(loadWidgetConfig(), false);
-			}
-		});
-	}
+	window.addEventListener("storage", (event) => {
+		if (event.key === STORAGE_KEY) {
+			setConfig(loadWidgetConfig(), false);
+		}
+	});
 
 	return {
 		subscribe: (listener) => {
@@ -157,4 +195,3 @@ export function useWidgetVisibility() {
 		updateWidgetConfig,
 	};
 }
-

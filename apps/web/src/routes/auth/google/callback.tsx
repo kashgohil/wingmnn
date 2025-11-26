@@ -1,5 +1,4 @@
 import { useAuth } from "@/lib/auth/auth-context";
-import { navigateWithRedirect } from "@/lib/auth/redirect-utils";
 import { tokenManager } from "@/lib/auth/token-manager";
 import { generateMetadata } from "@/lib/metadata";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,6 +7,7 @@ import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/auth/google/callback")({
 	component: OAuthCallback,
+	ssr: false,
 	head: () =>
 		generateMetadata({
 			title: "Authentication",
@@ -98,7 +98,7 @@ function OAuthCallback() {
 					await queryClient.invalidateQueries({ queryKey: ["auth", "user"] });
 
 					// Redirect - the auth context will have the user data
-					navigateWithRedirect(navigate);
+					navigate({ to: "/dashboard" });
 					return;
 				}
 
