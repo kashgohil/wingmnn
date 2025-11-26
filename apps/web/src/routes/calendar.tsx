@@ -12,6 +12,7 @@ import {
 
 export const Route = createFileRoute("/calendar")({
 	component: CalendarModule,
+	ssr: false,
 	head: () =>
 		generateMetadata({
 			title: "Calendar",

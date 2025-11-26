@@ -12,6 +12,7 @@ import {
 
 export const Route = createFileRoute("/wellness")({
 	component: WellnessModule,
+	ssr: false,
 	head: () =>
 		generateMetadata({
 			title: "Wellness",

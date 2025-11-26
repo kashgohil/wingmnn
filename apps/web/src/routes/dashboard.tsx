@@ -19,6 +19,7 @@ import { useAuth } from "../lib/auth/auth-context";
 
 export const Route = createFileRoute("/dashboard")({
 	component: Dashboard,
+	ssr: false,
 	head: () =>
 		generateMetadata({
 			title: "Dashboard",

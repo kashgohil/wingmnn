@@ -14,6 +14,7 @@ import {
 
 export const Route = createFileRoute("/roadmap")({
 	component: RoadmapPage,
+	ssr: true,
 	head: () =>
 		generateMetadata({
 			title: "Roadmap",

@@ -6,6 +6,7 @@ import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatt
 
 export const Route = createFileRoute("/terms")({
 	component: TermsPage,
+	ssr: true,
 	head: () =>
 		generateMetadata({
 			title: "Terms of Service",

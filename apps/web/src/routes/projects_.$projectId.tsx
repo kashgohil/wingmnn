@@ -100,6 +100,7 @@ const PROJECT_STATUS_OPTIONS: Array<{
 ];
 
 export const Route = createFileRoute("/projects/$projectId")({
+	ssr: false,
 	loader: async ({ params, context }) => {
 		const { projectId } = params;
 

@@ -12,6 +12,7 @@ import {
 
 export const Route = createFileRoute("/feeds")({
 	component: FeedsModule,
+	ssr: false,
 	head: () =>
 		generateMetadata({
 			title: "Feeds",

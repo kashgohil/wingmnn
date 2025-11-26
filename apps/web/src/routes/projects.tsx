@@ -35,6 +35,7 @@ const AnalyticsTab = lazy(() =>
 
 export const Route = createFileRoute("/projects")({
 	component: ProjectsModule,
+	ssr: false,
 	head: () =>
 		generateMetadata({
 			title: "Projects",

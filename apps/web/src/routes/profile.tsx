@@ -62,6 +62,7 @@ import { toast } from "../lib/toast";
 
 export const Route = createFileRoute("/profile")({
 	component: Profile,
+	ssr: false,
 	head: () =>
 		generateMetadata({
 			title: "Profile",

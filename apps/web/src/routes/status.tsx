@@ -7,6 +7,7 @@ import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatt
 
 export const Route = createFileRoute("/status")({
 	component: StatusPage,
+	ssr: true,
 	head: () =>
 		generateMetadata({
 			title: "Status",

@@ -20,6 +20,7 @@ import { Button } from "../../components/ui/button";
 
 export const Route = createFileRoute("/info/$module")({
 	component: ModulePage,
+	ssr: true,
 	loader: ({ params }) => {
 		const module = getModuleBySlug(params.module);
 		if (!module) {

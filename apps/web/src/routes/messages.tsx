@@ -12,6 +12,7 @@ import {
 
 export const Route = createFileRoute("/messages")({
 	component: MessagesModule,
+	ssr: false,
 	head: () =>
 		generateMetadata({
 			title: "Messages",

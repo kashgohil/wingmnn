@@ -1,5 +1,5 @@
 import { generateMetadata } from "@/lib/metadata";
-import { getServerRequest } from "@/lib/server-utils";
+import { isAuthenticated } from "@/lib/server-utils";
 import { pricingPlans, spotlightIntegrations } from "@/lib/site-data";
 import { cn } from "@/lib/utils";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
@@ -51,31 +51,12 @@ export const Route = createFileRoute("/")({
 			return;
 		}
 
-		// Server-side: Check for refresh_token cookie and redirect if authenticated
-		if (typeof window === "undefined") {
-			const request = await getServerRequest();
-
-			if (request) {
-				// Get cookie header from request
-				const cookieHeader =
-					request.headers.get("cookie") || request.headers.get("Cookie") || "";
-
-				// Check if refresh_token cookie exists
-				const hasRefreshToken = cookieHeader.includes("refresh_token=");
-
-				// If refresh token exists, redirect to dashboard
-				// No need to verify with API - just check cookie presence
-				// If token is invalid, dashboard will handle it
-				if (hasRefreshToken) {
-					throw redirect({
-						to: "/dashboard",
-					});
-				}
-			}
+		const authenticated = await isAuthenticated();
+		if (authenticated) {
+			throw redirect({
+				to: "/dashboard",
+			});
 		}
-
-		// Client-side: Do nothing (no client-side redirect needed)
-		// The server already handled the redirect if needed
 	},
 	head: () =>
 		generateMetadata({

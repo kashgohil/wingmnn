@@ -11,6 +11,7 @@ import { Textarea } from "../components/ui/textarea";
 
 export const Route = createFileRoute("/contact")({
 	component: ContactPage,
+	ssr: true,
 	head: () =>
 		generateMetadata({
 			title: "Contact",

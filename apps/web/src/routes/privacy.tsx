@@ -6,6 +6,7 @@ import { SoftRetroGridBackground } from "../components/backgrounds/RetroGridPatt
 
 export const Route = createFileRoute("/privacy")({
 	component: PrivacyPage,
+	ssr: true,
 	head: () =>
 		generateMetadata({
 			title: "Privacy Policy",

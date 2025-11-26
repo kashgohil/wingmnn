@@ -8,6 +8,7 @@ import { Button } from "../components/ui/button";
 
 export const Route = createFileRoute("/careers")({
 	component: CareersPage,
+	ssr: true,
 	head: () =>
 		generateMetadata({
 			title: "Careers",

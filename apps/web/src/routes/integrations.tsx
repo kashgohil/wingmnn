@@ -48,6 +48,7 @@ const integrationStructuredData = {
 };
 
 export const Route = createFileRoute("/integrations")({
+	ssr: true,
 	component: IntegrationsPage,
 	head: () =>
 		generateMetadata({

@@ -5,6 +5,7 @@ import { ProtectedRoute } from "../components/ProtectedRoute";
 
 export const Route = createFileRoute("/mails")({
 	component: MailsModule,
+	ssr: false,
 	head: () =>
 		generateMetadata({
 			title: "Mails",
