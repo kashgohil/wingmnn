@@ -176,7 +176,7 @@ function Profile() {
 		<ProtectedRoute>
 			<TooltipProvider>
 				<div className="h-screen bg-background text-foreground overflow-y-auto">
-					<SoftRetroGridBackground className="absolute h-full overflow-hidden opacity-40" />
+					<SoftRetroGridBackground className="absolute h-full overflow-hidden opacity-30" />
 					<div className="relative mx-auto flex max-w-7xl flex-col gap-8 px-6 pt-36 sm:pt-8 pb-24">
 						<div className="space-y-8">
 							{/* Greeting Card - Similar to Module Heading */}

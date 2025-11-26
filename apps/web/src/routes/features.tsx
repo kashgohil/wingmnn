@@ -53,7 +53,7 @@ function FeaturesPage() {
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
 			{/* Soft retro background pattern */}
-			<SoftRetroGridBackground className="absolute inset-0 overflow-hidden opacity-40" />
+			<SoftRetroGridBackground className="absolute inset-0 overflow-hidden opacity-30" />
 
 			<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 pt-6 pb-24">
 				<FloatingHeader />

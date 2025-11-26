@@ -71,7 +71,7 @@ export const Route = createFileRoute("/integrations")({
 function IntegrationsPage() {
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
-			<SoftRetroGridBackground className="absolute inset-0 overflow-hidden opacity-40" />
+			<SoftRetroGridBackground className="absolute inset-0 overflow-hidden opacity-30" />
 
 			<div className="fixed inset-0 -z-10 overflow-hidden opacity-5">
 				<div

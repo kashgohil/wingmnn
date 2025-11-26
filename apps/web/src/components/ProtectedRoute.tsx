@@ -72,7 +72,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 		<div className="flex h-screen bg-background">
 			<ModuleSidebar />
 			<SoftRetroGridBackground
-				className="z-0 opacity-40"
+				className="z-0 opacity-30"
 				lineColor="var(--border)"
 				backgroundSize="40px 40px"
 			/>

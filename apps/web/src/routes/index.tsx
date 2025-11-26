@@ -275,7 +275,7 @@ function App() {
 	return (
 		<div className="min-h-screen bg-background text-foreground overflow-x-hidden relative">
 			{/* Soft retro background pattern */}
-			<SoftRetroGridBackground className="absolute inset-0 z-0 overflow-hidden opacity-40" />
+			<SoftRetroGridBackground className="absolute inset-0 z-0 overflow-hidden opacity-30" />
 
 			{/* Soft pastel glow effects */}
 			<div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
