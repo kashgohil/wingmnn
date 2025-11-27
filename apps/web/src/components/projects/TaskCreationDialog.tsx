@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
 	Dialog,
@@ -18,8 +19,11 @@ import {
 } from "@/components/ui/select";
 import type { Task } from "@/lib/api/tasks.api";
 import type { WorkflowStatus } from "@/lib/api/workflows.api";
+import { useProject, useProjectMembers } from "@/lib/hooks/use-projects";
 import { useCreateSubtask } from "@/lib/hooks/use-subtasks";
+import { useAddTagToTask, useProjectTags } from "@/lib/hooks/use-tags";
 import { useCreateTask } from "@/lib/hooks/use-tasks";
+import { useUserProfile } from "@/lib/hooks/use-users";
 import { useWorkflow, useWorkflows } from "@/lib/hooks/use-workflows";
 import {
 	getPriorityLabel,
@@ -32,8 +36,24 @@ import { useForm } from "@tanstack/react-form";
 import { catchError } from "@wingmnn/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RichTextEditor } from "../rich-text/RichTextEditor";
+import { Avatar } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { PriorityIcon, PriorityLabel } from "./PriorityLabel";
+
+function AssigneeDisplay({ userId }: { userId: string }) {
+	const { data: user } = useUserProfile(userId);
+	return (
+		<div className="flex items-center gap-2">
+			<Avatar
+				name={user?.name || "User"}
+				size="sm"
+				className="size-6"
+				style={{ boxShadow: "none" }}
+			/>
+			<span className="text-sm">{user?.name || "Loading..."}</span>
+		</div>
+	);
+}
 
 type SubtaskDraft = {
 	title: string;
@@ -66,10 +86,12 @@ type TaskCreationFormValues = {
 	description: string;
 	priority: NonNullable<Task["priority"]>;
 	statusId: string;
+	assignedTo: string;
 	startDate: string;
 	dueDate: string;
 	estimatedHours: string;
 	estimatedPoints: string;
+	tagIds: string[];
 };
 
 function getDefaultTaskCreationValues(): TaskCreationFormValues {
@@ -78,10 +100,12 @@ function getDefaultTaskCreationValues(): TaskCreationFormValues {
 		description: "",
 		priority: "medium",
 		statusId: "",
+		assignedTo: "",
 		startDate: "",
 		dueDate: "",
 		estimatedHours: "",
 		estimatedPoints: "",
+		tagIds: [],
 	};
 }
 
@@ -102,6 +126,7 @@ export function TaskCreationDialog({
 }: TaskCreationDialogProps) {
 	const createTask = useCreateTask();
 	const createSubtask = useCreateSubtask();
+	const addTagToTask = useAddTagToTask();
 	const { data: workflow, isLoading: workflowLoading } = useWorkflow(
 		workflowId ?? null,
 	);
@@ -112,6 +137,9 @@ export function TaskCreationDialog({
 	const subtaskWorkflowId = subtaskWorkflows?.[0]?.id ?? null;
 	const { data: subtaskWorkflow, isLoading: subtaskWorkflowLoading } =
 		useWorkflow(subtaskWorkflowId);
+	const { data: project } = useProject(projectId);
+	const { data: projectMembers = [] } = useProjectMembers(projectId);
+	const { data: projectTags = [] } = useProjectTags(projectId);
 	const subtaskStatusOptions = useMemo<WorkflowStatus[]>(() => {
 		if (!subtaskWorkflow?.statuses?.length) {
 			return [];
@@ -165,6 +193,7 @@ export function TaskCreationDialog({
 					: value.description,
 				priority: value.priority,
 				statusId: value.statusId || undefined,
+				assignedTo: value.assignedTo || undefined,
 				startDate: value.startDate || undefined,
 				dueDate: value.dueDate || undefined,
 				estimatedHours:
@@ -187,6 +216,24 @@ export function TaskCreationDialog({
 							: "Failed to create task. Please try again.",
 				});
 				return;
+			}
+
+			// Add tags to the task
+			if (value.tagIds.length > 0) {
+				for (const tagId of value.tagIds) {
+					const [, tagError] = await catchError(
+						addTagToTask.mutateAsync({ taskId: task.id, tagId }),
+					);
+
+					if (tagError) {
+						toast.error("Failed to add tag", {
+							description:
+								tagError instanceof Error
+									? tagError.message
+									: "Failed to add tag to task.",
+						});
+					}
+				}
 			}
 
 			if (subtasks.length > 0) {
@@ -468,6 +515,119 @@ export function TaskCreationDialog({
 												tracking.
 											</p>
 										)}
+									</div>
+
+									<div className="space-y-2">
+										<Label>Assignee</Label>
+										<form.Field name="assignedTo">
+											{(field) => {
+												// Get user members (excluding user groups)
+												const userMembers = projectMembers.filter(
+													(m) => m.userId !== null,
+												);
+
+												// Get owner ID from project
+												const ownerId = project?.ownerId;
+
+												// Create a set of all user IDs (members + owner) to avoid duplicates
+												const allUserIds = new Set<string>();
+												if (ownerId) {
+													allUserIds.add(ownerId);
+												}
+												userMembers.forEach((member) => {
+													if (member.userId) {
+														allUserIds.add(member.userId);
+													}
+												});
+
+												// Convert to array and sort (owner first if exists)
+												const assigneeOptions = Array.from(allUserIds).sort(
+													(a, b) => {
+														// Put owner first
+														if (a === ownerId) return -1;
+														if (b === ownerId) return 1;
+														return 0;
+													},
+												);
+
+												return (
+													<Select
+														value={field.state.value}
+														onValueChange={(value) =>
+															field.handleChange(value || "")
+														}
+														disabled={createTask.isPending}
+													>
+														<SelectTrigger>
+															<SelectValue placeholder="Unassigned" />
+														</SelectTrigger>
+														<SelectContent>
+															{assigneeOptions.map((userId) => (
+																<SelectItem
+																	key={userId}
+																	value={userId}
+																>
+																	<AssigneeDisplay userId={userId} />
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												);
+											}}
+										</form.Field>
+									</div>
+
+									<div className="space-y-2">
+										<Label>Tags</Label>
+										<form.Field name="tagIds">
+											{(field) => (
+												<div className="space-y-2 max-h-48 overflow-y-auto border-2 border-border retro-border-shadow-sm p-3">
+													{projectTags.length === 0 ? (
+														<p className="text-sm text-muted-foreground">
+															No tags available.
+														</p>
+													) : (
+														projectTags.map((tag) => (
+															<div
+																key={tag.id}
+																className="flex items-center gap-2"
+															>
+																<Checkbox
+																	id={`tag-${tag.id}`}
+																	checked={field.state.value.includes(tag.id)}
+																	onCheckedChange={(checked: boolean) => {
+																		const currentIds = field.state.value;
+																		if (checked) {
+																			field.handleChange([
+																				...currentIds,
+																				tag.id,
+																			]);
+																		} else {
+																			field.handleChange(
+																				currentIds.filter(
+																					(id) => id !== tag.id,
+																				),
+																			);
+																		}
+																	}}
+																	disabled={createTask.isPending}
+																/>
+																<label
+																	htmlFor={`tag-${tag.id}`}
+																	className="flex items-center gap-2 text-sm cursor-pointer flex-1"
+																>
+																	<div
+																		className="size-3 rounded-sm"
+																		style={{ backgroundColor: tag.colorCode }}
+																	/>
+																	<span>{tag.name}</span>
+																</label>
+															</div>
+														))
+													)}
+												</div>
+											)}
+										</form.Field>
 									</div>
 
 									<div className="space-y-2">

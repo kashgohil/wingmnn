@@ -97,3 +97,18 @@ export function useDeleteProject() {
 		},
 	});
 }
+
+/**
+ * Fetch members of a project
+ */
+export function useProjectMembers(projectId: string | null) {
+	return useQuery({
+		queryKey: ["projects", projectId, "members"],
+		queryFn: () => {
+			if (!projectId) throw new Error("Project ID is required");
+			return projectsApi.listProjectMembers(projectId);
+		},
+		enabled: !!projectId,
+		staleTime: 30 * 1000, // 30 seconds
+	});
+}

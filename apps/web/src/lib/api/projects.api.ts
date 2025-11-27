@@ -291,3 +291,39 @@ export async function addProjectMembersBulk(
 
 	return response?.data;
 }
+
+export interface ProjectMember {
+	id: string;
+	projectId: string;
+	userId: string | null;
+	userGroupId: string | null;
+	addedBy: string;
+	addedAt: string;
+}
+
+/**
+ * List members of a project
+ */
+export async function listProjectMembers(projectId: string) {
+	const [response, error] = await catchError(
+		api.projects({ id: projectId }).members.get(),
+	);
+
+	if (error) {
+		throw new Error(
+			error instanceof Error
+				? error.message
+				: "Failed to fetch project members",
+		);
+	}
+
+	if (response?.error) {
+		throw new Error(
+			typeof response.error === "object" && "message" in response.error
+				? String(response.error.message)
+				: "Failed to fetch project members",
+		);
+	}
+
+	return (response?.data as { members?: ProjectMember[] })?.members || [];
+}

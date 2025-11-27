@@ -1,6 +1,7 @@
 import { ModuleColorProvider } from "@/components/ModuleColorProvider";
 import { PriorityLabel } from "@/components/projects/PriorityLabel";
 import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
+import { TaskCard } from "@/components/projects/TaskCard";
 import { useProjectsDialogs } from "@/components/projects/useProjectsDialogs";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
@@ -33,6 +34,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { useProject, useUpdateProjectStatus } from "@/lib/hooks/use-projects";
 import { useTasks } from "@/lib/hooks/use-tasks";
 import { useUserProfile } from "@/lib/hooks/use-users";
+import { useWorkflow } from "@/lib/hooks/use-workflows";
 import { generateMetadata } from "@/lib/metadata";
 import { getModuleBySlug } from "@/lib/modules";
 import { type PriorityValue } from "@/lib/priority";
@@ -129,6 +131,7 @@ function ProjectDetailsPage() {
 	const { data: projectTasks = [], isLoading: tasksLoading } = useTasks({
 		projectId,
 	});
+	const { data: workflow } = useWorkflow(project?.workflowId ?? null);
 	const { openProjectSettings, openTaskCreation } = useProjectsDialogs();
 	const [activeView, setActiveView] = useState<ViewTab>("board");
 	const [initialViewApplied, setInitialViewApplied] = useState(false);
@@ -162,6 +165,20 @@ function ProjectDetailsPage() {
 			}
 		};
 	}, []);
+
+	// Create a map of statusId to status info (name and colorCode)
+	const statusMap = useMemo(() => {
+		const map = new Map<string, { name: string; colorCode: string }>();
+		if (workflow?.statuses) {
+			workflow.statuses.forEach((status) => {
+				map.set(status.id, {
+					name: status.name,
+					colorCode: status.colorCode,
+				});
+			});
+		}
+		return map;
+	}, [workflow]);
 
 	const taskStats = useMemo(() => {
 		const stats = {
@@ -209,15 +226,19 @@ function ProjectDetailsPage() {
 			{},
 		);
 
-		return Object.entries(grouped).map(([statusId, tasks]) => ({
-			statusId,
-			label:
-				statusId === "unassigned"
-					? "Unassigned"
-					: `Status ${statusId.slice(0, 6)}`,
-			tasks,
-		}));
-	}, [projectTasks]);
+		return Object.entries(grouped).map(([statusId, tasks]) => {
+			const statusInfo = statusMap.get(statusId);
+			return {
+				statusId,
+				label:
+					statusId === "unassigned"
+						? "Unassigned"
+						: statusInfo?.name ?? `Status ${statusId.slice(0, 6)}`,
+				colorCode: statusInfo?.colorCode ?? "#808080",
+				tasks,
+			};
+		});
+	}, [projectTasks, statusMap]);
 
 	const timelineEntries = useMemo(() => {
 		return [...projectTasks]
@@ -624,7 +645,11 @@ function ProjectDetailsPage() {
 													className="bg-muted/40"
 												>
 													<CardHeader>
-														<CardTitle className="text-base font-semibold">
+														<CardTitle className="text-base font-semibold flex items-center gap-2">
+															<div
+																className="w-3 h-3 rounded-full"
+																style={{ backgroundColor: column.colorCode }}
+															/>
 															{column.label}{" "}
 															<span className="text-sm text-muted-foreground">
 																({column.tasks.length})
@@ -633,27 +658,11 @@ function ProjectDetailsPage() {
 													</CardHeader>
 													<CardContent className="space-y-3">
 														{column.tasks.map((task) => (
-															<div
+															<TaskCard
 																key={task.id}
-																className="rounded-none border border-border bg-background p-3"
-															>
-																<p className="font-medium">{task.title}</p>
-																<RichTextRenderer
-																	value={task.description}
-																	className="mt-1 line-clamp-2 text-sm text-muted-foreground"
-																/>
-																<div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-																	<span className="inline-flex items-center gap-1.5">
-																		Priority:
-																		<PriorityLabel
-																			priority={task.priority}
-																			className="text-xs text-muted-foreground"
-																			iconClassName="size-3.5"
-																		/>
-																	</span>
-																	<span>Progress: {task.progress ?? 0}%</span>
-																</div>
-															</div>
+																task={task}
+																statusMap={statusMap}
+															/>
 														))}
 													</CardContent>
 												</Card>
@@ -852,6 +861,7 @@ function ProjectDetailsPage() {
 										<ProjectAnalyticsPanel
 											tasks={projectTasks}
 											loading={false}
+											statusMap={statusMap}
 										/>
 									</>
 								)}
@@ -939,9 +949,11 @@ function TabTrigger({
 function ProjectAnalyticsPanel({
 	tasks,
 	loading,
+	statusMap,
 }: {
 	tasks: Task[];
 	loading: boolean;
+	statusMap: Map<string, { name: string; colorCode: string }>;
 }) {
 	if (loading) {
 		return <LoadingState label="Loading analytics..." />;
@@ -997,19 +1009,32 @@ function ProjectAnalyticsPanel({
 					<span className="text-xs text-muted-foreground">Snapshot</span>
 				</CardHeader>
 				<CardContent className="space-y-2">
-					{Object.entries(statusBreakdown).map(([statusId, count]) => (
-						<div
-							key={statusId}
-							className="flex items-center justify-between text-sm"
-						>
-							<span className="text-muted-foreground">
-								{statusId === "unassigned"
-									? "Unassigned"
-									: `Status ${statusId.slice(0, 6)}`}
-							</span>
-							<span className="font-semibold">{count}</span>
-						</div>
-					))}
+					{Object.entries(statusBreakdown).map(([statusId, count]) => {
+						const statusInfo = statusMap.get(statusId);
+						return (
+							<div
+								key={statusId}
+								className="flex items-center justify-between text-sm"
+							>
+								<span className="inline-flex items-center gap-1.5 text-muted-foreground">
+									{statusId === "unassigned" ? (
+										"Unassigned"
+									) : (
+										<>
+											<div
+												className="w-2 h-2 rounded-full"
+												style={{
+													backgroundColor: statusInfo?.colorCode ?? "#808080",
+												}}
+											/>
+											{statusInfo?.name ?? `Status ${statusId.slice(0, 6)}`}
+										</>
+									)}
+								</span>
+								<span className="font-semibold">{count}</span>
+							</div>
+						);
+					})}
 				</CardContent>
 			</Card>
 		</div>
