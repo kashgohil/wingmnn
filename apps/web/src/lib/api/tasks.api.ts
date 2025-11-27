@@ -10,6 +10,7 @@ import { api } from "../eden-client";
 export interface Task {
 	id: string;
 	projectId: string;
+	taskNumber: number;
 	title: string;
 	description: string | null;
 	statusId: string;

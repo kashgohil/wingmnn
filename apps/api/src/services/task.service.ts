@@ -18,6 +18,7 @@ import { projectService } from "./project.service";
 export interface Task {
   id: string;
   projectId: string;
+  taskNumber: number;
   title: string;
   description: string | null;
   statusId: string;
