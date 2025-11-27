@@ -28,8 +28,10 @@ import {
 	useUpdateProjectStatus,
 } from "@/lib/hooks/use-projects";
 import { toast } from "@/lib/toast";
+import { useForm } from "@tanstack/react-form";
+import { catchError } from "@wingmnn/utils";
 import { Plus, X } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 interface ProjectMember {
 	type: "user" | "group";
@@ -85,6 +87,34 @@ const PRIORITY_LABELS: Record<NonNullable<Project["priority"]>, string> = {
 	high: "High",
 	critical: "Critical",
 };
+
+type ProjectSettingsFormValues = {
+	status: Project["status"];
+	startDate: string;
+	endDate: string;
+	priority: "unset" | NonNullable<Project["priority"]>;
+	category: string;
+	key: string;
+	enableTimeTracking: boolean;
+	enableNotifications: boolean;
+	selectedView: string;
+};
+
+function getDefaultFormValues(
+	project?: Project | null,
+): ProjectSettingsFormValues {
+	return {
+		status: project?.status ?? "active",
+		startDate: project?.startDate ?? "",
+		endDate: project?.endDate ?? "",
+		priority: project?.priority ?? "unset",
+		category: project?.category ?? "",
+		key: project?.key ?? "",
+		enableTimeTracking: project?.settings?.enableTimeTracking ?? true,
+		enableNotifications: project?.settings?.enableNotifications ?? true,
+		selectedView: project?.settings?.selectedView ?? "board",
+	};
+}
 
 function Detail({ label, value }: { label: string; value: ReactNode }) {
 	return (
@@ -158,112 +188,83 @@ export function ProjectSettingsDialog({
 	loading,
 	isOwner,
 }: ProjectSettingsDialogProps) {
-	const { mutate: updateProject, isPending: isUpdating } = useUpdateProject();
-	const { mutate: updateProjectStatus, isPending: isUpdatingStatus } =
+	const { mutateAsync: updateProjectAsync, isPending: isUpdating } =
+		useUpdateProject();
+	const { mutateAsync: updateProjectStatusAsync, isPending: isUpdatingStatus } =
 		useUpdateProjectStatus();
-	const [projectStatus, setProjectStatus] = useState<string>("active");
-	const [startDate, setStartDate] = useState<string>("");
-	const [endDate, setEndDate] = useState<string>("");
-	const [priority, setPriority] = useState<string>("medium");
-	const [category, setCategory] = useState<string>("");
-	const [key, setKey] = useState("");
-	const [enableTimeTracking, setEnableTimeTracking] = useState<boolean>(true);
-	const [enableNotifications, setEnableNotifications] = useState<boolean>(true);
-	const [selectedView, setSelectedView] = useState<string>("board");
 	const [members, setMembers] = useState<ProjectMember[]>([]);
-
-	// Initialize state from project data
-	useEffect(() => {
-		if (project) {
-			setProjectStatus(project.status);
-			setStartDate(project.startDate || "");
-			setEndDate(project.endDate || "");
-			setPriority(project.priority ? project.priority : "unset");
-			setCategory(project.category || "");
-			setKey(project.key || "");
-			setEnableTimeTracking(project.settings?.enableTimeTracking ?? true);
-			setEnableNotifications(project.settings?.enableNotifications ?? true);
-			setSelectedView(project.settings?.selectedView || "board");
-			// TODO: Load members from project
-			setMembers([]);
-		}
-	}, [project]);
-
-	const handleSubmit = async () => {
-		if (!project || !isOwner) return;
-
-		try {
-			// Update project status if it changed
-			if (projectStatus !== project.status) {
-				await new Promise<void>((resolve, reject) => {
-					updateProjectStatus(
-						{ id: project.id, status: projectStatus as Project["status"] },
-						{
-							onSuccess: () => resolve(),
-							onError: (error) => reject(error),
-						},
-					);
-				});
+	const form = useForm({
+		defaultValues: getDefaultFormValues(project ?? null),
+		onSubmit: async ({ value }) => {
+			if (!project || !isOwner) {
+				return;
 			}
 
-			// Build settings object
+			if (value.status !== project.status) {
+				const [, error] = await catchError(
+					updateProjectStatusAsync({
+						id: project.id,
+						status: value.status,
+					}),
+				);
+
+				if (error) {
+					toast.error("Failed to update project status", {
+						description: error.message,
+					});
+					return;
+				}
+			}
+
 			const settings: {
 				enableTimeTracking?: boolean;
 				enableNotifications?: boolean;
 				selectedView?: string;
 			} = {};
 
-			if (enableTimeTracking !== undefined) {
-				settings.enableTimeTracking = enableTimeTracking;
-			}
-			if (enableNotifications !== undefined) {
-				settings.enableNotifications = enableNotifications;
-			}
-			if (selectedView) {
-				settings.selectedView = selectedView;
+			if (typeof value.enableTimeTracking === "boolean") {
+				settings.enableTimeTracking = value.enableTimeTracking;
 			}
 
-			await updateProject(
-				{
+			if (typeof value.enableNotifications === "boolean") {
+				settings.enableNotifications = value.enableNotifications;
+			}
+
+			if (value.selectedView) {
+				settings.selectedView = value.selectedView;
+			}
+
+			const priorityParam =
+				value.priority === "unset" || value.priority === "medium"
+					? null
+					: (value.priority as "low" | "high" | "critical");
+
+			const [, error] = await catchError(
+				updateProjectAsync({
 					id: project.id,
 					params: {
-						name: project.name, // Keep existing name
+						name: project.name,
 						description: project.description,
-						key: key.trim() || null,
-						startDate: startDate || null,
-						endDate: endDate || null,
-						priority:
-							priority === "unset" || priority === "medium"
-								? null
-								: (priority as "low" | "high" | "critical"),
-						category: category.trim() || null,
+						key: value.key.trim() || null,
+						startDate: value.startDate || null,
+						endDate: value.endDate || null,
+						priority: priorityParam,
+						category: value.category.trim() || null,
 						settings: Object.keys(settings).length > 0 ? settings : undefined,
 					},
-				},
-				{
-					onSuccess: () => {
-						toast.success("Project settings updated successfully");
-						onOpenChange(false);
-					},
-					onError: (error) => {
-						toast.error(
-							error instanceof Error
-								? error.message
-								: "Failed to update project settings",
-						);
-					},
-				},
+				}),
 			);
-		} catch (error) {
-			console.error("Failed to update project:", error);
-			toast.error("Failed to update project settings", {
-				description:
-					error instanceof Error
-						? error.message
-						: "An unexpected error occurred",
-			});
-		}
-	};
+			if (error) {
+				toast.error("Failed to update project", {
+					description: error.message,
+				});
+				return;
+			}
+
+			toast.success("Project settings updated successfully");
+			onOpenChange(false);
+		},
+	});
 
 	return (
 		<Dialog
@@ -283,101 +284,140 @@ export function ProjectSettingsDialog({
 					<LoadingState label="Loading settings..." />
 				) : project ? (
 					isOwner ? (
-						<div className="space-y-6">
+						<form
+							className="space-y-6"
+							noValidate
+							onSubmit={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								form.handleSubmit();
+							}}
+						>
 							{/* Project Status */}
 							<div>
 								<Label htmlFor="project-status">Initial Status</Label>
-								<Select
-									value={projectStatus}
-									onValueChange={setProjectStatus}
-								>
-									<SelectTrigger
-										id="project-status"
-										className="mt-2"
-									>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="active">Active</SelectItem>
-										<SelectItem value="on_hold">On Hold</SelectItem>
-										<SelectItem value="completed">Completed</SelectItem>
-										<SelectItem value="archived">Archived</SelectItem>
-									</SelectContent>
-								</Select>
+								<form.Field name="status">
+									{(field) => (
+										<Select
+											value={field.state.value}
+											onValueChange={(value: Project["status"]) =>
+												field.handleChange(value)
+											}
+										>
+											<SelectTrigger
+												id="project-status"
+												className="mt-2"
+											>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="active">Active</SelectItem>
+												<SelectItem value="on_hold">On Hold</SelectItem>
+												<SelectItem value="completed">Completed</SelectItem>
+												<SelectItem value="archived">Archived</SelectItem>
+											</SelectContent>
+										</Select>
+									)}
+								</form.Field>
 								<p className="text-xs text-muted-foreground mt-1">
 									Set the initial status for this project
 								</p>
 							</div>
 
 							{/* Project Dates */}
-							<div className="grid grid-cols-2 gap-4">
-								<div>
-									<Label htmlFor="start-date">Start Date</Label>
-									<div className="mt-2">
-										<DatePicker
-											value={startDate}
-											onChange={setStartDate}
-											placeholder="Select start date"
-											max={endDate || undefined}
-										/>
+							<form.Subscribe
+								selector={(state) => ({
+									startDate: state.values.startDate,
+									endDate: state.values.endDate,
+								})}
+							>
+								{({ startDate, endDate }) => (
+									<div className="grid grid-cols-2 gap-4">
+										<div>
+											<Label htmlFor="start-date">Start Date</Label>
+											<div className="mt-2">
+												<form.Field name="startDate">
+													{(field) => (
+														<DatePicker
+															value={field.state.value}
+															onChange={(value) => field.handleChange(value)}
+															placeholder="Select start date"
+															max={endDate || undefined}
+														/>
+													)}
+												</form.Field>
+											</div>
+											<p className="text-xs text-muted-foreground mt-1">
+												Project start date (optional)
+											</p>
+										</div>
+										<div>
+											<Label htmlFor="end-date">End Date</Label>
+											<div className="mt-2">
+												<form.Field name="endDate">
+													{(field) => (
+														<DatePicker
+															value={field.state.value}
+															onChange={(value) => field.handleChange(value)}
+															placeholder="Select end date"
+															min={startDate || undefined}
+														/>
+													)}
+												</form.Field>
+											</div>
+											<p className="text-xs text-muted-foreground mt-1">
+												Project end date (optional)
+											</p>
+										</div>
 									</div>
-									<p className="text-xs text-muted-foreground mt-1">
-										Project start date (optional)
-									</p>
-								</div>
-								<div>
-									<Label htmlFor="end-date">End Date</Label>
-									<div className="mt-2">
-										<DatePicker
-											value={endDate}
-											onChange={setEndDate}
-											placeholder="Select end date"
-											min={startDate || undefined}
-										/>
-									</div>
-									<p className="text-xs text-muted-foreground mt-1">
-										Project end date (optional)
-									</p>
-								</div>
-							</div>
+								)}
+							</form.Subscribe>
 
 							{/* Priority and Category */}
 							<div className="grid grid-cols-2 gap-4">
 								<div>
 									<Label htmlFor="priority">Priority</Label>
-									<Select
-										value={priority}
-										onValueChange={(value) =>
-											setPriority(value === "unset" ? "medium" : value)
-										}
-									>
-										<SelectTrigger
-											id="priority"
-											className="mt-2"
-										>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="unset">Unset</SelectItem>
-											<SelectItem value="low">Low</SelectItem>
-											<SelectItem value="medium">Medium</SelectItem>
-											<SelectItem value="high">High</SelectItem>
-											<SelectItem value="critical">Critical</SelectItem>
-										</SelectContent>
-									</Select>
+									<form.Field name="priority">
+										{(field) => (
+											<Select
+												value={field.state.value}
+												onValueChange={(
+													value: ProjectSettingsFormValues["priority"],
+												) => field.handleChange(value)}
+											>
+												<SelectTrigger
+													id="priority"
+													className="mt-2"
+												>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="unset">Unset</SelectItem>
+													<SelectItem value="low">Low</SelectItem>
+													<SelectItem value="medium">Medium</SelectItem>
+													<SelectItem value="high">High</SelectItem>
+													<SelectItem value="critical">Critical</SelectItem>
+												</SelectContent>
+											</Select>
+										)}
+									</form.Field>
 									<p className="text-xs text-muted-foreground mt-1">
 										Project priority level
 									</p>
 								</div>
 								<div>
 									<Label htmlFor="category">Category</Label>
-									<Input
-										id="category"
-										value={category}
-										onChange={(e) => setCategory(e.target.value)}
-										placeholder="e.g., Development, Marketing"
-										className="mt-2"
-									/>
+									<form.Field name="category">
+										{(field) => (
+											<Input
+												id="category"
+												value={field.state.value}
+												onChange={(e) => field.handleChange(e.target.value)}
+												placeholder="e.g., Development, Marketing"
+												className="mt-2"
+											/>
+										)}
+									</form.Field>
 									<p className="text-xs text-muted-foreground mt-1">
 										Project category or type (optional)
 									</p>
@@ -387,20 +427,24 @@ export function ProjectSettingsDialog({
 							{/* Task Key Prefix */}
 							<div>
 								<Label htmlFor="key">Task Key Prefix</Label>
-								<Input
-									id="key"
-									value={key}
-									onChange={(e) => {
-										const value = e.target.value
-											.toUpperCase()
-											.replace(/[^A-Z]/g, "")
-											.slice(0, 3);
-										setKey(value);
-									}}
-									placeholder="ABC"
-									maxLength={3}
-									className="mt-2 w-24"
-								/>
+								<form.Field name="key">
+									{(field) => (
+										<Input
+											id="key"
+											value={field.state.value}
+											onChange={(e) => {
+												const value = e.target.value
+													.toUpperCase()
+													.replace(/[^A-Z]/g, "")
+													.slice(0, 3);
+												field.handleChange(value);
+											}}
+											placeholder="ABC"
+											maxLength={3}
+											className="mt-2 w-24"
+										/>
+									)}
+								</form.Field>
 								<p className="text-xs text-muted-foreground mt-1">
 									Three-letter prefix for task and subtask IDs (e.g., ABC-001)
 								</p>
@@ -420,11 +464,17 @@ export function ProjectSettingsDialog({
 											Allow team members to track time spent on tasks
 										</p>
 									</div>
-									<Switch
-										id="time-tracking"
-										checked={enableTimeTracking}
-										onCheckedChange={setEnableTimeTracking}
-									/>
+									<form.Field name="enableTimeTracking">
+										{(field) => (
+											<Switch
+												id="time-tracking"
+												checked={field.state.value}
+												onCheckedChange={(checked) =>
+													field.handleChange(Boolean(checked))
+												}
+											/>
+										)}
+									</form.Field>
 								</div>
 								<div className="flex items-center justify-between p-4 retro-border rounded-none">
 									<div className="flex-1">
@@ -438,34 +488,44 @@ export function ProjectSettingsDialog({
 											Send notifications for project updates and changes
 										</p>
 									</div>
-									<Switch
-										id="notifications"
-										checked={enableNotifications}
-										onCheckedChange={setEnableNotifications}
-									/>
+									<form.Field name="enableNotifications">
+										{(field) => (
+											<Switch
+												id="notifications"
+												checked={field.state.value}
+												onCheckedChange={(checked) =>
+													field.handleChange(Boolean(checked))
+												}
+											/>
+										)}
+									</form.Field>
 								</div>
 							</div>
 
 							{/* Default View */}
 							<div>
 								<Label htmlFor="default-view">Default View</Label>
-								<Select
-									value={selectedView}
-									onValueChange={setSelectedView}
-								>
-									<SelectTrigger
-										id="default-view"
-										className="mt-2"
-									>
-										<SelectValue />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="board">Board View</SelectItem>
-										<SelectItem value="list">List View</SelectItem>
-										<SelectItem value="timeline">Timeline View</SelectItem>
-										<SelectItem value="calendar">Calendar View</SelectItem>
-									</SelectContent>
-								</Select>
+								<form.Field name="selectedView">
+									{(field) => (
+										<Select
+											value={field.state.value}
+											onValueChange={(value) => field.handleChange(value)}
+										>
+											<SelectTrigger
+												id="default-view"
+												className="mt-2"
+											>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="board">Board View</SelectItem>
+												<SelectItem value="list">List View</SelectItem>
+												<SelectItem value="timeline">Timeline View</SelectItem>
+												<SelectItem value="calendar">Calendar View</SelectItem>
+											</SelectContent>
+										</Select>
+									)}
+								</form.Field>
 								<p className="text-xs text-muted-foreground mt-1">
 									Choose the default view for this project
 								</p>
@@ -523,19 +583,24 @@ export function ProjectSettingsDialog({
 									variant="outline"
 									onClick={() => onOpenChange(false)}
 									disabled={isUpdating || isUpdatingStatus}
+									type="button"
 								>
 									Cancel
 								</Button>
-								<Button
-									onClick={handleSubmit}
-									disabled={isUpdating || isUpdatingStatus}
-								>
-									{isUpdating || isUpdatingStatus
-										? "Saving..."
-										: "Save Changes"}
-								</Button>
+								<form.Subscribe selector={(state) => state.isSubmitting}>
+									{(isSubmitting) => (
+										<Button
+											type="submit"
+											disabled={isUpdating || isUpdatingStatus || isSubmitting}
+										>
+											{isUpdating || isUpdatingStatus || isSubmitting
+												? "Saving..."
+												: "Save Changes"}
+										</Button>
+									)}
+								</form.Subscribe>
 							</div>
-						</div>
+						</form>
 					) : (
 						<div className="space-y-8">
 							<div>
