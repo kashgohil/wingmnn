@@ -1,9 +1,12 @@
 /**
  * Widget Registry
  * Manages widget visibility and configuration
+ * Uses Zustand for state management with localStorage persistence
  */
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback } from "react";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 export type WidgetId =
 	| "task-count"
@@ -75,118 +78,91 @@ const defaultWidgets: WidgetConfig[] = [
 	},
 ];
 
-function loadWidgetConfig(): WidgetConfig[] {
-	if (typeof window === "undefined") {
+interface WidgetStoreState {
+	widgets: WidgetConfig[];
+	toggleWidget: (widgetId: WidgetId) => void;
+	updateWidgetConfig: (newConfig: WidgetConfig[]) => void;
+}
+
+// Helper function to merge stored config with defaults
+function mergeWithDefaults(stored: WidgetConfig[] | null): WidgetConfig[] {
+	if (!stored) {
 		return defaultWidgets;
 	}
 
-	try {
-		const stored = localStorage.getItem(STORAGE_KEY);
-		if (stored) {
-			const parsed = JSON.parse(stored) as WidgetConfig[];
-			// Merge with defaults to handle new widgets
-			const widgetMap = new Map(parsed.map((w) => [w.id, w]));
-			return defaultWidgets.map((defaultWidget) => {
-				const stored = widgetMap.get(defaultWidget.id);
-				return stored || defaultWidget;
-			});
-		}
-	} catch (error) {
-		console.error("Failed to load widget config:", error);
-	}
-
-	return defaultWidgets;
+	// Merge with defaults to handle new widgets
+	const widgetMap = new Map(stored.map((w) => [w.id, w]));
+	return defaultWidgets.map((defaultWidget) => {
+		const storedWidget = widgetMap.get(defaultWidget.id);
+		return storedWidget || defaultWidget;
+	});
 }
 
-type WidgetStore = {
-	subscribe: (listener: () => void) => () => void;
-	getSnapshot: () => WidgetConfig[];
-	getServerSnapshot: () => WidgetConfig[];
-	toggleWidget: (widgetId: WidgetId) => void;
-	updateWidgetConfig: (newConfig: WidgetConfig[]) => void;
-};
+export const useWidgetStore = create<WidgetStoreState>()(
+	persist(
+		(set) => ({
+			widgets: defaultWidgets,
+			toggleWidget: (widgetId: WidgetId) =>
+				set((state) => ({
+					widgets: state.widgets.map((w) =>
+						w.id === widgetId ? { ...w, visible: !w.visible } : w,
+					),
+				})),
+			updateWidgetConfig: (newConfig: WidgetConfig[]) =>
+				set({ widgets: newConfig }),
+		}),
+		{
+			name: STORAGE_KEY,
+			storage: createJSONStorage(() => localStorage),
+			// Merge stored config with defaults on hydration
+			onRehydrateStorage: () => (state, error) => {
+				if (error) {
+					console.error("Failed to rehydrate widget config:", error);
+					return;
+				}
+				if (state && state.widgets) {
+					// Merge with defaults to handle new widgets
+					state.widgets = mergeWithDefaults(state.widgets);
+				}
+			},
+		},
+	),
+);
 
-function createWidgetStore(): WidgetStore {
-	let config = loadWidgetConfig();
-	const listeners = new Set<() => void>();
-
-	const notify = () => {
-		for (const listener of listeners) {
-			listener();
-		}
-	};
-
-	const setConfig = (nextConfig: WidgetConfig[], persist = true) => {
-		config = nextConfig;
-		if (persist) {
-			saveWidgetConfig(config);
-		}
-		notify();
-	};
-
+// Listen to storage events for cross-tab synchronization
+if (typeof window !== "undefined") {
 	window.addEventListener("storage", (event) => {
-		if (event.key === STORAGE_KEY) {
-			setConfig(loadWidgetConfig(), false);
+		if (event.key === STORAGE_KEY && event.newValue) {
+			try {
+				const parsed = JSON.parse(event.newValue);
+				if (parsed?.state?.widgets) {
+					const merged = mergeWithDefaults(parsed.state.widgets);
+					useWidgetStore.setState({ widgets: merged });
+				}
+			} catch (error) {
+				console.error("Failed to sync widget config:", error);
+			}
 		}
 	});
-
-	return {
-		subscribe: (listener) => {
-			listeners.add(listener);
-			return () => listeners.delete(listener);
-		},
-		getSnapshot: () => config,
-		getServerSnapshot: () => defaultWidgets,
-		toggleWidget: (widgetId) => {
-			setConfig(
-				config.map((w) =>
-					w.id === widgetId ? { ...w, visible: !w.visible } : w,
-				),
-			);
-		},
-		updateWidgetConfig: (newConfig) => setConfig(newConfig),
-	};
-}
-
-const widgetStore = createWidgetStore();
-
-function saveWidgetConfig(config: WidgetConfig[]) {
-	if (typeof window === "undefined") {
-		return;
-	}
-
-	try {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-	} catch (error) {
-		console.error("Failed to save widget config:", error);
-	}
 }
 
 export function useWidgetVisibility() {
-	const config = useSyncExternalStore(
-		widgetStore.subscribe,
-		widgetStore.getSnapshot,
-		widgetStore.getServerSnapshot,
+	const widgets = useWidgetStore((state) => state.widgets);
+	const toggleWidget = useWidgetStore((state) => state.toggleWidget);
+	const updateWidgetConfig = useWidgetStore(
+		(state) => state.updateWidgetConfig,
 	);
 
 	const isWidgetVisible = useCallback(
 		(widgetId: WidgetId): boolean => {
-			return config.find((w) => w.id === widgetId)?.visible ?? true;
+			return widgets.find((w) => w.id === widgetId)?.visible ?? true;
 		},
-		[config],
+		[widgets],
 	);
 
-	const toggleWidget = useCallback((widgetId: WidgetId) => {
-		widgetStore.toggleWidget(widgetId);
-	}, []);
-
 	const getWidgetConfig = useCallback(() => {
-		return config;
-	}, [config]);
-
-	const updateWidgetConfig = useCallback((newConfig: WidgetConfig[]) => {
-		widgetStore.updateWidgetConfig(newConfig);
-	}, []);
+		return widgets;
+	}, [widgets]);
 
 	return {
 		isWidgetVisible,
