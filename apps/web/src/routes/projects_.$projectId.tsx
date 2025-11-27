@@ -598,8 +598,11 @@ function ProjectDetailsPage() {
 								</TabsList>
 							</div>
 
-							<section className="mt-6 rounded-none border border-border bg-card/70 p-4 md:p-6">
-								<TabsContent value="board">
+							<TabsContent
+								value="board"
+								className="mt-6"
+							>
+								<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
 									{tasksLoading ? (
 										<LoadingState label="Loading board..." />
 									) : tasksByStatus.length ? (
@@ -644,9 +647,14 @@ function ProjectDetailsPage() {
 									) : (
 										<EmptyState message="No tasks yet. Create tasks to populate the board." />
 									)}
-								</TabsContent>
+								</section>
+							</TabsContent>
 
-								<TabsContent value="list">
+							<TabsContent
+								value="list"
+								className="mt-6"
+							>
+								<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
 									{tasksLoading ? (
 										<LoadingState label="Loading tasks..." />
 									) : projectTasks.length ? (
@@ -697,9 +705,14 @@ function ProjectDetailsPage() {
 									) : (
 										<EmptyState message="No tasks have been added to this project." />
 									)}
-								</TabsContent>
+								</section>
+							</TabsContent>
 
-								<TabsContent value="timeline">
+							<TabsContent
+								value="timeline"
+								className="mt-6"
+							>
+								<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
 									{tasksLoading ? (
 										<LoadingState label="Building timeline..." />
 									) : timelineEntries.length ? (
@@ -734,9 +747,14 @@ function ProjectDetailsPage() {
 									) : (
 										<EmptyState message="No dated tasks yet. Add start or due dates to see a timeline." />
 									)}
-								</TabsContent>
+								</section>
+							</TabsContent>
 
-								<TabsContent value="calendar">
+							<TabsContent
+								value="calendar"
+								className="mt-6"
+							>
+								<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
 									{tasksLoading ? (
 										<LoadingState label="Loading calendar..." />
 									) : Object.keys(calendarBuckets).length ? (
@@ -775,76 +793,45 @@ function ProjectDetailsPage() {
 									) : (
 										<EmptyState message="Dates haven't been scheduled for this project." />
 									)}
-								</TabsContent>
+								</section>
+							</TabsContent>
 
-								<TabsContent
-									value="analytics"
-									className="space-y-6"
-								>
-									{tasksLoading ? (
-										<LoadingState label="Loading analytics..." />
-									) : (
-										<>
-											<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-												<SummaryStat
-													label="Total tasks"
-													value={taskStats.total}
-												/>
-												<SummaryStat
-													label="Completed"
-													value={taskStats.completed}
-													trend="positive"
-												/>
-												<SummaryStat
-													label="In progress"
-													value={taskStats.inProgress}
-												/>
-												<SummaryStat
-													label="Overdue"
-													value={taskStats.overdue}
-													trend={taskStats.overdue ? "negative" : undefined}
-												/>
-											</div>
-
-											<Card>
-												<CardHeader>
-													<CardTitle>Progress Snapshot</CardTitle>
-												</CardHeader>
-												<CardContent>
-													<div className="space-y-3">
-														<ProgressRow
-															label="Completed"
-															value={taskStats.completed}
-															total={taskStats.total}
-														/>
-														<ProgressRow
-															label="In Progress"
-															value={taskStats.inProgress}
-															total={taskStats.total}
-														/>
-														<ProgressRow
-															label="Upcoming"
-															value={taskStats.upcoming}
-															total={taskStats.total}
-														/>
-														<ProgressRow
-															label="Overdue"
-															value={taskStats.overdue}
-															total={taskStats.total}
-															emphasize
-														/>
-													</div>
-												</CardContent>
-											</Card>
-
-											<ProjectAnalyticsPanel
-												tasks={projectTasks}
-												loading={false}
+							<TabsContent
+								value="analytics"
+								className="mt-6 space-y-6"
+							>
+								{tasksLoading ? (
+									<LoadingState label="Loading analytics..." />
+								) : (
+									<>
+										<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+											<SummaryStat
+												label="Total tasks"
+												value={taskStats.total}
 											/>
-										</>
-									)}
-								</TabsContent>
-							</section>
+											<SummaryStat
+												label="Completed"
+												value={taskStats.completed}
+												trend="positive"
+											/>
+											<SummaryStat
+												label="In progress"
+												value={taskStats.inProgress}
+											/>
+											<SummaryStat
+												label="Overdue"
+												value={taskStats.overdue}
+												trend={taskStats.overdue ? "negative" : undefined}
+											/>
+										</div>
+
+										<ProjectAnalyticsPanel
+											tasks={projectTasks}
+											loading={false}
+										/>
+									</>
+								)}
+							</TabsContent>
 						</Tabs>
 					</div>
 				</div>
@@ -865,56 +852,27 @@ function SummaryStat({
 	trend?: "positive" | "negative";
 }) {
 	return (
-		<div className="rounded-none border border-dashed border-border/60 bg-background/60 p-4">
-			<p className="text-sm uppercase tracking-wide text-muted-foreground">
-				{label}
-			</p>
-			<div className="mt-2 flex items-end gap-2">
-				<p className="text-3xl font-semibold">{value}</p>
+		<Card>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+				<CardTitle className="text-sm font-medium">{label}</CardTitle>
 				{trend === "positive" && (
-					<span className="text-xs text-emerald-500">On track</span>
+					<span className="text-[11px] font-semibold text-emerald-500">
+						On track
+					</span>
 				)}
 				{trend === "negative" && (
-					<span className="text-xs text-destructive">Needs attention</span>
+					<span className="text-[11px] font-semibold text-destructive">
+						Needs attention
+					</span>
 				)}
-			</div>
-		</div>
-	);
-}
-
-function ProgressRow({
-	label,
-	value,
-	total,
-	emphasize,
-}: {
-	label: string;
-	value: number;
-	total: number;
-	emphasize?: boolean;
-}) {
-	const percent = total ? Math.round((value / total) * 100) : 0;
-	return (
-		<div>
-			<div className="flex items-center justify-between text-sm">
-				<span
-					className={emphasize ? "text-destructive font-semibold" : undefined}
-				>
-					{label}
-				</span>
-				<span className={!total ? "text-muted-foreground" : "text-foreground"}>
-					{value}
-				</span>
-			</div>
-			<div className="mt-2 h-1.5 rounded-full bg-muted">
-				<div
-					className={`h-full rounded-full ${
-						emphasize ? "bg-destructive" : "bg-primary"
-					}`}
-					style={{ width: `${percent}%` }}
-				/>
-			</div>
-		</div>
+			</CardHeader>
+			<CardContent>
+				<p className="text-3xl font-bold">{value}</p>
+				<p className="text-xs text-muted-foreground mt-1">
+					vs. previous period
+				</p>
+			</CardContent>
+		</Card>
 	);
 }
 
@@ -984,34 +942,38 @@ function ProjectAnalyticsPanel({
 	}, {});
 
 	return (
-		<div className="grid gap-6 lg:grid-cols-2">
+		<div className="grid gap-4 lg:grid-cols-2">
 			<Card>
-				<CardHeader>
-					<CardTitle>Priority Breakdown</CardTitle>
+				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle className="text-sm font-medium">Priority</CardTitle>
+					<span className="text-xs text-muted-foreground">Breakdown</span>
 				</CardHeader>
-				<CardContent className="space-y-3">
+				<CardContent className="space-y-2">
 					{Object.entries(priorityBreakdown).map(([priority, count]) => (
 						<div
 							key={priority}
-							className="flex items-center justify-between rounded-none border border-border/60 px-3 py-2"
+							className="flex items-center justify-between text-sm"
 						>
-							<span className="capitalize">{priority}</span>
+							<span className="text-muted-foreground capitalize">
+								{priority}
+							</span>
 							<span className="font-semibold">{count}</span>
 						</div>
 					))}
 				</CardContent>
 			</Card>
 			<Card>
-				<CardHeader>
-					<CardTitle>Status Snapshot</CardTitle>
+				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle className="text-sm font-medium">Status</CardTitle>
+					<span className="text-xs text-muted-foreground">Snapshot</span>
 				</CardHeader>
-				<CardContent className="space-y-3">
+				<CardContent className="space-y-2">
 					{Object.entries(statusBreakdown).map(([statusId, count]) => (
 						<div
 							key={statusId}
-							className="flex items-center justify-between rounded-none border border-border/60 px-3 py-2"
+							className="flex items-center justify-between text-sm"
 						>
-							<span>
+							<span className="text-muted-foreground">
 								{statusId === "unassigned"
 									? "Unassigned"
 									: `Status ${statusId.slice(0, 6)}`}
