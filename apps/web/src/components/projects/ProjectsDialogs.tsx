@@ -59,17 +59,15 @@ export function ProjectsDialogs() {
 			/>
 
 			{/* Project Settings Dialog */}
-			{projectSettingsPayload && (
-				<ProjectSettingsDialog
-					open={projectSettingsOpen}
-					onOpenChange={(open) => {
-						if (!open) closeProjectSettings();
-					}}
-					project={project}
-					loading={!isProjectLoaded}
-					isOwner={isOwner}
-				/>
-			)}
+			<ProjectSettingsDialog
+				open={projectSettingsOpen}
+				onOpenChange={(open) => {
+					if (!open) closeProjectSettings();
+				}}
+				project={project}
+				loading={!isProjectLoaded}
+				isOwner={isOwner}
+			/>
 		</>
 	);
 }

@@ -121,7 +121,7 @@ function ProjectDetailsPage() {
 	const { projectId } = Route.useParams();
 	const Icon = module?.icon;
 	const { user } = useAuth();
-	const { data: project, isLoading, error } = useProject(projectId);
+	const { data: project, error } = useProject(projectId);
 	const { data: projectTasks = [], isLoading: tasksLoading } = useTasks({
 		projectId,
 	});
@@ -273,7 +273,6 @@ function ProjectDetailsPage() {
 	const { data: ownerProfile, isLoading: ownerLoading } =
 		useUserProfile(ownerId);
 
-	const isProjectLoaded = !isLoading && !!project;
 	const isOwner = !!(project && user?.id && user.id === project.ownerId);
 
 	const handleStatusChange = (
