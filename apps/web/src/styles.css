@@ -3,6 +3,7 @@
 @import "tailwindcss";
 
 @import "tw-animate-css";
+@import "react-day-picker/style.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -451,6 +452,47 @@ code {
 
 	.dark .retro-button-ghost:hover:not(:disabled) {
 		border-color: #4a7a9a #5b9bd5 #5b9bd5 #4a7a9a;
+	}
+
+	/* Reset react-day-picker default day styles completely */
+	button.rdp-day,
+	.rdp-day,
+	[role="gridcell"] button {
+		background: transparent !important;
+		border: none !important;
+		border-radius: 0 !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		width: 2.25rem !important;
+		height: 2.25rem !important;
+	}
+
+	.rdp-today {
+		background: var(--accent) !important;
+		border: 3px solid var(--border) !important;
+		box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.15),
+			inset 2px 2px 0 rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+	}
+
+	.rdp-selected {
+		background: var(--primary) !important;
+		border: 3px solid var(--border) !important;
+		box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.15),
+			inset 2px 2px 0 rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+	}
+
+	.rdp-month_caption {
+		height: fit-content !important;
+	}
+
+	.rdp-outside,
+	.rdp-outside:hover .rdp-disabled,
+	.rdp-disabled:hover {
+		opacity: 0.4 !important;
+		background: none !important;
+		border: none !important;
+		box-shadow: none !important;
+		pointer-events: none !important;
 	}
 
 	/* Pixelated effect */
