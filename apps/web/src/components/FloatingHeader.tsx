@@ -29,7 +29,7 @@ const PROTECTED_ROUTES = [
 
 function isProtectedRoute(pathname: string): boolean {
 	return PROTECTED_ROUTES.some(
-		(route) => pathname === route || pathname.startsWith(`${route}/`),
+		(route) => pathname === route || pathname.startsWith(`/${route}/`),
 	);
 }
 
@@ -38,20 +38,22 @@ export function FloatingHeader() {
 	const { isAuthenticated, user, logout } = useAuth();
 
 	// Get location - useLocation() should work in route components
-	// If router context isn't available, this will throw, but that's expected
-	// as these components should only be used within route components
+	// Always call the hook (React requirement), but use window.location as fallback if needed
 	const location = useLocation();
+	const pathname =
+		location?.pathname ||
+		(typeof window !== "undefined" ? window.location.pathname : "/");
 
 	const [authDialogOpen, setAuthDialogOpen] = useState(false);
 	const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 
 	// Don't show header on protected routes
-	if (isProtectedRoute(location.pathname)) {
+	if (isProtectedRoute(pathname)) {
 		return null;
 	}
 
 	// Get current module to determine icon color (for consistency, even though header doesn't show on module routes)
-	const currentModule = getModuleByPathname(location.pathname);
+	const currentModule = getModuleByPathname(pathname);
 	const logoColor = currentModule
 		? `var(${currentModule.colorVar})`
 		: "var(--primary)";

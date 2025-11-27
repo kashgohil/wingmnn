@@ -53,8 +53,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 	const [error, setError] = useState<string | null>(null);
 
 	// Get navigate hook - should be available in the Wrap component
-	// If it's not (e.g., during SSR initialization), we'll handle it gracefully in callbacks
+	// Always call the hook (React rules), but handle errors gracefully when using it
 	const navigate = useNavigate();
+
+	// Safe navigation helper that falls back to window.location if router isn't available
+	const safeNavigate = (to: string) => {
+		if (typeof window === "undefined") return;
+		try {
+			navigate({ to });
+		} catch {
+			// Fallback if router context not available
+			window.location.href = to;
+		}
+	};
 
 	/**
 	 * Query to verify current authentication status
@@ -144,15 +155,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			setError(null);
 
 			// Redirect to dashboard after successful login
-			// Only navigate on client-side
-			if (typeof window !== "undefined") {
-				try {
-					navigate({ to: "/dashboard" });
-				} catch {
-					// Fallback if router context not available
-					window.location.href = "/dashboard";
-				}
-			}
+			safeNavigate("/dashboard");
 		},
 		onError: (error: Error) => {
 			setError(
@@ -238,15 +241,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			setError(null);
 
 			// Redirect to dashboard after successful registration
-			// Only navigate on client-side
-			if (typeof window !== "undefined") {
-				try {
-					navigate({ to: "/dashboard" });
-				} catch {
-					// Fallback if router context not available
-					window.location.href = "/dashboard";
-				}
-			}
+			safeNavigate("/dashboard");
 		},
 		onError: (error: Error) => {
 			setError(
@@ -274,15 +269,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 			setError(null);
 
 			// Redirect to home after logout
-			// Only navigate on client-side
-			if (typeof window !== "undefined") {
-				try {
-					navigate({ to: "/" });
-				} catch {
-					// Fallback if router context not available
-					window.location.href = "/";
-				}
-			}
+			safeNavigate("/");
 		},
 	});
 

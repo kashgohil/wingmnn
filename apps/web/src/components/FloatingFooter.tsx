@@ -12,21 +12,28 @@ import { getAllModuleSlugs } from "../lib/modules";
 import { TiktokIcon } from "./icons/TiktokIcon";
 
 // Protected routes that should not show header/footer
-const PROTECTED_ROUTES = ["/dashboard", ...getAllModuleSlugs().map((slug) => `/${slug}`)];
+const PROTECTED_ROUTES = [
+	"/dashboard",
+	...getAllModuleSlugs().map((slug) => `/${slug}`),
+];
 
 function isProtectedRoute(pathname: string): boolean {
-	return PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+	return PROTECTED_ROUTES.some(
+		(route) => pathname === route || pathname.startsWith(`/${route}/`),
+	);
 }
 
 export function FloatingFooter() {
 	// Get location - useLocation() should work in route components
-	// If router context isn't available, this will throw, but that's expected
-	// as these components should only be used within route components
+	// Always call the hook (React requirement), but use window.location as fallback if needed
 	const location = useLocation();
+	const pathname =
+		location?.pathname ||
+		(typeof window !== "undefined" ? window.location.pathname : "/");
 	const currentYear = new Date().getFullYear();
 
 	// Don't show footer on protected routes
-	if (isProtectedRoute(location.pathname)) {
+	if (isProtectedRoute(pathname)) {
 		return null;
 	}
 

@@ -1,7 +1,20 @@
 # shadcn instructions
 
-Use the latest version of Shadcn to install new components, like this command to add a button component:
+Use the latest version of Shadcn to install new components, like this command to
+add a button component:
 
 ```bash
 pnpx shadcn@latest add button
 ```
+
+# runtime instructions
+
+Default to using Bun instead of Node.js.
+
+# package manager instructions
+
+Default to using Bun instead of npm.
+
+# error handing instruction
+
+Use catchError and catchErrorSync utils instead of using try-catch blocks.
