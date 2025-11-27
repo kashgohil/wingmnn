@@ -20,6 +20,11 @@ import type { WorkflowStatus } from "@/lib/api/workflows.api";
 import { useCreateSubtask } from "@/lib/hooks/use-subtasks";
 import { useCreateTask } from "@/lib/hooks/use-tasks";
 import { useWorkflow, useWorkflows } from "@/lib/hooks/use-workflows";
+import {
+	getPriorityLabel,
+	PRIORITY_META,
+	PRIORITY_ORDER,
+} from "@/lib/priority";
 import { isRichTextEmpty } from "@/lib/rich-text";
 import { toast } from "@/lib/toast";
 import { useForm } from "@tanstack/react-form";
@@ -27,6 +32,7 @@ import { catchError } from "@wingmnn/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RichTextEditor } from "../rich-text/RichTextEditor";
 import { Button } from "../ui/button";
+import { PriorityIcon, PriorityLabel } from "./PriorityLabel";
 
 type SubtaskDraft = {
 	title: string;
@@ -48,16 +54,11 @@ function getDefaultSubtaskDraft(initialStatusId?: string): SubtaskDraft {
 	};
 }
 
-const PRIORITY_OPTIONS: Array<{
-	value: NonNullable<Task["priority"]>;
-	label: string;
-	description: string;
-}> = [
-	{ value: "critical", label: "Critical", description: "Highest urgency" },
-	{ value: "high", label: "High", description: "Needs attention soon" },
-	{ value: "medium", label: "Medium", description: "Standard priority" },
-	{ value: "low", label: "Low", description: "Nice to have" },
-];
+const PRIORITY_OPTIONS = PRIORITY_ORDER.map((priority) => ({
+	value: priority,
+	label: PRIORITY_META[priority].label,
+	description: PRIORITY_META[priority].description,
+}));
 
 type TaskCreationFormValues = {
 	title: string;
@@ -379,15 +380,24 @@ export function TaskCreationDialog({
 												}
 											>
 												<SelectTrigger id="task-priority">
-													<SelectValue />
+													<SelectValue asChild>
+														<PriorityLabel
+															priority={field.state.value}
+															className="text-sm font-medium"
+														/>
+													</SelectValue>
 												</SelectTrigger>
 												<SelectContent>
 													{PRIORITY_OPTIONS.map((option) => (
 														<SelectItem
 															key={option.value}
 															value={option.value}
+															description={option.description}
 														>
-															{option.label}
+															<span className="flex items-center gap-2">
+																<PriorityIcon priority={option.value} />
+																{option.label}
+															</span>
 														</SelectItem>
 													))}
 												</SelectContent>
@@ -536,11 +546,22 @@ export function TaskCreationDialog({
 														<p className="font-medium text-foreground">
 															{subtask.title}
 														</p>
-														<p className="text-xs uppercase tracking-wide text-muted-foreground">
-															{`Priority: ${subtask.priority} • Status: ${
-																subtaskStatusLabelMap[subtask.statusId] ??
-																"Auto"
-															}`}
+														<p className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+															<span className="inline-flex items-center gap-1.5">
+																Priority:
+																<span className="inline-flex items-center gap-1.5">
+																	<PriorityIcon
+																		priority={subtask.priority}
+																		className="size-3.5"
+																	/>
+																	{getPriorityLabel(subtask.priority)}
+																</span>
+															</span>
+															<span className="inline-flex items-center gap-1.5">
+																• Status:
+																{subtaskStatusLabelMap[subtask.statusId] ??
+																	"Auto"}
+															</span>
 														</p>
 														{subtask.startDate || subtask.dueDate ? (
 															<p className="text-xs text-muted-foreground">
@@ -661,15 +682,24 @@ export function TaskCreationDialog({
 															}
 														>
 															<SelectTrigger>
-																<SelectValue />
+																<SelectValue asChild>
+																	<PriorityLabel
+																		priority={subtaskForm.priority}
+																		className="text-sm font-medium"
+																	/>
+																</SelectValue>
 															</SelectTrigger>
 															<SelectContent>
 																{PRIORITY_OPTIONS.map((option) => (
 																	<SelectItem
 																		key={option.value}
 																		value={option.value}
+																		description={option.description}
 																	>
-																		{option.label}
+																		<span className="flex items-center gap-2">
+																			<PriorityIcon priority={option.value} />
+																			{option.label}
+																		</span>
 																	</SelectItem>
 																))}
 															</SelectContent>

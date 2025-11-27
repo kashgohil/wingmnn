@@ -27,11 +27,13 @@ import {
 	useUpdateProject,
 	useUpdateProjectStatus,
 } from "@/lib/hooks/use-projects";
+import { PRIORITY_META, PRIORITY_ORDER } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import { useForm } from "@tanstack/react-form";
 import { catchError } from "@wingmnn/utils";
 import { Plus, X } from "lucide-react";
 import { type ReactNode, useState } from "react";
+import { PriorityIcon, PriorityLabel } from "./PriorityLabel";
 
 interface ProjectMember {
 	type: "user" | "group";
@@ -81,12 +83,10 @@ const PROJECT_VIEW_LABELS: Record<string, string> = {
 	calendar: "Calendar View",
 };
 
-const PRIORITY_LABELS: Record<NonNullable<Project["priority"]>, string> = {
-	low: "Low",
-	medium: "Medium",
-	high: "High",
-	critical: "Critical",
-};
+const PROJECT_PRIORITY_OPTIONS = PRIORITY_ORDER.map((priority) => ({
+	value: priority,
+	label: PRIORITY_META[priority].label,
+}));
 
 type ProjectSettingsFormValues = {
 	status: Project["status"];
@@ -174,11 +174,6 @@ function formatDate(value: string | null | undefined) {
 		day: "numeric",
 		year: "numeric",
 	});
-}
-
-function getPriorityLabel(priority: Project["priority"] | null | undefined) {
-	if (!priority) return "Unset";
-	return PRIORITY_LABELS[priority] ?? priority;
 }
 
 export function ProjectSettingsDialog({
@@ -389,14 +384,30 @@ export function ProjectSettingsDialog({
 													id="priority"
 													className="mt-2"
 												>
-													<SelectValue />
+													<SelectValue asChild>
+														<PriorityLabel
+															priority={
+																field.state.value === "unset"
+																	? null
+																	: field.state.value
+															}
+															className="text-sm font-medium"
+														/>
+													</SelectValue>
 												</SelectTrigger>
 												<SelectContent>
 													<SelectItem value="unset">Unset</SelectItem>
-													<SelectItem value="low">Low</SelectItem>
-													<SelectItem value="medium">Medium</SelectItem>
-													<SelectItem value="high">High</SelectItem>
-													<SelectItem value="critical">Critical</SelectItem>
+													{PROJECT_PRIORITY_OPTIONS.map((option) => (
+														<SelectItem
+															key={option.value}
+															value={option.value}
+														>
+															<span className="flex items-center gap-2">
+																<PriorityIcon priority={option.value} />
+																{option.label}
+															</span>
+														</SelectItem>
+													))}
 												</SelectContent>
 											</Select>
 										)}
@@ -645,7 +656,12 @@ export function ProjectSettingsDialog({
 									/>
 									<Detail
 										label="Priority"
-										value={getPriorityLabel(project.priority)}
+										value={
+											<PriorityLabel
+												priority={project.priority}
+												className="justify-end text-right"
+											/>
+										}
 									/>
 									<Detail
 										label="Category"

@@ -1,5 +1,6 @@
 import { ModuleColorProvider } from "@/components/ModuleColorProvider";
 import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
+import { PriorityLabel } from "@/components/projects/PriorityLabel";
 import { useProjectsDialogs } from "@/components/projects/useProjectsDialogs";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
@@ -34,6 +35,7 @@ import { useTasks } from "@/lib/hooks/use-tasks";
 import { useUserProfile } from "@/lib/hooks/use-users";
 import { generateMetadata } from "@/lib/metadata";
 import { getModuleBySlug } from "@/lib/modules";
+import { type PriorityValue } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import { createFileRoute } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
@@ -257,7 +259,15 @@ function ProjectDetailsPage() {
 	const infoDetails = useMemo(() => {
 		if (!project) return [];
 		return [
-			{ label: "Priority", value: getPriorityLabel(project.priority) },
+			{
+				label: "Priority",
+				value: (
+					<PriorityLabel
+						priority={project.priority}
+						className="justify-end"
+					/>
+				),
+			},
 			{ label: "Category", value: project.category ?? "None" },
 			{ label: "Key", value: project.key ?? "None" },
 			{
@@ -633,8 +643,13 @@ function ProjectDetailsPage() {
 																	className="mt-1 line-clamp-2 text-sm text-muted-foreground"
 																/>
 																<div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-																	<span>
-																		Priority: {getPriorityLabel(task.priority)}
+																	<span className="inline-flex items-center gap-1.5">
+																		Priority:
+																		<PriorityLabel
+																			priority={task.priority}
+																			className="text-xs text-muted-foreground"
+																			iconClassName="size-3.5"
+																		/>
 																	</span>
 																	<span>Progress: {task.progress ?? 0}%</span>
 																</div>
@@ -686,7 +701,10 @@ function ProjectDetailsPage() {
 																	{task.title}
 																</td>
 																<td className="py-3 pr-4">
-																	{getPriorityLabel(task.priority)}
+																	<PriorityLabel
+																		priority={task.priority}
+																		className="text-sm"
+																	/>
 																</td>
 																<td className="py-3 pr-4">
 																	{task.dueDate
@@ -736,8 +754,15 @@ function ProjectDetailsPage() {
 															className="text-sm text-muted-foreground"
 														/>
 														<div className="text-xs text-muted-foreground">
-															Progress {entry.progress}% · Priority{" "}
-															{getPriorityLabel(entry.priority)}
+															Progress {entry.progress}% ·{" "}
+															<span className="inline-flex items-center gap-1.5">
+																Priority
+																<PriorityLabel
+																	priority={entry.priority}
+																	className="text-xs text-muted-foreground"
+																	iconClassName="size-3.5"
+																/>
+															</span>
 														</div>
 													</div>
 												))}
@@ -948,17 +973,22 @@ function ProjectAnalyticsPanel({
 					<span className="text-xs text-muted-foreground">Breakdown</span>
 				</CardHeader>
 				<CardContent className="space-y-2">
-					{Object.entries(priorityBreakdown).map(([priority, count]) => (
-						<div
-							key={priority}
-							className="flex items-center justify-between text-sm"
-						>
-							<span className="text-muted-foreground capitalize">
-								{priority}
-							</span>
-							<span className="font-semibold">{count}</span>
-						</div>
-					))}
+					{Object.entries(priorityBreakdown).map(([priority, count]) => {
+						const typedPriority = priority as PriorityValue;
+						return (
+							<div
+								key={priority}
+								className="flex items-center justify-between text-sm"
+							>
+								<PriorityLabel
+									priority={typedPriority}
+									className="text-sm text-muted-foreground"
+									iconClassName="size-3.5"
+								/>
+								<span className="font-semibold">{count}</span>
+							</div>
+						);
+					})}
 				</CardContent>
 			</Card>
 			<Card>
@@ -1010,19 +1040,3 @@ function formatDate(value: string | null | undefined) {
 	});
 }
 
-const PRIORITY_LABELS: Record<
-	NonNullable<Project["priority"] | Task["priority"]>,
-	string
-> = {
-	low: "Low",
-	medium: "Medium",
-	high: "High",
-	critical: "Critical",
-};
-
-function getPriorityLabel(
-	priority: Project["priority"] | Task["priority"] | null | undefined,
-) {
-	if (!priority) return "Unset";
-	return PRIORITY_LABELS[priority] ?? priority;
-}

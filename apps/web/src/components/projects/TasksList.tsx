@@ -6,6 +6,11 @@
 import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
 import { useProjects } from "@/lib/hooks/use-projects";
 import { useMyTasks } from "@/lib/hooks/use-tasks";
+import {
+	getPriorityLabel,
+	PRIORITY_META,
+	type PriorityValue,
+} from "@/lib/priority";
 import { ArrowUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Badge } from "../ui/badge";
@@ -18,9 +23,16 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
+import { PriorityIcon } from "./PriorityLabel";
 
 type SortField = "title" | "priority" | "dueDate" | "createdAt";
 type SortDirection = "asc" | "desc";
+const FILTER_PRIORITY_OPTIONS: PriorityValue[] = [
+	"critical",
+	"high",
+	"medium",
+	"low",
+];
 
 export function TasksList() {
 	const { data: tasks = [], isLoading, error } = useMyTasks();
@@ -149,10 +161,17 @@ export function TasksList() {
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="all">All Priorities</SelectItem>
-							<SelectItem value="critical">Critical</SelectItem>
-							<SelectItem value="high">High</SelectItem>
-							<SelectItem value="medium">Medium</SelectItem>
-							<SelectItem value="low">Low</SelectItem>
+							{FILTER_PRIORITY_OPTIONS.map((priority) => (
+								<SelectItem
+									key={priority}
+									value={priority}
+								>
+									<span className="flex items-center gap-2">
+										<PriorityIcon priority={priority} />
+										{getPriorityLabel(priority)}
+									</span>
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 					<Select
@@ -199,12 +218,9 @@ export function TasksList() {
 					<div className="space-y-3">
 						{filteredAndSortedTasks.map((task) => {
 							const isOverdue = task.dueDate && new Date(task.dueDate) < now;
-							const priorityColors = {
-								critical: "bg-red-500",
-								high: "bg-orange-500",
-								medium: "bg-yellow-500",
-								low: "bg-blue-500",
-							};
+							const priorityMeta = PRIORITY_META[task.priority];
+							const priorityDotClass =
+								priorityMeta?.dotClassName ?? "bg-muted-foreground";
 
 							return (
 								<div
@@ -214,9 +230,7 @@ export function TasksList() {
 									<div className="flex-1">
 										<div className="flex items-center gap-2">
 											<div
-												className={`w-2 h-2 rounded-full ${
-													priorityColors[task.priority]
-												}`}
+												className={`w-2 h-2 rounded-full ${priorityDotClass}`}
 											/>
 											<h4 className="font-medium">{task.title}</h4>
 											{isOverdue && (
@@ -257,9 +271,15 @@ export function TasksList() {
 									<div className="flex items-center gap-2 ml-4">
 										<Badge
 											variant="outline"
-											className="text-xs"
+											className="text-xs gap-1.5"
 										>
-											{task.priority}
+											<PriorityIcon
+												priority={task.priority}
+												className="size-3.5"
+											/>
+											<span className="normal-case">
+												{getPriorityLabel(task.priority)}
+											</span>
 										</Badge>
 									</div>
 								</div>
