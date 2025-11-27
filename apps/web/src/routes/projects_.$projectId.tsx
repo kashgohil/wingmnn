@@ -1,5 +1,6 @@
 import { ModuleColorProvider } from "@/components/ModuleColorProvider";
-import { ProjectSettingsDialog } from "@/components/projects/ProjectSettingsDialog";
+import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
+import { useProjectsDialogs } from "@/components/projects/useProjectsDialogs";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -124,7 +125,7 @@ function ProjectDetailsPage() {
 	const { data: projectTasks = [], isLoading: tasksLoading } = useTasks({
 		projectId,
 	});
-	const [settingsOpen, setSettingsOpen] = useState(false);
+	const { openProjectSettings } = useProjectsDialogs();
 	const [activeView, setActiveView] = useState<ViewTab>("board");
 	const [initialViewApplied, setInitialViewApplied] = useState(false);
 	const [infoOpen, setInfoOpen] = useState(false);
@@ -522,7 +523,7 @@ function ProjectDetailsPage() {
 												<Button
 													variant="outline"
 													size="icon"
-													onClick={() => setSettingsOpen(true)}
+													onClick={() => openProjectSettings({ projectId })}
 													aria-label="Project settings"
 												>
 													<Settings className="h-5 w-5" />
@@ -833,13 +834,8 @@ function ProjectDetailsPage() {
 						</section>
 					</div>
 				</div>
-				<ProjectSettingsDialog
-					open={settingsOpen}
-					onOpenChange={setSettingsOpen}
-					project={project}
-					loading={!isProjectLoaded}
-					isOwner={isOwner}
-				/>
+				{/* All Project Dialogs */}
+				<ProjectsDialogs />
 			</ModuleColorProvider>
 		</ProtectedRoute>
 	);

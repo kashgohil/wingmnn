@@ -4,12 +4,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Settings, Workflow } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 import { ModuleColorProvider } from "../components/ModuleColorProvider";
-import { ProjectCreationDialog } from "../components/projects/ProjectCreationDialog";
+import { ProjectsDialogs } from "../components/projects/ProjectsDialogs";
 import { ProjectsList } from "../components/projects/ProjectsList";
 import { SpotlightStats } from "../components/projects/SpotlightStats";
 import { TasksList } from "../components/projects/TasksList";
-import { WidgetSettings } from "../components/projects/WidgetSettings";
-import { WorkflowManager } from "../components/projects/WorkflowManager";
+import { useProjectsDialogs } from "../components/projects/useProjectsDialogs";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
@@ -48,9 +47,8 @@ function ProjectsModule() {
 	const module = getModuleBySlug("projects");
 	const Icon = module?.icon;
 	const [activeTab, setActiveTab] = useState("overview");
-	const [widgetSettingsOpen, setWidgetSettingsOpen] = useState(false);
-	const [workflowManagerOpen, setWorkflowManagerOpen] = useState(false);
-	const [createProjectOpen, setCreateProjectOpen] = useState(false);
+	const { openCreateProject, openWorkflowManager, openWidgetSettings } =
+		useProjectsDialogs();
 
 	return (
 		<ProtectedRoute>
@@ -87,7 +85,7 @@ function ProjectsModule() {
 												<Button
 													size="icon"
 													variant="outline"
-													onClick={() => setCreateProjectOpen(true)}
+													onClick={openCreateProject}
 												>
 													<Plus className="h-4 w-4" />
 												</Button>
@@ -101,7 +99,7 @@ function ProjectsModule() {
 												<Button
 													variant="outline"
 													size="icon"
-													onClick={() => setWorkflowManagerOpen(true)}
+													onClick={openWorkflowManager}
 												>
 													<Workflow className="h-4 w-4" />
 												</Button>
@@ -115,7 +113,7 @@ function ProjectsModule() {
 												<Button
 													variant="outline"
 													size="icon"
-													onClick={() => setWidgetSettingsOpen(true)}
+													onClick={openWidgetSettings}
 												>
 													<Settings className="h-4 w-4" />
 												</Button>
@@ -171,23 +169,8 @@ function ProjectsModule() {
 						</div>
 					</div>
 
-					{/* Widget Settings Dialog */}
-					<WidgetSettings
-						open={widgetSettingsOpen}
-						onOpenChange={setWidgetSettingsOpen}
-					/>
-
-					{/* Workflow Manager Dialog */}
-					<WorkflowManager
-						open={workflowManagerOpen}
-						onOpenChange={setWorkflowManagerOpen}
-					/>
-
-					{/* Project Creation Dialog */}
-					<ProjectCreationDialog
-						open={createProjectOpen}
-						onOpenChange={setCreateProjectOpen}
-					/>
+					{/* All Project Dialogs */}
+					<ProjectsDialogs />
 				</div>
 			</ModuleColorProvider>
 		</ProtectedRoute>
