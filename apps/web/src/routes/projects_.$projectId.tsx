@@ -2,6 +2,7 @@ import { ModuleColorProvider } from "@/components/ModuleColorProvider";
 import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
 import { useProjectsDialogs } from "@/components/projects/useProjectsDialogs";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -627,11 +628,10 @@ function ProjectDetailsPage() {
 																className="rounded-none border border-border bg-background p-3"
 															>
 																<p className="font-medium">{task.title}</p>
-																{task.description && (
-																	<p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-																		{task.description}
-																	</p>
-																)}
+																<RichTextRenderer
+																	value={task.description}
+																	className="mt-1 line-clamp-2 text-sm text-muted-foreground"
+																/>
 																<div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
 																	<span>
 																		Priority: {getPriorityLabel(task.priority)}
@@ -731,11 +731,10 @@ function ProjectDetailsPage() {
 															{entry.date}
 														</p>
 														<p className="font-semibold">{entry.title}</p>
-														{entry.description && (
-															<p className="text-sm text-muted-foreground">
-																{entry.description}
-															</p>
-														)}
+														<RichTextRenderer
+															value={entry.description}
+															className="text-sm text-muted-foreground"
+														/>
 														<div className="text-xs text-muted-foreground">
 															Progress {entry.progress}% · Priority{" "}
 															{getPriorityLabel(entry.priority)}

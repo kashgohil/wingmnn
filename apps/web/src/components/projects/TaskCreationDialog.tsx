@@ -15,14 +15,15 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import type { Task } from "@/lib/api/tasks.api";
 import { useCreateTask } from "@/lib/hooks/use-tasks";
 import { useWorkflow } from "@/lib/hooks/use-workflows";
+import { isRichTextEmpty } from "@/lib/rich-text";
 import { toast } from "@/lib/toast";
 import { useForm } from "@tanstack/react-form";
 import { catchError } from "@wingmnn/utils";
 import { useCallback, useEffect, useMemo } from "react";
+import { RichTextEditor } from "../rich-text/RichTextEditor";
 import { Button } from "../ui/button";
 
 const PRIORITY_OPTIONS: Array<{
@@ -104,7 +105,9 @@ export function TaskCreationDialog({
 			const payload: Parameters<typeof createTask.mutateAsync>[0] = {
 				projectId,
 				title: value.title.trim(),
-				description: value.description.trim() || undefined,
+				description: isRichTextEmpty(value.description)
+					? undefined
+					: value.description,
 				priority: value.priority,
 				statusId: value.statusId || undefined,
 				startDate: value.startDate || undefined,
@@ -218,11 +221,10 @@ export function TaskCreationDialog({
 						<Label htmlFor="task-description">Description</Label>
 						<form.Field name="description">
 							{(field) => (
-								<Textarea
+								<RichTextEditor
 									id="task-description"
 									value={field.state.value}
-									onChange={(event) => field.handleChange(event.target.value)}
-									rows={4}
+									onChange={field.handleChange}
 									placeholder="Add helpful context (optional)"
 								/>
 							)}

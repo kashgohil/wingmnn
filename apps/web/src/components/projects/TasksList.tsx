@@ -3,6 +3,7 @@
  * Displays tasks currently assigned to the user
  */
 
+import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
 import { useProjects } from "@/lib/hooks/use-projects";
 import { useMyTasks } from "@/lib/hooks/use-tasks";
 import { ArrowUpDown } from "lucide-react";
@@ -227,11 +228,10 @@ export function TasksList() {
 												</Badge>
 											)}
 										</div>
-										{task.description && (
-											<p className="text-sm text-muted-foreground mt-1 line-clamp-1">
-												{task.description}
-											</p>
-										)}
+										<RichTextRenderer
+											value={task.description}
+											className="mt-1 line-clamp-1 text-sm text-muted-foreground"
+										/>
 										{task.dueDate && (
 											<p
 												className={`text-xs mt-1 ${
