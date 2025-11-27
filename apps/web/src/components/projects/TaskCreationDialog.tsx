@@ -225,6 +225,10 @@ export function TaskCreationDialog({
 									id="task-description"
 									value={field.state.value}
 									onChange={field.handleChange}
+									containerClassName="bg-transparent"
+									contentClassName="bg-transparent"
+									placeholderClassName="text-muted-foreground/70"
+									toolbarClassName="bg-transparent"
 									placeholder="Add helpful context (optional)"
 								/>
 							)}

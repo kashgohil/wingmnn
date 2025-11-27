@@ -43,6 +43,10 @@ interface RichTextEditorProps {
 	onChange: (value: string) => void;
 	placeholder?: string;
 	id?: string;
+	containerClassName?: string;
+	contentClassName?: string;
+	placeholderClassName?: string;
+	toolbarClassName?: string;
 }
 
 export function RichTextEditor({
@@ -50,6 +54,10 @@ export function RichTextEditor({
 	onChange,
 	placeholder = "Add details...",
 	id,
+	containerClassName,
+	contentClassName,
+	placeholderClassName,
+	toolbarClassName,
 }: RichTextEditorProps) {
 	const lastSyncedValueRef = useRef(value);
 	const initialConfig = useMemo(
@@ -69,22 +77,35 @@ export function RichTextEditor({
 	);
 
 	return (
-		<div className="rounded-md border border-input bg-background text-foreground">
+		<div
+			className={cn(
+				"group/editor relative overflow-hidden rounded-none border-2 border-border bg-card text-foreground transition-[border-color,box-shadow]",
+				containerClassName,
+				"shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.12),inset_1px_1px_0_rgba(255,255,255,0.85)]",
+				"focus-within:border-primary focus-within:shadow-[inset_-2px_-2px_0_rgba(0,0,0,0.18),inset_2px_2px_0_rgba(255,255,255,0.92)]",
+			)}
+		>
 			<LexicalComposer initialConfig={initialConfig}>
-				<ToolbarPlugin />
+				<ToolbarPlugin toolbarClassName={toolbarClassName} />
 				<div className="relative">
 					<RichTextPlugin
 						contentEditable={
 							<ContentEditable
 								id={id}
 								className={cn(
-									"min-h-[180px] w-full px-3 py-3 text-sm focus:outline-none",
-									"prose-sm prose-headings:mb-2 dark:prose-invert",
+									"min-h-[220px] w-full bg-transparent! px-3 py-2 text-base text-foreground",
+									contentClassName,
+									"selection:bg-primary selection:text-muted-foreground  focus:outline-none bg-transparent",
 								)}
 							/>
 						}
 						placeholder={
-							<div className="pointer-events-none absolute left-3 top-3 text-sm text-muted-foreground">
+							<div
+								className={cn(
+									"pointer-events-none absolute left-3.5 top-3 text-sm text-muted-foreground/70",
+									placeholderClassName,
+								)}
+							>
 								{placeholder}
 							</div>
 						}

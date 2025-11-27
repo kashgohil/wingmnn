@@ -1,19 +1,20 @@
 import {
+	$getSelection,
+	$isRangeSelection,
 	FORMAT_TEXT_COMMAND,
 	REDO_COMMAND,
 	SELECTION_CHANGE_COMMAND,
 	UNDO_COMMAND,
-	$getSelection,
-	$isRangeSelection,
 } from "lexical";
 
+import { cn } from "@/lib/utils";
+import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
+	$isListNode,
 	INSERT_ORDERED_LIST_COMMAND,
 	INSERT_UNORDERED_LIST_COMMAND,
 	REMOVE_LIST_COMMAND,
-	$isListNode,
 } from "@lexical/list";
-import { TOGGLE_LINK_COMMAND, $isLinkNode } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
 import {
@@ -22,16 +23,20 @@ import {
 	Link,
 	List as ListIcon,
 	ListOrdered,
+	Redo2,
 	Underline,
 	Undo2,
-	Redo2,
 } from "lucide-react";
-import { useCallback, useEffect, useState, type ComponentType, type SVGProps } from "react";
-import { cn } from "@/lib/utils";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Button } from "../ui/button";
 
 type BlockType = "paragraph" | "number" | "bullet";
 
-export function ToolbarPlugin() {
+export function ToolbarPlugin({
+	toolbarClassName,
+}: {
+	toolbarClassName?: string;
+}) {
 	const [editor] = useLexicalComposerContext();
 	const [isBold, setIsBold] = useState(false);
 	const [isItalic, setIsItalic] = useState(false);
@@ -58,7 +63,9 @@ export function ToolbarPlugin() {
 			const parent = element.getParent();
 			if ($isListNode(parent)) {
 				setBlockType(
-					parent.getTag() === "ol" ? ("number" as BlockType) : ("bullet" as BlockType),
+					parent.getTag() === "ol"
+						? ("number" as BlockType)
+						: ("bullet" as BlockType),
 				);
 			} else {
 				setBlockType(
@@ -101,7 +108,9 @@ export function ToolbarPlugin() {
 		}
 
 		editor.dispatchCommand(
-			type === "number" ? INSERT_ORDERED_LIST_COMMAND : INSERT_UNORDERED_LIST_COMMAND,
+			type === "number"
+				? INSERT_ORDERED_LIST_COMMAND
+				: INSERT_UNORDERED_LIST_COMMAND,
 			undefined,
 		);
 	};
@@ -121,86 +130,96 @@ export function ToolbarPlugin() {
 	};
 
 	return (
-		<div className="flex flex-wrap gap-1 border-b border-border/80 bg-muted/40 p-2">
-			<ToolbarButton
+		<div
+			className={cn(
+				"flex flex-wrap items-center gap-1.5 border-b-2 border-border px-3 py-2",
+				toolbarClassName,
+			)}
+		>
+			<ToggleButton
 				ariaLabel="Bold"
 				active={isBold}
-				icon={Bold}
 				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold")}
-			/>
-			<ToolbarButton
+			>
+				<Bold className="h-2 w-2" />
+			</ToggleButton>
+			<ToggleButton
 				ariaLabel="Italic"
 				active={isItalic}
-				icon={Italic}
 				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic")}
-			/>
-			<ToolbarButton
+			>
+				<Italic className="h-2 w-2" />
+			</ToggleButton>
+			<ToggleButton
 				ariaLabel="Underline"
 				active={isUnderline}
-				icon={Underline}
 				onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline")}
-			/>
-			<span className="mx-1 h-6 w-px bg-border" />
-			<ToolbarButton
+			>
+				<Underline className="h-2 w-2" />
+			</ToggleButton>
+			<span className="mx-1 h-6 w-px bg-border/60" />
+			<ToggleButton
 				ariaLabel="Bulleted list"
 				active={blockType === "bullet"}
-				icon={ListIcon}
 				onClick={() => toggleList("bullet")}
-			/>
-			<ToolbarButton
+			>
+				<ListIcon className="h-2 w-2" />
+			</ToggleButton>
+			<ToggleButton
 				ariaLabel="Numbered list"
 				active={blockType === "number"}
-				icon={ListOrdered}
 				onClick={() => toggleList("number")}
-			/>
-			<ToolbarButton
+			>
+				<ListOrdered className="h-2 w-2" />
+			</ToggleButton>
+			<ToggleButton
 				ariaLabel="Insert link"
 				active={isLink}
-				icon={Link}
 				onClick={toggleLink}
-			/>
-			<span className="mx-1 h-6 w-px bg-border" />
-			<ToolbarButton
+			>
+				<Link className="h-2 w-2" />
+			</ToggleButton>
+			<span className="mx-1 h-6 w-px bg-border/60" />
+			<ToggleButton
 				ariaLabel="Undo"
-				icon={Undo2}
 				onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}
-			/>
-			<ToolbarButton
+			>
+				<Undo2 className="h-2 w-2" />
+			</ToggleButton>
+			<ToggleButton
 				ariaLabel="Redo"
-				icon={Redo2}
 				onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)}
-			/>
+			>
+				<Redo2 className="h-2 w-2" />
+			</ToggleButton>
 		</div>
 	);
 }
 
-interface ToolbarButtonProps {
-	icon: ComponentType<SVGProps<SVGSVGElement>>;
+interface ToggleButtonProps {
+	children: ReactNode;
 	onClick: () => void;
 	active?: boolean;
 	ariaLabel: string;
+	className?: string;
 }
 
-function ToolbarButton({
-	icon: Icon,
+function ToggleButton({
+	children,
 	onClick,
 	active = false,
 	ariaLabel,
-}: ToolbarButtonProps) {
+}: ToggleButtonProps) {
 	return (
-		<button
+		<Button
 			type="button"
-			className={cn(
-				"inline-flex h-8 w-8 items-center justify-center rounded-sm border border-transparent text-sm transition-colors",
-				"hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-				active ? "bg-background text-foreground" : "text-muted-foreground",
-			)}
+			variant="ghost"
+			size="icon-sm"
 			onClick={onClick}
-			aria-pressed={active}
 			aria-label={ariaLabel}
+			aria-pressed={active}
 		>
-			<Icon className="h-4 w-4" />
-		</button>
+			{children}
+		</Button>
 	);
 }
-
