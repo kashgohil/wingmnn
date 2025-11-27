@@ -16,15 +16,37 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import type { Task } from "@/lib/api/tasks.api";
+import type { WorkflowStatus } from "@/lib/api/workflows.api";
+import { useCreateSubtask } from "@/lib/hooks/use-subtasks";
 import { useCreateTask } from "@/lib/hooks/use-tasks";
-import { useWorkflow } from "@/lib/hooks/use-workflows";
+import { useWorkflow, useWorkflows } from "@/lib/hooks/use-workflows";
 import { isRichTextEmpty } from "@/lib/rich-text";
 import { toast } from "@/lib/toast";
 import { useForm } from "@tanstack/react-form";
 import { catchError } from "@wingmnn/utils";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RichTextEditor } from "../rich-text/RichTextEditor";
 import { Button } from "../ui/button";
+
+type SubtaskDraft = {
+	title: string;
+	description: string;
+	priority: NonNullable<Task["priority"]>;
+	statusId: string;
+	startDate: string;
+	dueDate: string;
+};
+
+function getDefaultSubtaskDraft(initialStatusId?: string): SubtaskDraft {
+	return {
+		title: "",
+		description: "",
+		priority: "medium",
+		statusId: initialStatusId ?? "",
+		startDate: "",
+		dueDate: "",
+	};
+}
 
 const PRIORITY_OPTIONS: Array<{
 	value: NonNullable<Task["priority"]>;
@@ -77,9 +99,39 @@ export function TaskCreationDialog({
 	workflowId,
 }: TaskCreationDialogProps) {
 	const createTask = useCreateTask();
+	const createSubtask = useCreateSubtask();
 	const { data: workflow, isLoading: workflowLoading } = useWorkflow(
 		workflowId ?? null,
 	);
+	const { data: subtaskWorkflows } = useWorkflows({
+		type: "subtask",
+		limit: 1,
+	});
+	const subtaskWorkflowId = subtaskWorkflows?.[0]?.id ?? null;
+	const { data: subtaskWorkflow, isLoading: subtaskWorkflowLoading } =
+		useWorkflow(subtaskWorkflowId);
+	const subtaskStatusOptions = useMemo<WorkflowStatus[]>(() => {
+		if (!subtaskWorkflow?.statuses?.length) {
+			return [];
+		}
+		return [...subtaskWorkflow.statuses].sort(
+			(a, b) => a.position - b.position,
+		);
+	}, [subtaskWorkflow?.statuses]);
+	const subtaskStatusLabelMap = useMemo(() => {
+		return subtaskStatusOptions.reduce<Record<string, string>>(
+			(acc, status) => {
+				acc[status.id] = status.name;
+				return acc;
+			},
+			{},
+		);
+	}, [subtaskStatusOptions]);
+	const [subtaskForm, setSubtaskForm] = useState<SubtaskDraft>(() =>
+		getDefaultSubtaskDraft(),
+	);
+	const [isSubtaskFormOpen, setIsSubtaskFormOpen] = useState(false);
+	const [subtasks, setSubtasks] = useState<SubtaskDraft[]>([]);
 	const form = useForm({
 		defaultValues: getDefaultTaskCreationValues(),
 		onSubmit: async ({ value }) => {
@@ -134,10 +186,39 @@ export function TaskCreationDialog({
 				return;
 			}
 
+			if (subtasks.length > 0) {
+				for (const subtask of subtasks) {
+					if (!subtask.title.trim()) continue;
+
+					const [, subtaskError] = await catchError(
+						createSubtask.mutateAsync({
+							taskId: task.id,
+							title: subtask.title.trim(),
+							description: isRichTextEmpty(subtask.description)
+								? undefined
+								: subtask.description,
+							priority: subtask.priority,
+							statusId: subtask.statusId || undefined,
+							startDate: subtask.startDate || undefined,
+							dueDate: subtask.dueDate || undefined,
+						}),
+					);
+
+					if (subtaskError) {
+						toast.error("Failed to create subtask", {
+							description:
+								subtaskError instanceof Error
+									? subtaskError.message
+									: `Unable to add "${subtask.title}".`,
+						});
+					}
+				}
+			}
+
 			toast.success("Task created", {
 				description: `"${task.title}" has been added to ${
 					projectName ?? "this project"
-				}.`,
+				}${subtasks.length ? " with subtasks" : ""}.`,
 			});
 			resetForm();
 			handleClose(false);
@@ -153,7 +234,10 @@ export function TaskCreationDialog({
 
 	const resetForm = useCallback(() => {
 		form.reset(getDefaultTaskCreationValues());
-	}, [form]);
+		setSubtasks([]);
+		setSubtaskForm(getDefaultSubtaskDraft(subtaskStatusOptions[0]?.id));
+		setIsSubtaskFormOpen(false);
+	}, [form, subtaskStatusOptions]);
 
 	useEffect(() => {
 		if (open) {
@@ -170,11 +254,54 @@ export function TaskCreationDialog({
 		}
 	}, [open, statusOptions, form]);
 
+	useEffect(() => {
+		const defaultStatusId = subtaskStatusOptions[0]?.id;
+		if (defaultStatusId && !subtaskForm.statusId) {
+			setSubtaskForm((current) => ({
+				...current,
+				statusId: current.statusId || defaultStatusId,
+			}));
+		}
+	}, [subtaskStatusOptions, subtaskForm.statusId]);
+
 	const handleClose = (nextOpen: boolean) => {
 		if (!nextOpen) {
 			resetForm();
 		}
 		onOpenChange(nextOpen);
+	};
+
+	const handleAddSubtask = () => {
+		const trimmedTitle = subtaskForm.title.trim();
+		if (!trimmedTitle) {
+			toast.error("Subtask title is required");
+			return;
+		}
+
+		setSubtasks((current) => [
+			...current,
+			{
+				...subtaskForm,
+				title: trimmedTitle,
+			},
+		]);
+		setSubtaskForm(getDefaultSubtaskDraft(subtaskStatusOptions[0]?.id));
+	};
+
+	const handleRemoveSubtask = (index: number) => {
+		setSubtasks((current) => current.filter((_, idx) => idx !== index));
+	};
+
+	const handleToggleSubtaskForm = () => {
+		if (isSubtaskFormOpen) {
+			setSubtaskForm(getDefaultSubtaskDraft(subtaskStatusOptions[0]?.id));
+		}
+		setIsSubtaskFormOpen((current) => !current);
+	};
+
+	const handleCancelSubtaskForm = () => {
+		setIsSubtaskFormOpen(false);
+		setSubtaskForm(getDefaultSubtaskDraft(subtaskStatusOptions[0]?.id));
 	};
 
 	const canSubmit = Boolean(
@@ -186,7 +313,7 @@ export function TaskCreationDialog({
 			open={open}
 			onOpenChange={handleClose}
 		>
-			<DialogContent className="sm:max-w-xl">
+			<DialogContent className="sm:max-w-4xl lg:max-w-6xl max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>Create Task</DialogTitle>
 					<DialogDescription>
@@ -195,192 +322,462 @@ export function TaskCreationDialog({
 				</DialogHeader>
 
 				<form
-					className="space-y-5"
+					className="space-y-6"
 					noValidate
 					onSubmit={(event) => {
 						event.preventDefault();
 						event.stopPropagation();
-						void form.handleSubmit();
+						form.handleSubmit();
 					}}
 				>
-					<div className="space-y-2">
-						<Label htmlFor="task-title">Title *</Label>
-						<form.Field name="title">
-							{(field) => (
-								<Input
-									id="task-title"
-									value={field.state.value}
-									onChange={(event) => field.handleChange(event.target.value)}
-									placeholder="Write a clear task title"
-								/>
-							)}
-						</form.Field>
-					</div>
+					<div className="flex flex-col gap-6">
+						<div className="flex flex-col gap-5 md:flex-row">
+							<div className="space-y-5 md:flex-4">
+								<div className="space-y-2">
+									<Label htmlFor="task-title">Title *</Label>
+									<form.Field name="title">
+										{(field) => (
+											<Input
+												id="task-title"
+												value={field.state.value}
+												onChange={(event) =>
+													field.handleChange(event.target.value)
+												}
+												placeholder="Write a clear task title"
+											/>
+										)}
+									</form.Field>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="task-description">Description</Label>
+									<form.Field name="description">
+										{(field) => (
+											<RichTextEditor
+												id="task-description"
+												value={field.state.value}
+												onChange={field.handleChange}
+												containerClassName="bg-transparent"
+												contentClassName="bg-transparent"
+												placeholderClassName="text-muted-foreground/70"
+												toolbarClassName="bg-transparent"
+												placeholder="Add helpful context (optional)"
+											/>
+										)}
+									</form.Field>
+								</div>
+							</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="task-description">Description</Label>
-						<form.Field name="description">
-							{(field) => (
-								<RichTextEditor
-									id="task-description"
-									value={field.state.value}
-									onChange={field.handleChange}
-									containerClassName="bg-transparent"
-									contentClassName="bg-transparent"
-									placeholderClassName="text-muted-foreground/70"
-									toolbarClassName="bg-transparent"
-									placeholder="Add helpful context (optional)"
-								/>
-							)}
-						</form.Field>
-					</div>
+							<div className="space-y-5 md:flex-1">
+								<div className="space-y-2">
+									<Label htmlFor="task-priority">Priority</Label>
+									<form.Field name="priority">
+										{(field) => (
+											<Select
+												value={field.state.value}
+												onValueChange={(value: NonNullable<Task["priority"]>) =>
+													field.handleChange(value)
+												}
+											>
+												<SelectTrigger id="task-priority">
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													{PRIORITY_OPTIONS.map((option) => (
+														<SelectItem
+															key={option.value}
+															value={option.value}
+														>
+															{option.label}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										)}
+									</form.Field>
+								</div>
 
-					<div className="grid gap-4 md:grid-cols-2">
-						<div className="space-y-2">
-							<Label htmlFor="task-priority">Priority</Label>
-							<form.Field name="priority">
-								{(field) => (
-									<Select
-										value={field.state.value}
-										onValueChange={(value: NonNullable<Task["priority"]>) =>
-											field.handleChange(value)
-										}
-									>
-										<SelectTrigger id="task-priority">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{PRIORITY_OPTIONS.map((option) => (
-												<SelectItem
-													key={option.value}
-													value={option.value}
-												>
-													{option.label}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								)}
-							</form.Field>
-						</div>
-
-						<div className="space-y-2">
-							<Label>Status</Label>
-							{workflowId ? (
-								<form.Field name="statusId">
-									{(field) => (
-										<Select
-											value={field.state.value}
-											onValueChange={(value) => field.handleChange(value)}
-											disabled={
-												!statusOptions.length ||
-												createTask.isPending ||
-												workflowLoading
-											}
-										>
-											<SelectTrigger>
-												<SelectValue
-													placeholder={
+								<div className="space-y-2">
+									<Label>Status</Label>
+									{workflowId ? (
+										<form.Field name="statusId">
+											{(field) => (
+												<Select
+													value={field.state.value}
+													onValueChange={(value) => field.handleChange(value)}
+													disabled={
+														!statusOptions.length ||
+														createTask.isPending ||
 														workflowLoading
-															? "Loading statuses..."
-															: statusOptions.length
-															? "Select status"
-															: "No statuses available"
 													}
-												/>
-											</SelectTrigger>
-											<SelectContent>
-												{statusOptions.map((status) => (
-													<SelectItem
-														key={status.id}
-														value={status.id}
-													>
-														{status.name}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
+												>
+													<SelectTrigger>
+														<SelectValue
+															placeholder={
+																workflowLoading
+																	? "Loading statuses..."
+																	: statusOptions.length
+																	? "Select status"
+																	: "No statuses available"
+															}
+														/>
+													</SelectTrigger>
+													<SelectContent>
+														{statusOptions.map((status) => (
+															<SelectItem
+																key={status.id}
+																value={status.id}
+															>
+																{status.name}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											)}
+										</form.Field>
+									) : (
+										<p className="text-sm text-muted-foreground">
+											Assign this project to a workflow to enable status
+											tracking.
+										</p>
 									)}
-								</form.Field>
-							) : (
-								<p className="text-sm text-muted-foreground">
-									Assign this project to a workflow to enable status tracking.
-								</p>
-							)}
-						</div>
-					</div>
+								</div>
 
-					<div className="grid gap-4 md:grid-cols-2">
-						<div className="space-y-2">
-							<Label>Start Date</Label>
-							<form.Field name="startDate">
-								{(field) => (
-									<DatePicker
-										value={field.state.value}
-										onChange={(value) => field.handleChange(value || "")}
-										max={form.state.values.dueDate || undefined}
-										placeholder="Select start date"
-									/>
-								)}
-							</form.Field>
-						</div>
-						<div className="space-y-2">
-							<Label>Due Date</Label>
-							<form.Field name="dueDate">
-								{(field) => (
-									<DatePicker
-										value={field.state.value}
-										onChange={(value) => field.handleChange(value || "")}
-										min={form.state.values.startDate || undefined}
-										placeholder="Select due date"
-									/>
-								)}
-							</form.Field>
-						</div>
-					</div>
+								<div className="space-y-2">
+									<Label>Start Date</Label>
+									<form.Field name="startDate">
+										{(field) => (
+											<DatePicker
+												value={field.state.value}
+												onChange={(value) => field.handleChange(value || "")}
+												max={form.state.values.dueDate || undefined}
+												placeholder="Select start date"
+											/>
+										)}
+									</form.Field>
+								</div>
+								<div className="space-y-2">
+									<Label>Due Date</Label>
+									<form.Field name="dueDate">
+										{(field) => (
+											<DatePicker
+												value={field.state.value}
+												onChange={(value) => field.handleChange(value || "")}
+												min={form.state.values.startDate || undefined}
+												placeholder="Select due date"
+											/>
+										)}
+									</form.Field>
+								</div>
 
-					<div className="grid gap-4 md:grid-cols-2">
-						<div className="space-y-2">
-							<Label htmlFor="task-hours">Estimated Hours</Label>
-							<form.Field name="estimatedHours">
-								{(field) => (
-									<Input
-										id="task-hours"
-										type="number"
-										min="0"
-										step="0.5"
-										value={field.state.value}
-										onChange={(event) => field.handleChange(event.target.value)}
-										placeholder="e.g. 4"
-									/>
-								)}
-							</form.Field>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="task-points">Estimated Points</Label>
-							<form.Field name="estimatedPoints">
-								{(field) => (
-									<Input
-										id="task-points"
-										type="number"
-										min="0"
-										step="1"
-										value={field.state.value}
-										onChange={(event) => field.handleChange(event.target.value)}
-										placeholder="e.g. 5"
-									/>
-								)}
-							</form.Field>
-						</div>
-					</div>
+								<div className="space-y-2">
+									<Label htmlFor="task-hours">Estimated Hours</Label>
+									<form.Field name="estimatedHours">
+										{(field) => (
+											<Input
+												id="task-hours"
+												type="number"
+												min="0"
+												step="0.5"
+												value={field.state.value}
+												onChange={(event) =>
+													field.handleChange(event.target.value)
+												}
+												placeholder="e.g. 4"
+											/>
+										)}
+									</form.Field>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="task-points">Estimated Points</Label>
+									<form.Field name="estimatedPoints">
+										{(field) => (
+											<Input
+												id="task-points"
+												type="number"
+												min="0"
+												step="1"
+												value={field.state.value}
+												onChange={(event) =>
+													field.handleChange(event.target.value)
+												}
+												placeholder="e.g. 5"
+											/>
+										)}
+									</form.Field>
+								</div>
+							</div>
 
-					<div className="flex flex-col gap-2 rounded-none border border-dashed border-border/70 bg-muted/30 p-3 text-xs text-muted-foreground">
-						<p className="font-semibold text-foreground">Tips</p>
-						<ul className="list-disc pl-4 space-y-1">
-							<li>Use concise titles so tasks stay scannable.</li>
-							<li>Priorities help teammates understand urgency.</li>
-							<li>Dates unlock the timeline, calendar, and analytics views.</li>
-						</ul>
+							{/* <div className="flex flex-col gap-2 rounded-none border border-dashed border-border/70 bg-muted/30 p-3 text-xs text-muted-foreground">
+								<p className="font-semibold text-foreground">Tips</p>
+								<ul className="list-disc pl-4 space-y-1">
+									<li>Use concise titles so tasks stay scannable.</li>
+									<li>Priorities help teammates understand urgency.</li>
+									<li>
+										Dates unlock the timeline, calendar, and analytics views.
+									</li>
+								</ul>
+							</div> */}
+						</div>
+
+						{subtasks.length > 0 && (
+							<div className="rounded-none border-2 border-border retro-border-shadow-sm p-4">
+								<div className="space-y-3">
+									<p className="text-sm font-bold text-foreground">
+										Queued subtasks ({subtasks.length})
+									</p>
+									<ul className="space-y-2">
+										{subtasks.map((subtask, index) => (
+											<li
+												key={`${subtask.title}-${index}`}
+												className="border border-border p-3 text-sm"
+											>
+												<div className="flex items-start justify-between gap-2">
+													<div className="space-y-1">
+														<p className="font-medium text-foreground">
+															{subtask.title}
+														</p>
+														<p className="text-xs uppercase tracking-wide text-muted-foreground">
+															{`Priority: ${subtask.priority} • Status: ${
+																subtaskStatusLabelMap[subtask.statusId] ??
+																"Auto"
+															}`}
+														</p>
+														{subtask.startDate || subtask.dueDate ? (
+															<p className="text-xs text-muted-foreground">
+																{subtask.startDate
+																	? `Start: ${subtask.startDate}`
+																	: ""}
+																{subtask.startDate && subtask.dueDate
+																	? " • "
+																	: ""}
+																{subtask.dueDate
+																	? `Due: ${subtask.dueDate}`
+																	: ""}
+															</p>
+														) : null}
+													</div>
+													<Button
+														type="button"
+														size="sm"
+														variant="ghost"
+														onClick={() => handleRemoveSubtask(index)}
+														disabled={
+															createTask.isPending || createSubtask.isPending
+														}
+													>
+														Remove
+													</Button>
+												</div>
+											</li>
+										))}
+									</ul>
+								</div>
+							</div>
+						)}
+
+						<div className="mt-6 space-y-5 lg:mt-0 lg:sticky lg:top-6">
+							<div className="border-2 border-border retro-border-shadow-sm p-4">
+								<div className="space-y-4">
+									<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+										<div>
+											<p className="text-base font-bold text-foreground">
+												Create Subtasks
+											</p>
+											<p className="text-sm text-muted-foreground">
+												Plan the smaller deliverables that make up this task.
+												Each subtask can have its own status, priority, and
+												timeline.
+											</p>
+										</div>
+										<Button
+											type="button"
+											variant={isSubtaskFormOpen ? "ghost" : "default"}
+											onClick={handleToggleSubtaskForm}
+											disabled={createTask.isPending || createSubtask.isPending}
+										>
+											{isSubtaskFormOpen ? "Hide" : "Add subtask"}
+										</Button>
+									</div>
+
+									{isSubtaskFormOpen ? (
+										<div className="space-y-5">
+											<div className="flex flex-col gap-5 md:flex-row">
+												<div className="space-y-4 md:flex-4">
+													<div className="space-y-2">
+														<Label htmlFor="subtask-title">Title</Label>
+														<Input
+															id="subtask-title"
+															value={subtaskForm.title}
+															onChange={(event) =>
+																setSubtaskForm((current) => ({
+																	...current,
+																	title: event.target.value,
+																}))
+															}
+															placeholder="Describe what needs to get done"
+															disabled={
+																createTask.isPending || createSubtask.isPending
+															}
+														/>
+													</div>
+
+													<div className="space-y-2">
+														<Label htmlFor="subtask-description">
+															Description
+														</Label>
+														<RichTextEditor
+															id="subtask-description"
+															value={subtaskForm.description}
+															onChange={(value) =>
+																setSubtaskForm((current) => ({
+																	...current,
+																	description: value,
+																}))
+															}
+															containerClassName="bg-transparent"
+															contentClassName="bg-transparent min-h-[130px]"
+															placeholderClassName="text-muted-foreground/70"
+															toolbarClassName="bg-transparent"
+															placeholder="Optional details, links, or checklists"
+														/>
+													</div>
+												</div>
+
+												<div className="space-y-4 md:flex-1">
+													<div className="space-y-2">
+														<Label>Priority</Label>
+														<Select
+															value={subtaskForm.priority}
+															onValueChange={(
+																value: NonNullable<Task["priority"]>,
+															) =>
+																setSubtaskForm((current) => ({
+																	...current,
+																	priority: value,
+																}))
+															}
+															disabled={
+																createTask.isPending || createSubtask.isPending
+															}
+														>
+															<SelectTrigger>
+																<SelectValue />
+															</SelectTrigger>
+															<SelectContent>
+																{PRIORITY_OPTIONS.map((option) => (
+																	<SelectItem
+																		key={option.value}
+																		value={option.value}
+																	>
+																		{option.label}
+																	</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+													</div>
+
+													<div className="space-y-2">
+														<Label>Status</Label>
+														{subtaskWorkflowId ? (
+															<Select
+																value={subtaskForm.statusId}
+																onValueChange={(value) =>
+																	setSubtaskForm((current) => ({
+																		...current,
+																		statusId: value,
+																	}))
+																}
+																disabled={
+																	subtaskWorkflowLoading ||
+																	createTask.isPending ||
+																	createSubtask.isPending
+																}
+															>
+																<SelectTrigger>
+																	<SelectValue
+																		placeholder={
+																			subtaskWorkflowLoading
+																				? "Loading statuses..."
+																				: "Select status"
+																		}
+																	/>
+																</SelectTrigger>
+																<SelectContent>
+																	{subtaskStatusOptions.map((status) => (
+																		<SelectItem
+																			key={status.id}
+																			value={status.id}
+																		>
+																			{status.name}
+																		</SelectItem>
+																	))}
+																</SelectContent>
+															</Select>
+														) : (
+															<p className="text-sm text-muted-foreground">
+																No subtask workflow is available yet. Create one
+																to manage statuses.
+															</p>
+														)}
+													</div>
+
+													<div className="space-y-2">
+														<Label>Start Date</Label>
+														<DatePicker
+															value={subtaskForm.startDate}
+															onChange={(value) =>
+																setSubtaskForm((current) => ({
+																	...current,
+																	startDate: value ?? "",
+																}))
+															}
+															max={subtaskForm.dueDate || undefined}
+														/>
+													</div>
+													<div className="space-y-2">
+														<Label>Due Date</Label>
+														<DatePicker
+															value={subtaskForm.dueDate}
+															onChange={(value) =>
+																setSubtaskForm((current) => ({
+																	...current,
+																	dueDate: value ?? "",
+																}))
+															}
+															min={subtaskForm.startDate || undefined}
+														/>
+													</div>
+												</div>
+											</div>
+
+											<div className="flex justify-end gap-2">
+												<Button
+													type="button"
+													variant="ghost"
+													onClick={handleCancelSubtaskForm}
+													disabled={
+														createTask.isPending || createSubtask.isPending
+													}
+												>
+													Cancel
+												</Button>
+												<Button
+													type="button"
+													onClick={handleAddSubtask}
+													disabled={
+														!subtaskForm.title.trim() ||
+														createTask.isPending ||
+														createSubtask.isPending
+													}
+												>
+													Add to queue
+												</Button>
+											</div>
+										</div>
+									) : null}
+								</div>
+							</div>
+						</div>
 					</div>
 
 					<div className="flex justify-end gap-2">
@@ -393,9 +790,13 @@ export function TaskCreationDialog({
 						</Button>
 						<Button
 							type="submit"
-							disabled={!canSubmit || createTask.isPending}
+							disabled={
+								!canSubmit || createTask.isPending || createSubtask.isPending
+							}
 						>
-							{createTask.isPending ? "Creating..." : "Create Task"}
+							{createTask.isPending || createSubtask.isPending
+								? "Creating..."
+								: "Create Task"}
 						</Button>
 					</div>
 				</form>
