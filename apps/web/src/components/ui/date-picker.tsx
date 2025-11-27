@@ -1,5 +1,6 @@
 import { useModuleColorStyles } from "@/lib/ModuleColorContext";
 import { cn } from "@/lib/utils";
+import dayjs from "dayjs";
 import { Calendar as CalendarIcon } from "lucide-react";
 import * as React from "react";
 import { Calendar } from "./calendar";
@@ -15,38 +16,6 @@ interface DatePickerProps {
 	className?: string;
 }
 
-// PopoverContent wrapper with module color support
-function DatePickerPopoverContent({
-	align = "start",
-	...props
-}: React.ComponentProps<typeof PopoverContent>) {
-	const moduleColorStyles = useModuleColorStyles();
-
-	return (
-		<PopoverContent
-			className={cn(
-				"w-auto p-0 rounded-none border-2 border-border bg-popover",
-				"shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.1),inset_1px_1px_0_rgba(255,255,255,0.8),0_2px_4px_rgba(0,0,0,0.15)]",
-				"animate-[none!important] [transition:none!important]",
-				"opacity-100 scale-100 translate-x-0 translate-y-0",
-			)}
-			align={align}
-			style={
-				moduleColorStyles
-					? ({
-							// Apply module color to popover content (works even in portal)
-							...moduleColorStyles,
-							...props.style,
-					  } as React.CSSProperties)
-					: props.style
-			}
-			{...props}
-		>
-			{props.children}
-		</PopoverContent>
-	);
-}
-
 export function DatePicker({
 	value,
 	onChange,
@@ -57,30 +26,30 @@ export function DatePicker({
 	className,
 }: DatePickerProps) {
 	const [open, setOpen] = React.useState(false);
+	const moduleColorStyles = useModuleColorStyles();
 
 	// Convert string value (YYYY-MM-DD) to Date object
 	const selectedDate = React.useMemo(() => {
 		if (!value) return undefined;
-		// Parse YYYY-MM-DD format and create date in local timezone
-		const [year, month, day] = value.split("-").map(Number);
-		if (isNaN(year) || isNaN(month) || isNaN(day)) return undefined;
-		// Create date at noon to avoid timezone edge cases
-		return new Date(year, month - 1, day, 12, 0, 0);
+		const date = dayjs(value, "YYYY-MM-DD");
+		if (!date.isValid()) return undefined;
+		// Return Date object at noon to avoid timezone edge cases
+		return date.hour(12).minute(0).second(0).millisecond(0).toDate();
 	}, [value]);
 
 	// Convert min/max strings to Date objects
 	const minDate = React.useMemo(() => {
 		if (!min) return undefined;
-		const [year, month, day] = min.split("-").map(Number);
-		if (isNaN(year) || isNaN(month) || isNaN(day)) return undefined;
-		return new Date(year, month - 1, day, 0, 0, 0);
+		const date = dayjs(min, "YYYY-MM-DD");
+		if (!date.isValid()) return undefined;
+		return date.startOf("day").toDate();
 	}, [min]);
 
 	const maxDate = React.useMemo(() => {
 		if (!max) return undefined;
-		const [year, month, day] = max.split("-").map(Number);
-		if (isNaN(year) || isNaN(month) || isNaN(day)) return undefined;
-		return new Date(year, month - 1, day, 23, 59, 59);
+		const date = dayjs(max, "YYYY-MM-DD");
+		if (!date.isValid()) return undefined;
+		return date.endOf("day").toDate();
 	}, [max]);
 
 	const handleDateSelect = (date: Date | undefined) => {
@@ -91,25 +60,17 @@ export function DatePicker({
 			return;
 		}
 
-		// Format date as YYYY-MM-DD
-		const year = date.getFullYear();
-		const month = String(date.getMonth() + 1).padStart(2, "0");
-		const day = String(date.getDate()).padStart(2, "0");
-		const dateString = `${year}-${month}-${day}`;
-
+		// Format date as YYYY-MM-DD using dayjs
+		const dateString = dayjs(date).format("YYYY-MM-DD");
 		onChange?.(dateString);
 		setOpen(false);
 	};
 
 	const formatDisplayValue = () => {
 		if (!value) return "";
-		const date = new Date(value);
-		if (isNaN(date.getTime())) return "";
-		return date.toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
-		});
+		const date = dayjs(value, "YYYY-MM-DD");
+		if (!date.isValid()) return "";
+		return date.format("MMM D, YYYY");
 	};
 
 	return (
@@ -135,7 +96,23 @@ export function DatePicker({
 					</span>
 				</button>
 			</PopoverTrigger>
-			<DatePickerPopoverContent align="start">
+			<PopoverContent
+				className={cn(
+					"w-auto p-0 rounded-none border-2 border-border bg-popover",
+					"shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.1),inset_1px_1px_0_rgba(255,255,255,0.8),0_2px_4px_rgba(0,0,0,0.15)]",
+					"animate-[none!important] [transition:none!important]",
+					"opacity-100 scale-100 translate-x-0 translate-y-0",
+				)}
+				align="start"
+				style={
+					moduleColorStyles
+						? ({
+								// Apply module color to popover content (works even in portal)
+								...moduleColorStyles,
+						  } as React.CSSProperties)
+						: {}
+				}
+			>
 				<Calendar
 					mode="single"
 					selected={selectedDate}
@@ -145,9 +122,8 @@ export function DatePicker({
 						if (maxDate && date > maxDate) return true;
 						return false;
 					}}
-					initialFocus
 				/>
-			</DatePickerPopoverContent>
+			</PopoverContent>
 		</Popover>
 	);
 }
