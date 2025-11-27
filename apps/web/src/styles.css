@@ -315,6 +315,46 @@ code {
 			inset 2px 2px 0 rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.2);
 	}
 
+	.retro-border-shadow {
+		box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.15),
+			inset 2px 2px 0 rgba(255, 255, 255, 0.9);
+	}
+
+	.retro-border-shadow-sm {
+		box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.12),
+			inset 1px 1px 0 rgba(255, 255, 255, 0.85);
+	}
+
+	.focus-visible\:retro-border-shadow:focus-visible {
+		box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.15),
+			inset 2px 2px 0 rgba(255, 255, 255, 0.9);
+	}
+
+	.aria-invalid\:retro-border-shadow[aria-invalid="true"] {
+		box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.15),
+			inset 2px 2px 0 rgba(255, 255, 255, 0.9);
+	}
+
+	.focus-visible\:retro-border-shadow-sm:focus-visible {
+		box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.12),
+			inset 1px 1px 0 rgba(255, 255, 255, 0.85);
+	}
+
+	.aria-invalid\:retro-border-shadow-sm[aria-invalid="true"] {
+		box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.12),
+			inset 1px 1px 0 rgba(255, 255, 255, 0.85);
+	}
+
+	.data-\[state\=checked\]\:retro-border-shadow[data-state="checked"] {
+		box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.15),
+			inset 2px 2px 0 rgba(255, 255, 255, 0.9);
+	}
+
+	.data-\[state\=checked\]\:retro-border-shadow-sm[data-state="checked"] {
+		box-shadow: inset -1px -1px 0 rgba(0, 0, 0, 0.12),
+			inset 1px 1px 0 rgba(255, 255, 255, 0.85);
+	}
+
 	/* Retro button styles - Windows 95/Mac Classic inspired */
 	.retro-button {
 		border: none;

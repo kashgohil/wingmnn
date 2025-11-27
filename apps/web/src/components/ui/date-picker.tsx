@@ -83,8 +83,8 @@ export function DatePicker({
 					type="button"
 					className={cn(
 						"file:text-foreground placeholder:text-muted-foreground/80 selection:bg-primary selection:text-primary-foreground dark:bg-input/30 flex h-9 w-full items-center justify-start gap-2 rounded-none border-2 border-border bg-transparent px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 font-medium text-foreground",
-						"shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.1),inset_1px_1px_0_rgba(255,255,255,0.8)]",
-						"focus-visible:border-primary focus-visible:shadow-[inset_-2px_-2px_0_rgba(0,0,0,0.15),inset_2px_2px_0_rgba(255,255,255,0.9)] focus-visible:ring-0",
+						"retro-border-shadow-sm",
+						"focus-visible:border-primary focus-visible:retro-border-shadow focus-visible:ring-0",
 						!value && "text-muted-foreground",
 						className,
 					)}
@@ -99,7 +99,7 @@ export function DatePicker({
 			<PopoverContent
 				className={cn(
 					"w-auto p-0 rounded-none border-2 border-border bg-popover",
-					"shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.1),inset_1px_1px_0_rgba(255,255,255,0.8),0_2px_4px_rgba(0,0,0,0.15)]",
+					"retro-border-shadow-sm shadow-[0_2px_4px_rgba(0,0,0,0.15)]",
 					"animate-[none!important] [transition:none!important]",
 					"opacity-100 scale-100 translate-x-0 translate-y-0",
 				)}

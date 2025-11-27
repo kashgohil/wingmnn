@@ -45,7 +45,7 @@ const DropdownMenuSubContent = React.forwardRef<
 		<DropdownMenuPrimitive.SubContent
 			ref={ref}
 			className={cn(
-				"z-50 min-w-40 rounded-none retro-border bg-popover/95 p-2 text-popover-foreground shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.08),inset_1px_1px_0_rgba(255,255,255,0.35),0_8px_20px_rgba(0,0,0,0.25)] font-mono animate-[none!important] [transition:none!important]",
+				"z-50 min-w-40 rounded-none retro-border bg-popover/95 p-2 text-popover-foreground retro-border-shadow-sm shadow-[0_8px_20px_rgba(0,0,0,0.25)] font-mono animate-[none!important] [transition:none!important]",
 				className,
 			)}
 			style={
@@ -75,7 +75,7 @@ const DropdownMenuContent = React.forwardRef<
 				ref={ref}
 				sideOffset={sideOffset}
 				className={cn(
-					"z-50 min-w-40 rounded-none retro-border bg-popover/95 p-2 text-popover-foreground shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.08),inset_1px_1px_0_rgba(255,255,255,0.35),0_8px_20px_rgba(0,0,0,0.25)] font-mono animate-[none!important] [transition:none!important] data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+					"z-50 min-w-40 rounded-none retro-border bg-popover/95 p-2 text-popover-foreground retro-border-shadow-sm shadow-[0_8px_20px_rgba(0,0,0,0.25)] font-mono animate-[none!important] [transition:none!important] data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
 					className,
 				)}
 				style={

@@ -81,7 +81,7 @@ export function RichTextEditor({
 			className={cn(
 				"group/editor relative overflow-hidden rounded-none border-2 border-border bg-card text-foreground transition-[border-color,box-shadow]",
 				containerClassName,
-				"shadow-[inset_-1px_-1px_0_rgba(0,0,0,0.12),inset_1px_1px_0_rgba(255,255,255,0.85)]",
+				"retro-border-shadow-sm",
 				"focus-within:border-primary focus-within:shadow-[inset_-2px_-2px_0_rgba(0,0,0,0.18),inset_2px_2px_0_rgba(255,255,255,0.92)]",
 			)}
 		>
@@ -93,7 +93,7 @@ export function RichTextEditor({
 							<ContentEditable
 								id={id}
 								className={cn(
-									"min-h-[220px] w-full bg-transparent! px-3 py-2 text-base text-foreground",
+									"min-h-[295px] w-full bg-transparent! px-3 py-2 text-base text-foreground",
 									contentClassName,
 									"selection:bg-primary selection:text-muted-foreground  focus:outline-none bg-transparent",
 								)}
