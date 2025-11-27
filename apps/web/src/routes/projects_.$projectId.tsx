@@ -564,45 +564,42 @@ function ProjectDetailsPage() {
 							</div>
 						</header>
 
-						<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
-							<Tabs
-								value={activeView}
-								onValueChange={(value) => setActiveView(value as ViewTab)}
-							>
-								<div className="overflow-x-auto">
-									<TabsList className="inline-flex min-w-full justify-start gap-2">
-										<TabTrigger
-											icon={KanbanSquare}
-											value="board"
-											label="Board"
-										/>
-										<TabTrigger
-											icon={List}
-											value="list"
-											label="List"
-										/>
-										<TabTrigger
-											icon={Clock3}
-											value="timeline"
-											label="Timeline"
-										/>
-										<TabTrigger
-											icon={CalendarDays}
-											value="calendar"
-											label="Calendar"
-										/>
-										<TabTrigger
-											icon={BarChart3}
-											value="analytics"
-											label="Analytics"
-										/>
-									</TabsList>
-								</div>
+						<Tabs
+							value={activeView}
+							onValueChange={(value) => setActiveView(value as ViewTab)}
+						>
+							<div className="overflow-x-auto">
+								<TabsList className="inline-flex w-max gap-2">
+									<TabTrigger
+										icon={KanbanSquare}
+										value="board"
+										label="Board"
+									/>
+									<TabTrigger
+										icon={List}
+										value="list"
+										label="List"
+									/>
+									<TabTrigger
+										icon={Clock3}
+										value="timeline"
+										label="Timeline"
+									/>
+									<TabTrigger
+										icon={CalendarDays}
+										value="calendar"
+										label="Calendar"
+									/>
+									<TabTrigger
+										icon={BarChart3}
+										value="analytics"
+										label="Analytics"
+									/>
+								</TabsList>
+							</div>
 
-								<TabsContent
-									value="board"
-									className="mt-6"
-								>
+							<section className="mt-6 rounded-none border border-border bg-card/70 p-4 md:p-6">
+								<TabsContent value="board">
 									{tasksLoading ? (
 										<LoadingState label="Loading board..." />
 									) : tasksByStatus.length ? (
@@ -649,10 +646,7 @@ function ProjectDetailsPage() {
 									)}
 								</TabsContent>
 
-								<TabsContent
-									value="list"
-									className="mt-6"
-								>
+								<TabsContent value="list">
 									{tasksLoading ? (
 										<LoadingState label="Loading tasks..." />
 									) : projectTasks.length ? (
@@ -705,10 +699,7 @@ function ProjectDetailsPage() {
 									)}
 								</TabsContent>
 
-								<TabsContent
-									value="timeline"
-									className="mt-6"
-								>
+								<TabsContent value="timeline">
 									{tasksLoading ? (
 										<LoadingState label="Building timeline..." />
 									) : timelineEntries.length ? (
@@ -745,10 +736,7 @@ function ProjectDetailsPage() {
 									)}
 								</TabsContent>
 
-								<TabsContent
-									value="calendar"
-									className="mt-6"
-								>
+								<TabsContent value="calendar">
 									{tasksLoading ? (
 										<LoadingState label="Loading calendar..." />
 									) : Object.keys(calendarBuckets).length ? (
@@ -791,7 +779,7 @@ function ProjectDetailsPage() {
 
 								<TabsContent
 									value="analytics"
-									className="mt-6 space-y-6"
+									className="space-y-6"
 								>
 									{tasksLoading ? (
 										<LoadingState label="Loading analytics..." />
@@ -856,8 +844,8 @@ function ProjectDetailsPage() {
 										</>
 									)}
 								</TabsContent>
-							</Tabs>
-						</section>
+							</section>
+						</Tabs>
 					</div>
 				</div>
 				{/* All Project Dialogs */}
