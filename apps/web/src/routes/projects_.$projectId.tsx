@@ -1,6 +1,6 @@
 import { ModuleColorProvider } from "@/components/ModuleColorProvider";
-import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
 import { PriorityLabel } from "@/components/projects/PriorityLabel";
+import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
 import { useProjectsDialogs } from "@/components/projects/useProjectsDialogs";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
@@ -613,7 +613,7 @@ function ProjectDetailsPage() {
 								value="board"
 								className="mt-6"
 							>
-								<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
+								<section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
 									{tasksLoading ? (
 										<LoadingState label="Loading board..." />
 									) : tasksByStatus.length ? (
@@ -669,7 +669,7 @@ function ProjectDetailsPage() {
 								value="list"
 								className="mt-6"
 							>
-								<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
+								<section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
 									{tasksLoading ? (
 										<LoadingState label="Loading tasks..." />
 									) : projectTasks.length ? (
@@ -730,7 +730,7 @@ function ProjectDetailsPage() {
 								value="timeline"
 								className="mt-6"
 							>
-								<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
+								<section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
 									{tasksLoading ? (
 										<LoadingState label="Building timeline..." />
 									) : timelineEntries.length ? (
@@ -778,7 +778,7 @@ function ProjectDetailsPage() {
 								value="calendar"
 								className="mt-6"
 							>
-								<section className="rounded-none border border-border bg-card/70 p-4 md:p-6">
+								<section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
 									{tasksLoading ? (
 										<LoadingState label="Loading calendar..." />
 									) : Object.keys(calendarBuckets).length ? (
@@ -1039,4 +1039,3 @@ function formatDate(value: string | null | undefined) {
 		year: "numeric",
 	});
 }
-

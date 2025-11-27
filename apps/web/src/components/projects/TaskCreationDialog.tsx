@@ -539,14 +539,14 @@ export function TaskCreationDialog({
 										{subtasks.map((subtask, index) => (
 											<li
 												key={`${subtask.title}-${index}`}
-												className="border border-border p-3 text-sm"
+												className="border-2 border-border retro-border-shadow-sm p-3 text-sm"
 											>
 												<div className="flex items-start justify-between gap-2">
 													<div className="space-y-1">
-														<p className="font-medium text-foreground">
+														<p className="font-bold text-foreground">
 															{subtask.title}
 														</p>
-														<p className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
+														<p className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wide">
 															<span className="inline-flex items-center gap-1.5">
 																Priority:
 																<span className="inline-flex items-center gap-1.5">
