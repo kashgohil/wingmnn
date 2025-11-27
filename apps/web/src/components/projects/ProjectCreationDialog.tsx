@@ -3,34 +3,36 @@
  * Multi-step dialog for creating a new project
  */
 
-import { addProjectMember } from "@/lib/api/projects.api";
-import { useAuth } from "@/lib/auth/auth-context";
-import { useCreateProject } from "@/lib/hooks/use-projects";
-import { useWorkflows } from "@/lib/hooks/use-workflows";
-import { toast } from "@/lib/toast";
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
-import { useState } from "react";
-import { Button } from "../ui/button";
-import { DatePicker } from "../ui/date-picker";
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "../ui/select";
-import { Stepper } from "../ui/stepper";
-import { Switch } from "../ui/switch";
-import { Textarea } from "../ui/textarea";
+} from "@/components/ui/select";
+import { Stepper } from "@/components/ui/stepper";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { addProjectMembersBulk } from "@/lib/api/projects.api";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useCreateProject } from "@/lib/hooks/use-projects";
+import { useWorkflows } from "@/lib/hooks/use-workflows";
+import { toast } from "@/lib/toast";
+import { useForm } from "@tanstack/react-form";
+import { catchError } from "@wingmnn/utils";
+import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { useState } from "react";
 
 interface ProjectCreationDialogProps {
 	open: boolean;
@@ -43,44 +45,135 @@ interface ProjectMember {
 	name: string;
 }
 
+type ProjectCreationFormValues = {
+	name: string;
+	description: string;
+	workflowId: string;
+	key: string;
+	selectedView: string;
+	projectStatus: "active" | "on_hold" | "completed" | "archived";
+	startDate: string;
+	endDate: string;
+	priority: "low" | "medium" | "high" | "critical";
+	category: string;
+	enableTimeTracking: boolean;
+	enableNotifications: boolean;
+};
+
+function getDefaultProjectCreationValues(): ProjectCreationFormValues {
+	return {
+		name: "",
+		description: "",
+		workflowId: "",
+		key: "",
+		selectedView: "board",
+		projectStatus: "active",
+		startDate: "",
+		endDate: "",
+		priority: "medium",
+		category: "",
+		enableTimeTracking: true,
+		enableNotifications: true,
+	};
+}
+
 export function ProjectCreationDialog({
 	open,
 	onOpenChange,
 }: ProjectCreationDialogProps) {
 	const [step, setStep] = useState(1);
-	const [name, setName] = useState("");
-	const [description, setDescription] = useState("");
-	const [workflowId, setWorkflowId] = useState<string>("");
-	const [key, setKey] = useState("");
 	const [members, setMembers] = useState<ProjectMember[]>([]);
-	const [selectedView, setSelectedView] = useState<string>("board");
-	const [projectStatus, setProjectStatus] = useState<string>("active");
-	const [startDate, setStartDate] = useState<string>("");
-	const [endDate, setEndDate] = useState<string>("");
-	const [priority, setPriority] = useState<string>("medium");
-	const [category, setCategory] = useState<string>("");
-	const [enableTimeTracking, setEnableTimeTracking] = useState<boolean>(true);
-	const [enableNotifications, setEnableNotifications] = useState<boolean>(true);
 
 	const { data: workflows = [] } = useWorkflows({ type: "task" });
 	const createProject = useCreateProject();
 	const { user } = useAuth();
 
+	const form = useForm({
+		defaultValues: getDefaultProjectCreationValues(),
+		onSubmit: async ({ value }) => {
+			if (!user) {
+				return;
+			}
+
+			const settings: {
+				enableTimeTracking?: boolean;
+				enableNotifications?: boolean;
+				selectedView?: string;
+			} = {};
+
+			if (typeof value.enableTimeTracking === "boolean") {
+				settings.enableTimeTracking = value.enableTimeTracking;
+			}
+
+			if (typeof value.enableNotifications === "boolean") {
+				settings.enableNotifications = value.enableNotifications;
+			}
+
+			if (value.selectedView) {
+				settings.selectedView = value.selectedView;
+			}
+
+			const statusParam =
+				value.projectStatus !== "active"
+					? (value.projectStatus as "archived" | "on_hold" | "completed")
+					: undefined;
+
+			const priorityParam =
+				value.priority !== "medium"
+					? (value.priority as "low" | "high" | "critical")
+					: undefined;
+
+			const [project, error] = await catchError(
+				createProject.mutateAsync({
+					name: value.name.trim(),
+					description: value.description.trim() || undefined,
+					workflowId: value.workflowId,
+					status: statusParam,
+					key: value.key.trim() || undefined,
+					startDate: value.startDate || undefined,
+					endDate: value.endDate || undefined,
+					priority: priorityParam,
+					category: value.category.trim() || undefined,
+					settings: Object.keys(settings).length > 0 ? settings : undefined,
+				}),
+			);
+
+			if (error || !project) {
+				toast.error("Failed to create project", {
+					description:
+						error?.message || "Failed to create project. Please try again.",
+				});
+				return;
+			}
+
+			if (members.length > 0) {
+				const payload = members.map((member) =>
+					member.type === "user"
+						? { userId: member.id }
+						: { userGroupId: member.id },
+				);
+
+				const [, memberError] = await catchError(
+					addProjectMembersBulk(project.id, payload),
+				);
+
+				if (memberError) {
+					console.error("Error adding project members:", memberError);
+				}
+			}
+
+			resetForm();
+			onOpenChange(false);
+			toast.success("Project created successfully", {
+				description: `"${value.name.trim()}" has been created and is ready to use.`,
+			});
+		},
+	});
+
 	const resetForm = () => {
 		setStep(1);
-		setName("");
-		setDescription("");
-		setWorkflowId("");
-		setKey("");
 		setMembers([]);
-		setSelectedView("board");
-		setProjectStatus("active");
-		setStartDate("");
-		setEndDate("");
-		setPriority("medium");
-		setCategory("");
-		setEnableTimeTracking(true);
-		setEnableNotifications(true);
+		form.reset(getDefaultProjectCreationValues());
 	};
 
 	const handleClose = (open: boolean) => {
@@ -99,86 +192,6 @@ export function ProjectCreationDialog({
 	const handleBack = () => {
 		if (step > 1) {
 			setStep(step - 1);
-		}
-	};
-
-	const canProceedStep1 = name.trim().length > 0;
-	const canProceedStep2 = workflowId.length > 0;
-	const canSubmit = canProceedStep1 && canProceedStep2;
-
-	const handleSubmit = async () => {
-		if (!canSubmit || !user) return;
-
-		try {
-			// Build settings object
-			const settings: {
-				enableTimeTracking?: boolean;
-				enableNotifications?: boolean;
-				selectedView?: string;
-			} = {};
-
-			if (enableTimeTracking !== undefined) {
-				settings.enableTimeTracking = enableTimeTracking;
-			}
-			if (enableNotifications !== undefined) {
-				settings.enableNotifications = enableNotifications;
-			}
-			if (selectedView) {
-				settings.selectedView = selectedView;
-			}
-
-			// Create the project with all configuration
-			const project = await createProject.mutateAsync({
-				name: name.trim(),
-				description: description.trim() || undefined,
-				workflowId,
-				status:
-					projectStatus !== "active"
-						? (projectStatus as "archived" | "on_hold" | "completed")
-						: undefined,
-				key: key.trim() || undefined,
-				startDate: startDate || undefined,
-				endDate: endDate || undefined,
-				priority:
-					priority !== "medium"
-						? (priority as "low" | "high" | "critical")
-						: undefined,
-				category: category.trim() || undefined,
-				settings: Object.keys(settings).length > 0 ? settings : undefined,
-			});
-
-			if (!project) {
-				throw new Error("Failed to create project");
-			}
-
-			// Add members if any were selected
-			if (members.length > 0) {
-				for (const member of members) {
-					try {
-						await addProjectMember(project.id, {
-							userId: member.type === "user" ? member.id : undefined,
-							userGroupId: member.type === "group" ? member.id : undefined,
-						});
-					} catch (error) {
-						console.error(`Error adding member ${member.name}:`, error);
-					}
-				}
-			}
-
-			resetForm();
-			onOpenChange(false);
-			toast.success("Project created successfully", {
-				description: `"${name.trim()}" has been created and is ready to use.`,
-			});
-		} catch (error) {
-			console.error("Failed to create project:", error);
-			const errorMessage =
-				error instanceof Error
-					? error.message
-					: "Failed to create project. Please try again.";
-			toast.error("Failed to create project", {
-				description: errorMessage,
-			});
 		}
 	};
 
@@ -219,25 +232,33 @@ export function ProjectCreationDialog({
 							<div className="space-y-6">
 								<div>
 									<Label htmlFor="project-name">Project Name *</Label>
-									<Input
-										id="project-name"
-										value={name}
-										onChange={(e) => setName(e.target.value)}
-										placeholder="Enter project name"
-										className="mt-2"
-									/>
+									<form.Field name="name">
+										{(field) => (
+											<Input
+												id="project-name"
+												value={field.state.value}
+												onChange={(e) => field.handleChange(e.target.value)}
+												placeholder="Enter project name"
+												className="mt-2"
+											/>
+										)}
+									</form.Field>
 								</div>
 
 								<div>
 									<Label htmlFor="project-description">Description</Label>
-									<Textarea
-										id="project-description"
-										value={description}
-										onChange={(e) => setDescription(e.target.value)}
-										placeholder="Enter project description (optional)"
-										rows={4}
-										className="mt-2"
-									/>
+									<form.Field name="description">
+										{(field) => (
+											<Textarea
+												id="project-description"
+												value={field.state.value}
+												onChange={(e) => field.handleChange(e.target.value)}
+												placeholder="Enter project description (optional)"
+												rows={4}
+												className="mt-2"
+											/>
+										)}
+									</form.Field>
 								</div>
 							</div>
 						)}
@@ -250,42 +271,50 @@ export function ProjectCreationDialog({
 										Choose the workflow for this project. You can change this
 										later in project settings.
 									</p>
-									<div className="space-y-2 max-h-96 overflow-y-auto">
-										{workflows.map((workflow) => (
-											<div
-												key={workflow.id}
-												className={`p-4 retro-border rounded-none cursor-pointer transition-colors ${
-													workflowId === workflow.id
-														? "bg-primary text-primary-foreground"
-														: "hover:bg-accent"
-												}`}
-												onClick={() => setWorkflowId(workflow.id)}
-											>
-												<div className="font-medium">{workflow.name}</div>
-												{workflow.description && (
-													<div className="text-sm opacity-80 mt-1">
-														{workflow.description}
-													</div>
-												)}
-												{workflow.statuses && workflow.statuses.length > 0 && (
-													<div className="flex gap-2 mt-2 flex-wrap">
-														{workflow.statuses.map((status) => (
-															<span
-																key={status.id}
-																className="text-xs px-2 py-1 retro-border rounded-none"
-																style={{
-																	borderColor: status.colorCode,
-																	backgroundColor: `${status.colorCode}20`,
-																}}
-															>
-																{status.name}
-															</span>
-														))}
-													</div>
-												)}
+									<form.Field name="workflowId">
+										{(field) => (
+											<div className="space-y-2 max-h-96 overflow-y-auto">
+												{workflows.map((workflow) => {
+													const isSelected = field.state.value === workflow.id;
+													return (
+														<div
+															key={workflow.id}
+															className={`p-4 retro-border rounded-none cursor-pointer transition-colors ${
+																isSelected
+																	? "bg-primary text-primary-foreground"
+																	: "hover:bg-accent"
+															}`}
+															onClick={() => field.handleChange(workflow.id)}
+														>
+															<div className="font-medium">{workflow.name}</div>
+															{workflow.description && (
+																<div className="text-sm opacity-80 mt-1">
+																	{workflow.description}
+																</div>
+															)}
+															{workflow.statuses &&
+																workflow.statuses.length > 0 && (
+																	<div className="flex gap-2 mt-2 flex-wrap">
+																		{workflow.statuses.map((status) => (
+																			<span
+																				key={status.id}
+																				className="text-xs px-2 py-1 retro-border rounded-none"
+																				style={{
+																					borderColor: status.colorCode,
+																					backgroundColor: `${status.colorCode}20`,
+																				}}
+																			>
+																				{status.name}
+																			</span>
+																		))}
+																	</div>
+																)}
+														</div>
+													);
+												})}
 											</div>
-										))}
-									</div>
+										)}
+									</form.Field>
 								</div>
 							</div>
 						)}
@@ -295,94 +324,127 @@ export function ProjectCreationDialog({
 								{/* Project Status */}
 								<div>
 									<Label htmlFor="project-status">Initial Status</Label>
-									<Select
-										value={projectStatus}
-										onValueChange={setProjectStatus}
-									>
-										<SelectTrigger
-											id="project-status"
-											className="mt-2"
-										>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="active">Active</SelectItem>
-											<SelectItem value="on_hold">On Hold</SelectItem>
-											<SelectItem value="completed">Completed</SelectItem>
-											<SelectItem value="archived">Archived</SelectItem>
-										</SelectContent>
-									</Select>
+									<form.Field name="projectStatus">
+										{(field) => (
+											<Select
+												value={field.state.value}
+												onValueChange={(
+													value: ProjectCreationFormValues["projectStatus"],
+												) => field.handleChange(value)}
+											>
+												<SelectTrigger
+													id="project-status"
+													className="mt-2"
+												>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="active">Active</SelectItem>
+													<SelectItem value="on_hold">On Hold</SelectItem>
+													<SelectItem value="completed">Completed</SelectItem>
+													<SelectItem value="archived">Archived</SelectItem>
+												</SelectContent>
+											</Select>
+										)}
+									</form.Field>
 									<p className="text-xs text-muted-foreground mt-1">
 										Set the initial status for this project
 									</p>
 								</div>
 
 								{/* Project Dates */}
-								<div className="grid grid-cols-2 gap-4">
-									<div>
-										<Label htmlFor="start-date">Start Date</Label>
-										<div className="mt-2">
-											<DatePicker
-												value={startDate}
-												onChange={setStartDate}
-												placeholder="Select start date"
-												max={endDate || undefined}
-											/>
+								<form.Subscribe
+									selector={(state) => ({
+										startDate: state.values.startDate,
+										endDate: state.values.endDate,
+									})}
+								>
+									{({ startDate, endDate }) => (
+										<div className="grid grid-cols-2 gap-4">
+											<div>
+												<Label htmlFor="start-date">Start Date</Label>
+												<div className="mt-2">
+													<form.Field name="startDate">
+														{(field) => (
+															<DatePicker
+																value={field.state.value}
+																onChange={(value) => field.handleChange(value)}
+																placeholder="Select start date"
+																max={endDate || undefined}
+															/>
+														)}
+													</form.Field>
+												</div>
+												<p className="text-xs text-muted-foreground mt-1">
+													Project start date (optional)
+												</p>
+											</div>
+											<div>
+												<Label htmlFor="end-date">End Date</Label>
+												<div className="mt-2">
+													<form.Field name="endDate">
+														{(field) => (
+															<DatePicker
+																value={field.state.value}
+																onChange={(value) => field.handleChange(value)}
+																placeholder="Select end date"
+																min={startDate || undefined}
+															/>
+														)}
+													</form.Field>
+												</div>
+												<p className="text-xs text-muted-foreground mt-1">
+													Project end date (optional)
+												</p>
+											</div>
 										</div>
-										<p className="text-xs text-muted-foreground mt-1">
-											Project start date (optional)
-										</p>
-									</div>
-									<div>
-										<Label htmlFor="end-date">End Date</Label>
-										<div className="mt-2">
-											<DatePicker
-												value={endDate}
-												onChange={setEndDate}
-												placeholder="Select end date"
-												min={startDate || undefined}
-											/>
-										</div>
-										<p className="text-xs text-muted-foreground mt-1">
-											Project end date (optional)
-										</p>
-									</div>
-								</div>
+									)}
+								</form.Subscribe>
 
 								{/* Priority and Category */}
 								<div className="grid grid-cols-2 gap-4">
 									<div>
 										<Label htmlFor="priority">Priority</Label>
-										<Select
-											value={priority}
-											onValueChange={setPriority}
-										>
-											<SelectTrigger
-												id="priority"
-												className="mt-2"
-											>
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="low">Low</SelectItem>
-												<SelectItem value="medium">Medium</SelectItem>
-												<SelectItem value="high">High</SelectItem>
-												<SelectItem value="critical">Critical</SelectItem>
-											</SelectContent>
-										</Select>
+										<form.Field name="priority">
+											{(field) => (
+												<Select
+													value={field.state.value}
+													onValueChange={(
+														value: ProjectCreationFormValues["priority"],
+													) => field.handleChange(value)}
+												>
+													<SelectTrigger
+														id="priority"
+														className="mt-2"
+													>
+														<SelectValue />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectItem value="low">Low</SelectItem>
+														<SelectItem value="medium">Medium</SelectItem>
+														<SelectItem value="high">High</SelectItem>
+														<SelectItem value="critical">Critical</SelectItem>
+													</SelectContent>
+												</Select>
+											)}
+										</form.Field>
 										<p className="text-xs text-muted-foreground mt-1">
 											Project priority level
 										</p>
 									</div>
 									<div>
 										<Label htmlFor="category">Category</Label>
-										<Input
-											id="category"
-											value={category}
-											onChange={(e) => setCategory(e.target.value)}
-											placeholder="e.g., Development, Marketing"
-											className="mt-2"
-										/>
+										<form.Field name="category">
+											{(field) => (
+												<Input
+													id="category"
+													value={field.state.value}
+													onChange={(e) => field.handleChange(e.target.value)}
+													placeholder="e.g., Development, Marketing"
+													className="mt-2"
+												/>
+											)}
+										</form.Field>
 										<p className="text-xs text-muted-foreground mt-1">
 											Project category or type (optional)
 										</p>
@@ -392,20 +454,24 @@ export function ProjectCreationDialog({
 								{/* Task Key Prefix */}
 								<div>
 									<Label htmlFor="key">Task Key Prefix</Label>
-									<Input
-										id="key"
-										value={key}
-										onChange={(e) => {
-											const value = e.target.value
-												.toUpperCase()
-												.replace(/[^A-Z]/g, "")
-												.slice(0, 3);
-											setKey(value);
-										}}
-										placeholder="ABC"
-										maxLength={3}
-										className="mt-2 w-24"
-									/>
+									<form.Field name="key">
+										{(field) => (
+											<Input
+												id="key"
+												value={field.state.value}
+												onChange={(e) => {
+													const value = e.target.value
+														.toUpperCase()
+														.replace(/[^A-Z]/g, "")
+														.slice(0, 3);
+													field.handleChange(value);
+												}}
+												placeholder="ABC"
+												maxLength={3}
+												className="mt-2 w-24"
+											/>
+										)}
+									</form.Field>
 									<p className="text-xs text-muted-foreground mt-1">
 										Three-letter prefix for task and subtask IDs (e.g., ABC-001)
 									</p>
@@ -425,11 +491,17 @@ export function ProjectCreationDialog({
 												Allow team members to track time spent on tasks
 											</p>
 										</div>
-										<Switch
-											id="time-tracking"
-											checked={enableTimeTracking}
-											onCheckedChange={setEnableTimeTracking}
-										/>
+										<form.Field name="enableTimeTracking">
+											{(field) => (
+												<Switch
+													id="time-tracking"
+													checked={field.state.value}
+													onCheckedChange={(checked) =>
+														field.handleChange(Boolean(checked))
+													}
+												/>
+											)}
+										</form.Field>
 									</div>
 									<div className="flex items-center justify-between p-4 retro-border rounded-none">
 										<div className="flex-1">
@@ -443,34 +515,48 @@ export function ProjectCreationDialog({
 												Send notifications for project updates and changes
 											</p>
 										</div>
-										<Switch
-											id="notifications"
-											checked={enableNotifications}
-											onCheckedChange={setEnableNotifications}
-										/>
+										<form.Field name="enableNotifications">
+											{(field) => (
+												<Switch
+													id="notifications"
+													checked={field.state.value}
+													onCheckedChange={(checked) =>
+														field.handleChange(Boolean(checked))
+													}
+												/>
+											)}
+										</form.Field>
 									</div>
 								</div>
 
 								{/* Default View */}
 								<div>
 									<Label htmlFor="default-view">Default View</Label>
-									<Select
-										value={selectedView}
-										onValueChange={setSelectedView}
-									>
-										<SelectTrigger
-											id="default-view"
-											className="mt-2"
-										>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="board">Board View</SelectItem>
-											<SelectItem value="list">List View</SelectItem>
-											<SelectItem value="timeline">Timeline View</SelectItem>
-											<SelectItem value="calendar">Calendar View</SelectItem>
-										</SelectContent>
-									</Select>
+									<form.Field name="selectedView">
+										{(field) => (
+											<Select
+												value={field.state.value}
+												onValueChange={(value) => field.handleChange(value)}
+											>
+												<SelectTrigger
+													id="default-view"
+													className="mt-2"
+												>
+													<SelectValue />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="board">Board View</SelectItem>
+													<SelectItem value="list">List View</SelectItem>
+													<SelectItem value="timeline">
+														Timeline View
+													</SelectItem>
+													<SelectItem value="calendar">
+														Calendar View
+													</SelectItem>
+												</SelectContent>
+											</Select>
+										)}
+									</form.Field>
 									<p className="text-xs text-muted-foreground mt-1">
 										Choose the default view for this project
 									</p>
@@ -527,38 +613,55 @@ export function ProjectCreationDialog({
 				</div>
 
 				{/* Navigation Buttons */}
-				<div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
-					<Button
-						variant="outline"
-						onClick={handleBack}
-						disabled={step === 1}
-					>
-						<ChevronLeft className="h-4 w-4 mr-2" />
-						Back
-					</Button>
+				<form.Subscribe
+					selector={(state) => ({
+						canProceedStep1: state.values.name.trim().length > 0,
+						canProceedStep2: state.values.workflowId.trim().length > 0,
+					})}
+				>
+					{({ canProceedStep1, canProceedStep2 }) => {
+						const canSubmit = canProceedStep1 && canProceedStep2;
+						return (
+							<div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
+								<Button
+									variant="outline"
+									onClick={handleBack}
+									disabled={step === 1}
+								>
+									<ChevronLeft className="h-4 w-4 mr-2" />
+									Back
+								</Button>
 
-					<div className="flex gap-2">
-						{step < 3 ? (
-							<Button
-								onClick={handleNext}
-								disabled={
-									(step === 1 && !canProceedStep1) ||
-									(step === 2 && !canProceedStep2)
-								}
-							>
-								Next
-								<ChevronRight className="h-4 w-4 ml-2" />
-							</Button>
-						) : (
-							<Button
-								onClick={handleSubmit}
-								disabled={!canSubmit || createProject.isPending}
-							>
-								{createProject.isPending ? "Creating..." : "Create Project"}
-							</Button>
-						)}
-					</div>
-				</div>
+								<div className="flex gap-2">
+									{step < 3 ? (
+										<Button
+											onClick={handleNext}
+											disabled={
+												(step === 1 && !canProceedStep1) ||
+												(step === 2 && !canProceedStep2)
+											}
+										>
+											Next
+											<ChevronRight className="h-4 w-4 ml-2" />
+										</Button>
+									) : (
+										<Button
+											type="button"
+											onClick={() => {
+												void form.handleSubmit();
+											}}
+											disabled={!canSubmit || createProject.isPending}
+										>
+											{createProject.isPending
+												? "Creating..."
+												: "Create Project"}
+										</Button>
+									)}
+								</div>
+							</div>
+						);
+					}}
+				</form.Subscribe>
 			</DialogContent>
 		</Dialog>
 	);

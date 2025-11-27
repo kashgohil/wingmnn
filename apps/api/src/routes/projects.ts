@@ -818,6 +818,92 @@ Add a user or user group as a member of a project.
 			},
 		},
 	)
+	// POST /projects/:id/members/bulk - Add multiple members at once
+	.post(
+		"/:id/members/bulk",
+		async ({ params, body, authenticated, userId }) => {
+			if (!authenticated || !userId) {
+				throw new ProjectError(
+					ProjectErrorCode.UNAUTHORIZED,
+					"Authentication required",
+					401,
+				);
+			}
+
+			await projectService.addMembersBulk(params.id, body.members, userId);
+
+			return {
+				message: "Members added successfully",
+			};
+		},
+		{
+			params: t.Object({
+				id: t.String(),
+			}),
+			body: t.Object({
+				members: t.Array(
+					t.Object({
+						userId: t.Optional(t.String()),
+						userGroupId: t.Optional(t.String()),
+					}),
+					{ minItems: 1 },
+				),
+			}),
+			detail: {
+				tags: ["Projects"],
+				summary: "Add multiple members to a project",
+				description: `
+Add several users or user groups to a project in a single request.
+
+**Authentication Required:**
+- Must include valid access token in Authorization header
+
+**Authorization:**
+- Only the project owner can add members
+- Returns 403 if user is not the owner
+
+**Member Types:**
+- Provide \`userId\` to add an individual user
+- Provide \`userGroupId\` to add a user group (all group members gain access)
+- Each entry must provide exactly one identifier
+
+**Response:**
+- Success message on successful addition
+        `,
+				security: [{ bearerAuth: [] }],
+				responses: {
+					200: {
+						description: "Members added successfully",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										message: {
+											type: "string",
+											example: "Members added successfully",
+										},
+									},
+								},
+							},
+						},
+					},
+					400: {
+						description: "Invalid input",
+					},
+					401: {
+						description: "Authentication required",
+					},
+					403: {
+						description: "Not authorized to add members",
+					},
+					404: {
+						description: "Project not found",
+					},
+				},
+			},
+		},
+	)
 	// DELETE /projects/:id/members/:memberId - Remove a member from a project
 	.delete(
 		"/:id/members/:memberId",

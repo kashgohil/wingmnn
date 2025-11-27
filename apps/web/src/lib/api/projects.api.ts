@@ -258,3 +258,36 @@ export async function addProjectMember(
 
 	return response?.data;
 }
+
+export interface AddProjectMembersBulkParams {
+	userId?: string;
+	userGroupId?: string;
+}
+
+/**
+ * Add multiple members to a project in a single request
+ */
+export async function addProjectMembersBulk(
+	projectId: string,
+	members: AddProjectMembersBulkParams[],
+) {
+	const [response, error] = await catchError(
+		api.projects({ id: projectId }).members.bulk.post({ members }),
+	);
+
+	if (error) {
+		throw new Error(
+			error instanceof Error ? error.message : "Failed to add project members",
+		);
+	}
+
+	if (response?.error) {
+		throw new Error(
+			typeof response.error === "object" && "message" in response.error
+				? String(response.error.message)
+				: "Failed to add project members",
+		);
+	}
+
+	return response?.data;
+}

@@ -585,6 +585,61 @@ export class ProjectService {
 	}
 
 	/**
+	 * Add multiple members to a project in a single operation
+	 * @param projectId - Project ID
+	 * @param members - Array of member inputs
+	 * @param userId - User ID adding the members
+	 */
+	async addMembersBulk(
+		projectId: string,
+		members: AddMemberInput[],
+		userId: string,
+	): Promise<void> {
+		if (!members || members.length === 0) {
+			return;
+		}
+
+		// Check ownership once to avoid redundant lookups
+		const isOwner = await this.checkOwnership(projectId, userId);
+		if (!isOwner) {
+			throw new ProjectError(
+				ProjectErrorCode.UNAUTHORIZED,
+				"Only the project owner can add members",
+				403,
+			);
+		}
+
+		const rows = members.map((member, index) => {
+			if (!member.userId && !member.userGroupId) {
+				throw new ProjectError(
+					ProjectErrorCode.INVALID_INPUT,
+					`Member at index ${index} must include userId or userGroupId`,
+					400,
+				);
+			}
+
+			if (member.userId && member.userGroupId) {
+				throw new ProjectError(
+					ProjectErrorCode.INVALID_INPUT,
+					`Member at index ${index} cannot include both userId and userGroupId`,
+					400,
+				);
+			}
+
+			return {
+				id: crypto.randomUUID(),
+				projectId,
+				userId: member.userId || null,
+				userGroupId: member.userGroupId || null,
+				addedBy: userId,
+				addedAt: new Date(),
+			};
+		});
+
+		await db.insert(projectMembers).values(rows);
+	}
+
+	/**
 	 * Remove a member from a project
 	 * @param projectId - Project ID
 	 * @param memberId - Member ID to remove
