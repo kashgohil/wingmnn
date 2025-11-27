@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { useProject } from "@/lib/hooks/use-projects";
 import { ProjectCreationDialog } from "./ProjectCreationDialog";
 import { ProjectSettingsDialog } from "./ProjectSettingsDialog";
+import { TaskCreationDialog } from "./TaskCreationDialog";
 import { WidgetSettings } from "./WidgetSettings";
 import { WorkflowManager } from "./WorkflowManager";
 import { useProjectsDialogs } from "./useProjectsDialogs";
@@ -23,6 +24,9 @@ export function ProjectsDialogs() {
 		projectSettingsOpen,
 		closeProjectSettings,
 		projectSettingsPayload,
+		taskCreationOpen,
+		closeTaskCreation,
+		taskCreationPayload,
 	} = useProjectsDialogs();
 
 	const { data: project, isLoading: projectLoading } = useProject(
@@ -67,6 +71,17 @@ export function ProjectsDialogs() {
 				project={project}
 				loading={!isProjectLoaded}
 				isOwner={isOwner}
+			/>
+
+			{/* Task Creation Dialog */}
+			<TaskCreationDialog
+				open={taskCreationOpen}
+				onOpenChange={(open) => {
+					if (!open) closeTaskCreation();
+				}}
+				projectId={taskCreationPayload?.projectId ?? null}
+				projectName={taskCreationPayload?.projectName}
+				workflowId={taskCreationPayload?.workflowId}
 			/>
 		</>
 	);

@@ -44,6 +44,7 @@ import {
 	Info,
 	KanbanSquare,
 	List,
+	Plus,
 	Settings,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -125,7 +126,7 @@ function ProjectDetailsPage() {
 	const { data: projectTasks = [], isLoading: tasksLoading } = useTasks({
 		projectId,
 	});
-	const { openProjectSettings } = useProjectsDialogs();
+	const { openProjectSettings, openTaskCreation } = useProjectsDialogs();
 	const [activeView, setActiveView] = useState<ViewTab>("board");
 	const [initialViewApplied, setInitialViewApplied] = useState(false);
 	const [infoOpen, setInfoOpen] = useState(false);
@@ -370,7 +371,7 @@ function ProjectDetailsPage() {
 												</DropdownMenuTrigger>
 												<DropdownMenuContent
 													align="end"
-													className="w-64 p-0"
+													className="w-64"
 												>
 													<DropdownMenuLabel className="px-3 py-2">
 														Select project status
@@ -425,6 +426,32 @@ function ProjectDetailsPage() {
 												</Tooltip>
 											</TooltipProvider>
 										))}
+
+									{project && (
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<Button
+														size="icon"
+														variant="outline"
+														onClick={() =>
+															openTaskCreation({
+																projectId,
+																projectName: project.name ?? undefined,
+																workflowId: project.workflowId,
+															})
+														}
+													>
+														<Plus className="h-4 w-4" />
+													</Button>
+												</TooltipTrigger>
+												<TooltipContent side="bottom">
+													Create New task
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+									)}
+
 									{project && (
 										<Popover
 											open={infoOpen}

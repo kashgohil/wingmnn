@@ -297,9 +297,9 @@ export function ModuleSidebar() {
 							<DropdownMenuContent
 								side="right"
 								align="end"
-								className="w-56 p-0"
+								className="w-56"
 							>
-								<div className="p-3 border-b border-border flex items-center gap-3">
+								<div className="p-3 flex items-center gap-3">
 									<Avatar
 										name={user?.name || "User"}
 										size="md"
@@ -308,6 +308,7 @@ export function ModuleSidebar() {
 										{user?.name}
 									</p>
 								</div>
+								<DropdownMenuSeparator />
 								<div>
 									<DropdownMenuGroup>
 										<DropdownMenuItem

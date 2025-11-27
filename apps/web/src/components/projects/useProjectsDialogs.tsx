@@ -10,6 +10,12 @@ interface ProjectSettingsPayload {
 	projectId: string;
 }
 
+interface TaskCreationPayload {
+	projectId: string;
+	projectName?: string;
+	workflowId?: string | null;
+}
+
 interface ProjectsDialogsState {
 	// Dialog states
 	createProjectOpen: boolean;
@@ -17,6 +23,8 @@ interface ProjectsDialogsState {
 	workflowManagerOpen: boolean;
 	projectSettingsOpen: boolean;
 	projectSettingsPayload: ProjectSettingsPayload | null;
+	taskCreationOpen: boolean;
+	taskCreationPayload: TaskCreationPayload | null;
 
 	// Actions
 	openCreateProject: () => void;
@@ -27,6 +35,8 @@ interface ProjectsDialogsState {
 	closeWorkflowManager: () => void;
 	openProjectSettings: (payload: ProjectSettingsPayload) => void;
 	closeProjectSettings: () => void;
+	openTaskCreation: (payload: TaskCreationPayload) => void;
+	closeTaskCreation: () => void;
 }
 
 export const useProjectsDialogs = create<ProjectsDialogsState>((set) => ({
@@ -36,6 +46,8 @@ export const useProjectsDialogs = create<ProjectsDialogsState>((set) => ({
 	workflowManagerOpen: false,
 	projectSettingsOpen: false,
 	projectSettingsPayload: null,
+	taskCreationOpen: false,
+	taskCreationPayload: null,
 
 	// Actions
 	openCreateProject: () => set({ createProjectOpen: true }),
@@ -58,6 +70,19 @@ export const useProjectsDialogs = create<ProjectsDialogsState>((set) => ({
 		// Clear payload after a short delay to allow dialog to close smoothly
 		setTimeout(() => {
 			set({ projectSettingsPayload: null });
+		}, 200);
+	},
+
+	openTaskCreation: (payload: TaskCreationPayload) =>
+		set({
+			taskCreationOpen: true,
+			taskCreationPayload: payload,
+		}),
+
+	closeTaskCreation: () => {
+		set({ taskCreationOpen: false });
+		setTimeout(() => {
+			set({ taskCreationPayload: null });
 		}, 200);
 	},
 }));
