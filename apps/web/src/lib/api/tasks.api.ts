@@ -111,7 +111,7 @@ export async function listTasks(params?: ListTasksParams) {
 		query.sortDirection = params.sortDirection;
 	}
 
-	const [response, error] = await catchError(api.tasks.get(query));
+	const [response, error] = await catchError(api.tasks.get({ query }));
 
 	if (error) {
 		throw new Error(

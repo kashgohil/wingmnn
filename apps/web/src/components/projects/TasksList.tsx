@@ -17,6 +17,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
+import { Skeleton } from "../ui/skeleton";
 import { PriorityIcon } from "./PriorityLabel";
 
 type SortField = "title" | "priority" | "dueDate" | "createdAt";
@@ -29,73 +30,56 @@ const FILTER_PRIORITY_OPTIONS: PriorityValue[] = [
 ];
 
 export function TasksList() {
-	const { data: tasks = [], isLoading, error } = useMyTasks();
-	const { data: projects = [] } = useProjects();
-	const { data: statusMap } = useTaskStatusMap();
 	const [filterPriority, setFilterPriority] = useState<string>("all");
 	const [filterProject, setFilterProject] = useState<string>("all");
 	const [sortField, setSortField] = useState<SortField>("dueDate");
 	const [sortDirection] = useState<SortDirection>("asc");
 
-	// Filter and sort tasks
-	const filteredAndSortedTasks = useMemo(() => {
-		let filtered = [...tasks];
+	// Build filter params for backend
+	const filterParams = useMemo(() => {
+		const params: {
+			priority?: PriorityValue;
+			projectId?: string;
+			sortBy?: string;
+			sortDirection?: "asc" | "desc";
+		} = {};
 
-		// Apply filters
 		if (filterPriority !== "all") {
-			filtered = filtered.filter((task) => task.priority === filterPriority);
+			params.priority = filterPriority as PriorityValue;
 		}
 		if (filterProject !== "all") {
-			filtered = filtered.filter((task) => task.projectId === filterProject);
+			params.projectId = filterProject;
+		}
+		if (sortField) {
+			params.sortBy = sortField;
+		}
+		if (sortDirection) {
+			params.sortDirection = sortDirection;
 		}
 
-		// Apply sorting
-		filtered.sort((a, b) => {
-			let comparison = 0;
+		return params;
+	}, [filterPriority, filterProject, sortField, sortDirection]);
 
-			switch (sortField) {
-				case "title":
-					comparison = a.title.localeCompare(b.title);
-					break;
-				case "priority":
-					const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-					comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
-					break;
-				case "dueDate":
-					const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-					const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-					comparison = aDate - bDate;
-					break;
-				case "createdAt":
-					comparison =
-						new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-					break;
-			}
+	const { data: tasks = [], isLoading, error } = useMyTasks(filterParams);
+	const { data: projects = [] } = useProjects();
+	const { data: statusMap } = useTaskStatusMap();
 
-			return sortDirection === "asc" ? comparison : -comparison;
-		});
+	const emptyStatusMap = useMemo(
+		() => new Map<string, { name: string; colorCode: string }>(),
+		[],
+	);
 
-		return filtered;
-	}, [tasks, filterPriority, filterProject, sortField, sortDirection]);
-
-	if (isLoading) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>My Tasks</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="text-muted-foreground">Loading tasks...</div>
-				</CardContent>
-			</Card>
-		);
-	}
+	// Only show "no tasks" message if no filters are applied and no tasks exist
+	const hasFilters = filterPriority !== "all" || filterProject !== "all";
+	const showNoTasksMessage = !hasFilters && tasks.length === 0 && !isLoading;
 
 	if (error) {
 		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>My Tasks</CardTitle>
+			<Card className="px-5 pb-5">
+				<CardHeader className="mb-4">
+					<div className="flex items-center justify-between">
+						<CardTitle>My Tasks</CardTitle>
+					</div>
 				</CardHeader>
 				<CardContent>
 					<div className="text-destructive">
@@ -107,29 +91,11 @@ export function TasksList() {
 		);
 	}
 
-	if (tasks.length === 0) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>My Tasks</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="text-muted-foreground">No tasks assigned to you.</div>
-				</CardContent>
-			</Card>
-		);
-	}
-
-	const emptyStatusMap = useMemo(
-		() => new Map<string, { name: string; colorCode: string }>(),
-		[],
-	);
-
 	return (
 		<Card className="px-5 pb-5">
 			<CardHeader className="mb-4">
 				<div className="flex items-center justify-between">
-					<CardTitle>My Tasks ({filteredAndSortedTasks.length})</CardTitle>
+					<CardTitle>My Tasks {!isLoading && `(${tasks.length})`}</CardTitle>
 				</div>
 			</CardHeader>
 			<CardContent>
@@ -138,6 +104,7 @@ export function TasksList() {
 					<Select
 						value={filterPriority}
 						onValueChange={setFilterPriority}
+						disabled={isLoading}
 					>
 						<SelectTrigger className="w-[160px]">
 							<SelectValue placeholder="Priority" />
@@ -160,6 +127,7 @@ export function TasksList() {
 					<Select
 						value={filterProject}
 						onValueChange={setFilterProject}
+						disabled={isLoading}
 					>
 						<SelectTrigger className="w-[160px]">
 							<SelectValue placeholder="Project" />
@@ -179,6 +147,7 @@ export function TasksList() {
 					<Select
 						value={sortField}
 						onValueChange={(value) => setSortField(value as SortField)}
+						disabled={isLoading}
 					>
 						<SelectTrigger className="w-[160px]">
 							<SelectValue placeholder="Sort by" />
@@ -193,13 +162,43 @@ export function TasksList() {
 				</div>
 
 				{/* Tasks List */}
-				{filteredAndSortedTasks.length === 0 ? (
+				{isLoading ? (
+					<div className="flex flex-wrap gap-4">
+						{Array.from({ length: 5 }).map((_, index) => (
+							<Card
+								key={index}
+								className="relative border border-l-5! retro-border-shadow-sm w-sm"
+							>
+								<CardHeader className="pb-0 flex flex-row items-center justify-between">
+									<Skeleton className="h-6 w-48" />
+									<Skeleton className="h-6 w-20" />
+								</CardHeader>
+								<CardContent className="pt-2 flex flex-col gap-3">
+									<div className="flex items-center justify-between gap-3 flex-wrap">
+										<div className="flex items-center gap-3">
+											<Skeleton className="h-4 w-16" />
+											<Skeleton className="h-4 w-20" />
+										</div>
+										<div className="flex items-center gap-1">
+											<Skeleton className="size-6 rounded-full" />
+											<Skeleton className="size-6 rounded-full" />
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						))}
+					</div>
+				) : showNoTasksMessage ? (
+					<div className="text-muted-foreground text-center py-8">
+						No tasks assigned to you.
+					</div>
+				) : tasks.length === 0 ? (
 					<div className="text-muted-foreground text-center py-8">
 						No tasks match the selected filters.
 					</div>
 				) : (
 					<div className="space-y-3">
-						{filteredAndSortedTasks.map((task) => {
+						{tasks.map((task) => {
 							return (
 								<TaskCard
 									key={task.id}
