@@ -6,6 +6,7 @@
 import { TaskCard } from "@/components/projects/TaskCard";
 import { useProjects } from "@/lib/hooks/use-projects";
 import { useMyTasks } from "@/lib/hooks/use-tasks";
+import { useTaskStatusMap } from "@/lib/hooks/use-workflows";
 import { getPriorityLabel, type PriorityValue } from "@/lib/priority";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -30,10 +31,52 @@ const FILTER_PRIORITY_OPTIONS: PriorityValue[] = [
 export function TasksList() {
 	const { data: tasks = [], isLoading, error } = useMyTasks();
 	const { data: projects = [] } = useProjects();
+	const { data: statusMap } = useTaskStatusMap();
 	const [filterPriority, setFilterPriority] = useState<string>("all");
 	const [filterProject, setFilterProject] = useState<string>("all");
 	const [sortField, setSortField] = useState<SortField>("dueDate");
-	const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+	const [sortDirection] = useState<SortDirection>("asc");
+
+	// Filter and sort tasks
+	const filteredAndSortedTasks = useMemo(() => {
+		let filtered = [...tasks];
+
+		// Apply filters
+		if (filterPriority !== "all") {
+			filtered = filtered.filter((task) => task.priority === filterPriority);
+		}
+		if (filterProject !== "all") {
+			filtered = filtered.filter((task) => task.projectId === filterProject);
+		}
+
+		// Apply sorting
+		filtered.sort((a, b) => {
+			let comparison = 0;
+
+			switch (sortField) {
+				case "title":
+					comparison = a.title.localeCompare(b.title);
+					break;
+				case "priority":
+					const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+					comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
+					break;
+				case "dueDate":
+					const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+					const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+					comparison = aDate - bDate;
+					break;
+				case "createdAt":
+					comparison =
+						new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+					break;
+			}
+
+			return sortDirection === "asc" ? comparison : -comparison;
+		});
+
+		return filtered;
+	}, [tasks, filterPriority, filterProject, sortField, sortDirection]);
 
 	if (isLoading) {
 		return (
@@ -77,54 +120,10 @@ export function TasksList() {
 		);
 	}
 
-	// Filter and sort tasks
-	const filteredAndSortedTasks = useMemo(() => {
-		let filtered = [...tasks];
-
-		// Apply filters
-		if (filterPriority !== "all") {
-			filtered = filtered.filter((task) => task.priority === filterPriority);
-		}
-		if (filterProject !== "all") {
-			filtered = filtered.filter((task) => task.projectId === filterProject);
-		}
-
-		// Apply sorting
-		filtered.sort((a, b) => {
-			let comparison = 0;
-
-			switch (sortField) {
-				case "title":
-					comparison = a.title.localeCompare(b.title);
-					break;
-				case "priority":
-					const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-					comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
-					break;
-				case "dueDate":
-					const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-					const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-					comparison = aDate - bDate;
-					break;
-				case "createdAt":
-					comparison =
-						new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-					break;
-			}
-
-			return sortDirection === "asc" ? comparison : -comparison;
-		});
-
-		return filtered;
-	}, [tasks, filterPriority, filterProject, sortField, sortDirection]);
-
 	const emptyStatusMap = useMemo(
 		() => new Map<string, { name: string; colorCode: string }>(),
 		[],
 	);
-	const toggleSortDirection = () => {
-		setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-	};
 
 	return (
 		<Card className="px-5 pb-5">
@@ -140,7 +139,7 @@ export function TasksList() {
 						value={filterPriority}
 						onValueChange={setFilterPriority}
 					>
-						<SelectTrigger className="w-[140px]">
+						<SelectTrigger className="w-[160px]">
 							<SelectValue placeholder="Priority" />
 						</SelectTrigger>
 						<SelectContent>
@@ -162,7 +161,7 @@ export function TasksList() {
 						value={filterProject}
 						onValueChange={setFilterProject}
 					>
-						<SelectTrigger className="w-[180px]">
+						<SelectTrigger className="w-[160px]">
 							<SelectValue placeholder="Project" />
 						</SelectTrigger>
 						<SelectContent>
@@ -181,7 +180,7 @@ export function TasksList() {
 						value={sortField}
 						onValueChange={(value) => setSortField(value as SortField)}
 					>
-						<SelectTrigger className="w-[140px]">
+						<SelectTrigger className="w-[160px]">
 							<SelectValue placeholder="Sort by" />
 						</SelectTrigger>
 						<SelectContent>
@@ -205,7 +204,7 @@ export function TasksList() {
 								<TaskCard
 									key={task.id}
 									task={task}
-									statusMap={emptyStatusMap}
+									statusMap={statusMap || emptyStatusMap}
 								/>
 							);
 						})}

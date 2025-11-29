@@ -1,7 +1,7 @@
 import type { Project } from "@/lib/api/projects.api";
 import type { Task } from "@/lib/api/tasks.api";
 import type { LucideIcon } from "lucide-react";
-import { AlertOctagon, Circle, Feather, Flame } from "lucide-react";
+import { AlertOctagon, ChevronsUp, Feather, Flame } from "lucide-react";
 
 export type PriorityValue = NonNullable<Project["priority"] | Task["priority"]>;
 
@@ -31,7 +31,7 @@ export const PRIORITY_META: Record<PriorityValue, PriorityMetadata> = {
 	medium: {
 		label: "Medium",
 		description: "Standard priority",
-		icon: Circle,
+		icon: ChevronsUp,
 		iconClassName: "text-yellow-500",
 		dotClassName: "bg-yellow-500",
 	},

@@ -6,7 +6,8 @@
 	"types": "index.ts",
 	"exports": {
 		".": "./index.ts",
-		"./catch-error": "./catch-error.ts"
+		"./catch-error": "./catch-error.ts",
+		"./color": "./color.ts"
 	},
 	"scripts": {
 		"test": "bun test"
