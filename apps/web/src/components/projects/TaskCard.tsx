@@ -24,11 +24,14 @@ interface Tag {
 	colorCode: string;
 }
 
+type variant = "kanban" | "list";
+
 interface TaskCardProps {
 	task: Task;
 	statusMap: Map<string, { name: string; colorCode: string }>;
 	tags?: Tag[];
 	subtaskCount?: number;
+	variant?: variant;
 }
 
 export function TaskCard({
@@ -36,6 +39,7 @@ export function TaskCard({
 	statusMap,
 	tags = [],
 	subtaskCount = 0,
+	variant = "list",
 }: TaskCardProps) {
 	const { data: assignee } = useUserProfile(task.assignedTo ?? null);
 	const taskStatus = statusMap.get(task.statusId);
@@ -48,7 +52,9 @@ export function TaskCard({
 			<Card
 				className={cn(
 					"relative border border-l-5!",
-					"retro-border-shadow-sm w-sm",
+					variant === "kanban"
+						? "retro-border-shadow-sm max-w-sm"
+						: "retro-border-shadow-sm",
 				)}
 				style={{
 					borderColor: translucentAccent,
@@ -58,7 +64,7 @@ export function TaskCard({
 				<CardHeader className="pb-0 flex flex-row items-center justify-between">
 					<CardTitle>{task.title}</CardTitle>
 					{/* Status */}
-					{taskStatus && (
+					{taskStatus && variant !== "kanban" && (
 						<>
 							<div
 								className="absolute -top-0.5 -right-0.5 px-2 text-center min-w-20 py-1 tracking-wider whitespace-nowrap"

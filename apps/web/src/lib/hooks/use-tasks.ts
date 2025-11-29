@@ -7,6 +7,7 @@ import React from "react";
 import type {
 	CreateTaskParams,
 	ListTasksParams,
+	Task,
 	UpdateTaskParams,
 } from "../api/tasks.api";
 import * as tasksApi from "../api/tasks.api";
@@ -169,7 +170,34 @@ export function useUpdateTaskStatus() {
 	return useMutation({
 		mutationFn: ({ id, statusId }: { id: string; statusId: string }) =>
 			tasksApi.updateTaskStatus(id, statusId),
+		onMutate: async ({ id, statusId }) => {
+			// Cancel any outgoing refetches to avoid overwriting optimistic update
+			await queryClient.cancelQueries({ queryKey: ["tasks"] });
+
+			// Snapshot the previous value for rollback
+			const previousTasks = queryClient.getQueriesData({ queryKey: ["tasks"] });
+
+			// Optimistically update all task queries
+			queryClient.setQueriesData<Task[]>({ queryKey: ["tasks"] }, (old) => {
+				if (!old) return old;
+				return old.map((task) =>
+					task.id === id ? { ...task, statusId } : task,
+				);
+			});
+
+			// Return context with snapshot for potential rollback
+			return { previousTasks };
+		},
+		onError: (_err, _variables, context) => {
+			// Rollback to previous state on error
+			if (context?.previousTasks) {
+				context.previousTasks.forEach(([queryKey, data]) => {
+					queryClient.setQueryData(queryKey, data);
+				});
+			}
+		},
 		onSuccess: () => {
+			// Invalidate to refetch and ensure consistency
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
 		},
 	});

@@ -1,7 +1,7 @@
 import { ModuleColorProvider } from "@/components/ModuleColorProvider";
+import { KanbanBoard } from "@/components/projects/KanbanBoard";
 import { PriorityLabel } from "@/components/projects/PriorityLabel";
 import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
-import { TaskCard } from "@/components/projects/TaskCard";
 import { useProjectsDialogs } from "@/components/projects/useProjectsDialogs";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
@@ -213,32 +213,6 @@ function ProjectDetailsPage() {
 
 		return stats;
 	}, [projectTasks]);
-
-	const tasksByStatus = useMemo(() => {
-		if (!projectTasks.length) return [];
-		const grouped = projectTasks.reduce<Record<string, typeof projectTasks>>(
-			(acc, task) => {
-				const key = task.statusId ?? "unassigned";
-				acc[key] = acc[key] || [];
-				acc[key].push(task);
-				return acc;
-			},
-			{},
-		);
-
-		return Object.entries(grouped).map(([statusId, tasks]) => {
-			const statusInfo = statusMap.get(statusId);
-			return {
-				statusId,
-				label:
-					statusId === "unassigned"
-						? "Unassigned"
-						: statusInfo?.name ?? `Status ${statusId.slice(0, 6)}`,
-				colorCode: statusInfo?.colorCode ?? "#808080",
-				tasks,
-			};
-		});
-	}, [projectTasks, statusMap]);
 
 	const timelineEntries = useMemo(() => {
 		return [...projectTasks]
@@ -635,42 +609,12 @@ function ProjectDetailsPage() {
 								className="mt-6"
 							>
 								<section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
-									{tasksLoading ? (
-										<LoadingState label="Loading board..." />
-									) : tasksByStatus.length ? (
-										<div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-											{tasksByStatus.map((column) => (
-												<Card
-													key={column.statusId}
-													className="bg-muted/40"
-												>
-													<CardHeader>
-														<CardTitle className="text-base font-semibold flex items-center gap-2">
-															<div
-																className="w-3 h-3 rounded-full"
-																style={{ backgroundColor: column.colorCode }}
-															/>
-															{column.label}{" "}
-															<span className="text-sm text-muted-foreground">
-																({column.tasks.length})
-															</span>
-														</CardTitle>
-													</CardHeader>
-													<CardContent className="space-y-3">
-														{column.tasks.map((task) => (
-															<TaskCard
-																key={task.id}
-																task={task}
-																statusMap={statusMap}
-															/>
-														))}
-													</CardContent>
-												</Card>
-											))}
-										</div>
-									) : (
-										<EmptyState message="No tasks yet. Create tasks to populate the board." />
-									)}
+									<KanbanBoard
+										tasks={projectTasks}
+										statuses={workflow?.statuses ?? []}
+										statusMap={statusMap}
+										isLoading={tasksLoading}
+									/>
 								</section>
 							</TabsContent>
 
