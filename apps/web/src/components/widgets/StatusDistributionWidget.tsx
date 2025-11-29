@@ -3,6 +3,7 @@
  * Displays tasks grouped by status
  */
 
+import { useTaskStatusMap } from "@/lib/hooks/use-workflows";
 import { BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
@@ -13,6 +14,8 @@ interface StatusDistributionWidgetProps {
 export function StatusDistributionWidget({
 	byStatus,
 }: StatusDistributionWidgetProps) {
+	const { data: statusMap } = useTaskStatusMap();
+
 	const total = Object.values(byStatus).reduce((sum, count) => sum + count, 0);
 	const entries = Object.entries(byStatus).sort((a, b) => b[1] - a[1]);
 
@@ -28,16 +31,26 @@ export function StatusDistributionWidget({
 				) : (
 					<div className="space-y-2">
 						{entries.slice(0, 4).map(([statusId, count]) => {
-							const statusName = `Status ${statusId.slice(0, 6)}`;
+							const statusInfo = statusMap?.get(statusId);
+							const statusName =
+								statusInfo?.name ?? `Status ${statusId.slice(0, 6)}`;
 
 							return (
 								<div
 									key={statusId}
-									className="flex items-center justify-between"
+									className="flex items-center justify-between gap-3"
 								>
-									<span className="text-xs text-muted-foreground truncate max-w-[160px]">
-										{statusName}
-									</span>
+									<div className="flex items-center gap-2 min-w-0">
+										{statusInfo && (
+											<span
+												className="inline-block h-2 w-2 rounded-full shrink-0"
+												style={{ backgroundColor: statusInfo.colorCode }}
+											/>
+										)}
+										<span className="text-xs text-muted-foreground truncate max-w-[160px]">
+											{statusName}
+										</span>
+									</div>
 									<span className="text-sm font-bold">{count}</span>
 								</div>
 							);
