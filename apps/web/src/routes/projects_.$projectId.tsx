@@ -330,8 +330,8 @@ function ProjectDetailsPage() {
 	return (
 		<ProtectedRoute>
 			<ModuleColorProvider moduleSlug="projects">
-				<div className="min-h-screen text-foreground p-6 md:p-8">
-					<div className="mx-auto flex max-w-7xl flex-col gap-8">
+				<div className="h-screen text-foreground p-6 md:p-8">
+					<div className="mx-auto flex max-w-7xl flex-col gap-8 h-full">
 						<header className="flex flex-col gap-6 rounded-none">
 							<div className="flex flex-wrap items-center justify-between gap-4">
 								<div className="flex flex-wrap items-center gap-4">
@@ -572,6 +572,7 @@ function ProjectDetailsPage() {
 
 						<Tabs
 							value={activeView}
+							className="flex flex-col gap-6 flex-1 overflow-hidden"
 							onValueChange={(value) => setActiveView(value as ViewTab)}
 						>
 							<div className="overflow-x-auto">
@@ -606,16 +607,16 @@ function ProjectDetailsPage() {
 
 							<TabsContent
 								value="board"
-								className="mt-6"
+								className="m-0 flex-1"
 							>
-								<section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
-									<KanbanBoard
-										tasks={projectTasks}
-										statuses={workflow?.statuses ?? []}
-										statusMap={statusMap}
-										isLoading={tasksLoading}
-									/>
-								</section>
+								<KanbanBoard
+									tasks={projectTasks}
+									statusMap={statusMap}
+									isLoading={tasksLoading}
+									statuses={workflow?.statuses ?? []}
+								/>
+								{/* <section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
+								</section> */}
 							</TabsContent>
 
 							<TabsContent

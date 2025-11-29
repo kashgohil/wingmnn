@@ -243,7 +243,7 @@ export function KanbanBoard({
 			onDragOver={handleDragOver}
 			onDragEnd={handleDragEnd}
 		>
-			<div className="flex gap-4 overflow-x-auto pb-4">
+			<div className="flex gap-4 overflow-x-auto pb-4 h-full">
 				{columns.map((column) => (
 					<KanbanColumn
 						key={column.statusId}
@@ -320,8 +320,11 @@ function KanbanColumn({ column, statusMap, activeId }: KanbanColumnProps) {
 						strategy={verticalListSortingStrategy}
 					>
 						{column.tasks.length === 0 ? (
-							<div className="text-center text-sm text-muted-foreground py-8 border border-dashed border-border/50 rounded-none">
+							<div className="relative text-center text-sm text-muted-foreground py-8 border border-dashed border-border/50 rounded-none">
 								Drop tasks here
+								{isOver && taskIds.length === 0 && (
+									<div className="absolute inset-0 h-full w-full bg-primary/20 rounded-none border border-dashed border-primary/50" />
+								)}
 							</div>
 						) : (
 							column.tasks.map((task) => (
@@ -334,9 +337,6 @@ function KanbanColumn({ column, statusMap, activeId }: KanbanColumnProps) {
 							))
 						)}
 					</SortableContext>
-					{isOver && taskIds.length === 0 && (
-						<div className="h-2 w-full bg-primary/20 rounded-none border border-dashed border-primary/50 mt-2" />
-					)}
 				</CardContent>
 			</Card>
 		</div>
