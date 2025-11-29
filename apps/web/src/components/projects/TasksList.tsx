@@ -8,7 +8,9 @@ import { useProjects } from "@/lib/hooks/use-projects";
 import { useMyTasks } from "@/lib/hooks/use-tasks";
 import { useTaskStatusMap } from "@/lib/hooks/use-workflows";
 import { getPriorityLabel, type PriorityValue } from "@/lib/priority";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo, useState } from "react";
+import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
 	Select,
@@ -33,7 +35,7 @@ export function TasksList() {
 	const [filterPriority, setFilterPriority] = useState<string>("all");
 	const [filterProject, setFilterProject] = useState<string>("all");
 	const [sortField, setSortField] = useState<SortField>("dueDate");
-	const [sortDirection] = useState<SortDirection>("asc");
+	const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
 	// Build filter params for backend
 	const filterParams = useMemo(() => {
@@ -100,65 +102,91 @@ export function TasksList() {
 			</CardHeader>
 			<CardContent>
 				{/* Filters */}
-				<div className="flex flex-wrap gap-2 mb-4">
-					<Select
-						value={filterPriority}
-						onValueChange={setFilterPriority}
-						disabled={isLoading}
-					>
-						<SelectTrigger className="w-[160px]">
-							<SelectValue placeholder="Priority" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All Priorities</SelectItem>
-							{FILTER_PRIORITY_OPTIONS.map((priority) => (
-								<SelectItem
-									key={priority}
-									value={priority}
-								>
-									<span className="flex items-center gap-2">
-										<PriorityIcon priority={priority} />
-										{getPriorityLabel(priority)}
-									</span>
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-					<Select
-						value={filterProject}
-						onValueChange={setFilterProject}
-						disabled={isLoading}
-					>
-						<SelectTrigger className="w-[160px]">
-							<SelectValue placeholder="Project" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All Projects</SelectItem>
-							{projects.map((project) => (
-								<SelectItem
-									key={project.id}
-									value={project.id}
-								>
-									{project.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-					<Select
-						value={sortField}
-						onValueChange={(value) => setSortField(value as SortField)}
-						disabled={isLoading}
-					>
-						<SelectTrigger className="w-[160px]">
-							<SelectValue placeholder="Sort by" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="dueDate">Due Date</SelectItem>
-							<SelectItem value="priority">Priority</SelectItem>
-							<SelectItem value="title">Title</SelectItem>
-							<SelectItem value="createdAt">Created</SelectItem>
-						</SelectContent>
-					</Select>
+				<div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+					<div className="flex flex-wrap gap-2">
+						<Select
+							value={filterPriority}
+							onValueChange={setFilterPriority}
+							disabled={isLoading}
+						>
+							<SelectTrigger className="w-[160px]">
+								<SelectValue placeholder="Priority" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All Priorities</SelectItem>
+								{FILTER_PRIORITY_OPTIONS.map((priority) => (
+									<SelectItem
+										key={priority}
+										value={priority}
+									>
+										<span className="flex items-center gap-2">
+											<PriorityIcon priority={priority} />
+											{getPriorityLabel(priority)}
+										</span>
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						<Select
+							value={filterProject}
+							onValueChange={setFilterProject}
+							disabled={isLoading}
+						>
+							<SelectTrigger className="w-[160px]">
+								<SelectValue placeholder="Project" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">All Projects</SelectItem>
+								{projects.map((project) => (
+									<SelectItem
+										key={project.id}
+										value={project.id}
+									>
+										{project.name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+					{/* Sort Controls */}
+					<div className="flex items-center gap-2">
+						<Select
+							value={sortField}
+							onValueChange={(value) => setSortField(value as SortField)}
+							disabled={isLoading}
+						>
+							<SelectTrigger className="w-[160px]">
+								<SelectValue placeholder="Sort by" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="dueDate">Due Date</SelectItem>
+								<SelectItem value="priority">Priority</SelectItem>
+								<SelectItem value="title">Title</SelectItem>
+								<SelectItem value="createdAt">Created</SelectItem>
+							</SelectContent>
+						</Select>
+						<Button
+							variant="outline"
+							size="default"
+							onClick={() =>
+								setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
+							}
+							disabled={isLoading}
+							className="px-3"
+							title={`Sort ${
+								sortDirection === "asc" ? "Ascending" : "Descending"
+							}`}
+						>
+							{sortDirection === "asc" ? (
+								<ArrowUp className="size-4" />
+							) : (
+								<ArrowDown className="size-4" />
+							)}
+							<span className="text-xs uppercase">
+								{sortDirection === "asc" ? "Asc" : "Desc"}
+							</span>
+						</Button>
+					</div>
 				</div>
 
 				{/* Tasks List */}
