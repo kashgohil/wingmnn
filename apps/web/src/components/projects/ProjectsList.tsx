@@ -102,8 +102,8 @@ export function ProjectsList() {
 	}
 
 	return (
-		<Card>
-			<CardHeader className="mb-4 p-0">
+		<Card className="px-5 pb-5">
+			<CardHeader className="mb-4">
 				<CardTitle>My Projects</CardTitle>
 			</CardHeader>
 			<CardContent>
@@ -124,9 +124,9 @@ export function ProjectsList() {
 								className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary rounded-none"
 							>
 								<Card
-									variant="outlined"
+									variant="contained"
 									padding="md"
-									className="cursor-pointer hover:shadow-md transition-shadow h-full flex flex-col"
+									className="cursor-pointer border-2 border-border h-full flex flex-col"
 								>
 									<CardHeader>
 										<div className="flex items-start justify-between">

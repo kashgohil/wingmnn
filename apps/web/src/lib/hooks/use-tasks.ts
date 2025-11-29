@@ -4,9 +4,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React from "react";
-import { useAuth } from "../auth/auth-context";
+import type {
+	CreateTaskParams,
+	ListTasksParams,
+	UpdateTaskParams,
+} from "../api/tasks.api";
 import * as tasksApi from "../api/tasks.api";
-import type { CreateTaskParams, ListTasksParams, UpdateTaskParams } from "../api/tasks.api";
+import { useAuth } from "../auth/auth-context";
 
 /**
  * Fetch tasks assigned to the current user
@@ -55,7 +59,6 @@ export function useTask(id: string | null) {
  * Calculate task statistics from task list
  */
 export function useTaskStats() {
-	const { user } = useAuth();
 	const { data: tasks = [], isLoading } = useMyTasks();
 
 	const stats = React.useMemo(() => {
@@ -171,4 +174,3 @@ export function useUpdateTaskStatus() {
 		},
 	});
 }
-

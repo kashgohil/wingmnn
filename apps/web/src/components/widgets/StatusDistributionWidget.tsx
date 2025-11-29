@@ -3,8 +3,8 @@
  * Displays tasks grouped by status
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { BarChart3 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface StatusDistributionWidgetProps {
 	byStatus: Record<string, number>;
@@ -18,8 +18,8 @@ export function StatusDistributionWidget({
 
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="text-sm font-medium">By Status</CardTitle>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 mb-4">
+				<CardTitle className="font-medium">By Status</CardTitle>
 				<BarChart3 className="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
@@ -27,14 +27,21 @@ export function StatusDistributionWidget({
 					<p className="text-xs text-muted-foreground">No tasks</p>
 				) : (
 					<div className="space-y-2">
-						{entries.slice(0, 4).map(([statusId, count]) => (
-							<div key={statusId} className="flex items-center justify-between">
-								<span className="text-xs text-muted-foreground truncate max-w-[120px]">
-									Status {statusId.slice(0, 8)}
-								</span>
-								<span className="text-sm font-bold">{count}</span>
-							</div>
-						))}
+						{entries.slice(0, 4).map(([statusId, count]) => {
+							const statusName = `Status ${statusId.slice(0, 6)}`;
+
+							return (
+								<div
+									key={statusId}
+									className="flex items-center justify-between"
+								>
+									<span className="text-xs text-muted-foreground truncate max-w-[160px]">
+										{statusName}
+									</span>
+									<span className="text-sm font-bold">{count}</span>
+								</div>
+							);
+						})}
 						{entries.length > 4 && (
 							<p className="text-xs text-muted-foreground mt-2">
 								+{entries.length - 4} more
@@ -42,13 +49,7 @@ export function StatusDistributionWidget({
 						)}
 					</div>
 				)}
-				{total > 0 && (
-					<p className="text-xs text-muted-foreground mt-4">
-						Total: {total} tasks
-					</p>
-				)}
 			</CardContent>
 		</Card>
 	);
 }
-

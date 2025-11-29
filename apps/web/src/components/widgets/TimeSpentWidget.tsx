@@ -3,8 +3,8 @@
  * Displays time tracking analytics (placeholder for future implementation)
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Clock } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface TimeSpentWidgetProps {
 	totalHours?: number;
@@ -13,8 +13,8 @@ interface TimeSpentWidgetProps {
 export function TimeSpentWidget({ totalHours = 0 }: TimeSpentWidgetProps) {
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="text-sm font-medium">Time Spent</CardTitle>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 mb-4">
+				<CardTitle className="font-medium">Time Spent</CardTitle>
 				<Clock className="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
@@ -26,4 +26,3 @@ export function TimeSpentWidget({ totalHours = 0 }: TimeSpentWidgetProps) {
 		</Card>
 	);
 }
-

@@ -4,14 +4,16 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-	"retro-border bg-card text-card-foreground rounded-none transition-all",
+	"bg-card text-card-foreground rounded-none transition-all",
 	{
 		variants: {
 			variant: {
-				default: "",
-				outlined: "bg-transparent border-2",
-				elevated: "shadow-lg",
-				interactive: "cursor-pointer hover:shadow-md transition-shadow",
+				default: "retro-border",
+				outlined: "bg-transparent border-2 retro-border",
+				elevated: "retro-border shadow-lg",
+				interactive:
+					"retro-border cursor-pointer hover:shadow-md transition-shadow",
+				contained: "",
 			},
 			padding: {
 				none: "p-0",

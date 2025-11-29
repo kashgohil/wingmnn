@@ -3,18 +3,20 @@
  * Displays count of tasks due in the next 7 days
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Calendar } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface UpcomingDeadlinesWidgetProps {
 	count: number;
 }
 
-export function UpcomingDeadlinesWidget({ count }: UpcomingDeadlinesWidgetProps) {
+export function UpcomingDeadlinesWidget({
+	count,
+}: UpcomingDeadlinesWidgetProps) {
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="text-sm font-medium">Upcoming</CardTitle>
+			<CardHeader className="flex flex-row items-center justify-between space-y-0 mb-4">
+				<CardTitle className="font-medium">Upcoming</CardTitle>
 				<Calendar className="h-4 w-4 text-muted-foreground" />
 			</CardHeader>
 			<CardContent>
@@ -24,4 +26,3 @@ export function UpcomingDeadlinesWidget({ count }: UpcomingDeadlinesWidgetProps)
 		</Card>
 	);
 }
-
