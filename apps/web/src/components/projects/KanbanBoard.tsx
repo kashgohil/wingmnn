@@ -370,12 +370,33 @@ function KanbanTaskCard({ task, statusMap, isDragging }: KanbanTaskCardProps) {
 			className="cursor-grab active:cursor-grabbing w-full"
 		>
 			<div className="relative w-full">
-				<TaskCard
-					variant="kanban"
-					task={task}
-					statusMap={statusMap}
-				/>
-				<div className="absolute left-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+				{/* Use CSS to allow tooltips to work - tooltip triggers have higher z-index */}
+				<div
+					style={{
+						position: "relative",
+						// Allow pointer events on tooltip elements
+					}}
+					onPointerDown={(e) => {
+						// Prevent drag from starting if clicking on tooltip elements
+						const target = e.target as HTMLElement;
+						const isTooltipElement =
+							target.closest("[data-radix-tooltip-trigger]") !== null ||
+							target.closest("[data-radix-tooltip-content]") !== null ||
+							target.closest('[role="tooltip"]') !== null ||
+							target.closest("button[aria-describedby]") !== null;
+
+						if (isTooltipElement) {
+							e.stopPropagation();
+						}
+					}}
+				>
+					<TaskCard
+						variant="kanban"
+						task={task}
+						statusMap={statusMap}
+					/>
+				</div>
+				<div className="absolute left-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
 					<GripVertical className="h-4 w-4 text-muted-foreground" />
 				</div>
 			</div>
