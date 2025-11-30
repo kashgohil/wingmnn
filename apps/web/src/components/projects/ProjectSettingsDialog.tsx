@@ -22,11 +22,9 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { type Project } from "@/lib/api/projects.api";
-import {
-	useUpdateProject,
-	useUpdateProjectStatus,
-} from "@/lib/hooks/use-projects";
+import { useUpdateProject } from "@/lib/hooks/use-projects";
 import { PRIORITY_META, PRIORITY_ORDER } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import { useForm } from "@tanstack/react-form";
@@ -89,7 +87,8 @@ const PROJECT_PRIORITY_OPTIONS = PRIORITY_ORDER.map((priority) => ({
 }));
 
 type ProjectSettingsFormValues = {
-	status: Project["status"];
+	title: string;
+	description: string;
 	startDate: string;
 	endDate: string;
 	priority: "unset" | NonNullable<Project["priority"]>;
@@ -104,7 +103,8 @@ function getDefaultFormValues(
 	project?: Project | null,
 ): ProjectSettingsFormValues {
 	return {
-		status: project?.status ?? "active",
+		title: project?.name ?? "",
+		description: project?.description ?? "",
 		startDate: project?.startDate ?? "",
 		endDate: project?.endDate ?? "",
 		priority: project?.priority ?? "unset",
@@ -185,30 +185,12 @@ export function ProjectSettingsDialog({
 }: ProjectSettingsDialogProps) {
 	const { mutateAsync: updateProjectAsync, isPending: isUpdating } =
 		useUpdateProject();
-	const { mutateAsync: updateProjectStatusAsync, isPending: isUpdatingStatus } =
-		useUpdateProjectStatus();
 	const [members, setMembers] = useState<ProjectMember[]>([]);
 	const form = useForm({
 		defaultValues: getDefaultFormValues(project ?? null),
 		onSubmit: async ({ value }) => {
 			if (!project || !isOwner) {
 				return;
-			}
-
-			if (value.status !== project.status) {
-				const [, error] = await catchError(
-					updateProjectStatusAsync({
-						id: project.id,
-						status: value.status,
-					}),
-				);
-
-				if (error) {
-					toast.error("Failed to update project status", {
-						description: error.message,
-					});
-					return;
-				}
 			}
 
 			const settings: {
@@ -238,8 +220,8 @@ export function ProjectSettingsDialog({
 				updateProjectAsync({
 					id: project.id,
 					params: {
-						name: project.name,
-						description: project.description,
+						name: value.title.trim(),
+						description: value.description.trim() || null,
 						key: value.key.trim() || null,
 						startDate: value.startDate || null,
 						endDate: value.endDate || null,
@@ -288,34 +270,41 @@ export function ProjectSettingsDialog({
 								form.handleSubmit();
 							}}
 						>
-							{/* Project Status */}
+							{/* Title */}
 							<div>
-								<Label htmlFor="project-status">Initial Status</Label>
-								<form.Field name="status">
+								<Label htmlFor="title">Title</Label>
+								<form.Field name="title">
 									{(field) => (
-										<Select
+										<Input
+											id="title"
 											value={field.state.value}
-											onValueChange={(value: Project["status"]) =>
-												field.handleChange(value)
-											}
-										>
-											<SelectTrigger
-												id="project-status"
-												className="mt-2"
-											>
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="active">Active</SelectItem>
-												<SelectItem value="on_hold">On Hold</SelectItem>
-												<SelectItem value="completed">Completed</SelectItem>
-												<SelectItem value="archived">Archived</SelectItem>
-											</SelectContent>
-										</Select>
+											onChange={(e) => field.handleChange(e.target.value)}
+											placeholder="Enter project title"
+											className="mt-2"
+										/>
 									)}
 								</form.Field>
 								<p className="text-xs text-muted-foreground mt-1">
-									Set the initial status for this project
+									The name of this project
+								</p>
+							</div>
+
+							{/* Description */}
+							<div>
+								<Label htmlFor="description">Description</Label>
+								<form.Field name="description">
+									{(field) => (
+										<Textarea
+											id="description"
+											value={field.state.value}
+											onChange={(e) => field.handleChange(e.target.value)}
+											placeholder="Enter project description"
+											className="mt-2 min-h-[100px]"
+										/>
+									)}
+								</form.Field>
+								<p className="text-xs text-muted-foreground mt-1">
+									Describe the purpose and goals of this project
 								</p>
 							</div>
 
@@ -593,7 +582,7 @@ export function ProjectSettingsDialog({
 								<Button
 									variant="outline"
 									onClick={() => onOpenChange(false)}
-									disabled={isUpdating || isUpdatingStatus}
+									disabled={isUpdating}
 									type="button"
 								>
 									Cancel
@@ -602,9 +591,9 @@ export function ProjectSettingsDialog({
 									{(isSubmitting) => (
 										<Button
 											type="submit"
-											disabled={isUpdating || isUpdatingStatus || isSubmitting}
+											disabled={isUpdating || isSubmitting}
 										>
-											{isUpdating || isUpdatingStatus || isSubmitting
+											{isUpdating || isSubmitting
 												? "Saving..."
 												: "Save Changes"}
 										</Button>
