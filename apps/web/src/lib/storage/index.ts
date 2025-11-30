@@ -6,9 +6,9 @@
 
 export {
 	LocalStorageManager,
-	localStorageManager,
 	LocalStorageManagerImpl,
+	localStorageManager,
 	type LocalStorageManager as ILocalStorageManager,
 } from "./local-storage-manager";
 
-export { createTableStorage, type TableStorage } from "./table-storage";
+export { createTableStore, type TableStore } from "./table-storage";

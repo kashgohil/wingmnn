@@ -4,7 +4,7 @@
  * Supports sorting, column resizing, column reordering, column visibility, and sticky columns
  */
 
-import { createTableStorage } from "@/lib/storage/table-storage";
+import { createTableStore } from "@/lib/storage/table-storage";
 import { cn } from "@/lib/utils";
 import {
 	DndContext,
@@ -36,6 +36,7 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from "@tanstack/react-table";
+import * as _ from "lodash-es";
 import {
 	ArrowDown,
 	ArrowUp,
@@ -46,6 +47,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useStore } from "zustand";
 import { Button } from "./button";
 import { Checkbox } from "./checkbox";
 import {
@@ -65,7 +67,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "./table";
-
 export interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
@@ -136,15 +137,6 @@ export function DataTable<TData, TValue>({
 	enableColumnReordering = true,
 	filterOptions,
 }: DataTableProps<TData, TValue>) {
-	const [sorting, setSorting] = useState<SortingState>(initialSorting);
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
-	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() =>
-		columns
-			.map((col) => col.id || (col as any).accessorKey || "")
-			.filter(Boolean),
-	);
-	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 	const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
 	const [draggedColumnHeader, setDraggedColumnHeader] = useState<any>(null);
 	const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -158,160 +150,143 @@ export function DataTable<TData, TValue>({
 		}),
 	);
 
-	// Create table storage instance
-	const tableStorage = useMemo(
-		() => (storageKey ? createTableStorage(storageKey) : null),
-		[storageKey],
+	// Default column order from columns
+	const defaultColumnOrder = useMemo(
+		() =>
+			columns
+				.map((col) => col.id || (col as any).accessorKey || "")
+				.filter(Boolean),
+		[columns],
 	);
 
-	// Load sorting, filtering, column sizing, column order, and visibility from localStorage on mount
-	useEffect(() => {
-		if (!tableStorage) return;
+	// we don't want to listen to storageKey changes, so we use a ref to store the value
+	const storageKeyRef = useRef<string | null>(storageKey);
+	const tempStoreKeyRef = useRef<string | null>(null);
 
-		try {
-			// Load sorting
-			const storedSorting = tableStorage.getSorting();
-			if (storedSorting) {
-				setSorting(storedSorting);
-			}
-
-			// Load column filters
-			const storedFilters = tableStorage.getFilters();
-			if (storedFilters) {
-				setColumnFilters(storedFilters);
-			}
-
-			// Load column sizing
-			const storedSizing = tableStorage.getSizing();
-			if (storedSizing) {
-				setColumnSizing(storedSizing);
-			}
-
-			// Load column order
-			const storedOrder = tableStorage.getOrder();
-			if (storedOrder) {
-				setColumnOrder(storedOrder);
-			}
-
-			// Load column visibility
-			const storedVisibility = tableStorage.getVisibility();
-			if (storedVisibility) {
-				setColumnVisibility(storedVisibility);
-			}
-		} catch (error) {
-			console.warn("Failed to load table state from localStorage:", error);
+	// Create Zustand store instance
+	// If storageKey is provided, create persistent store; otherwise create temp store
+	const store = useMemo(() => {
+		if (storageKeyRef.current) {
+			// Persistent store - reset temp key ref
+			tempStoreKeyRef.current = null;
+			return createTableStore(storageKeyRef.current);
 		}
-	}, [tableStorage]);
 
-	// Save sorting state to localStorage whenever it changes
+		// Temp store - generate random key and track it
+		tempStoreKeyRef.current = _.uniqueId("temp-table-");
+		return createTableStore(tempStoreKeyRef.current);
+	}, []);
+
+	// Initialize store with defaults if no persisted state exists
+	useEffect(() => {
+		// Note: Zustand persist will hydrate from localStorage automatically,
+		// so we only set defaults if the store is truly empty (no persisted data)
+		// Wait a tick to ensure persist middleware has hydrated
+		const timeoutId = setTimeout(() => {
+			const state = store.getState();
+
+			// Initialize sorting with initialSorting if store is empty and initialSorting is provided
+			if (state.sorting.length === 0 && initialSorting.length > 0) {
+				state.setSorting(initialSorting);
+			}
+
+			// Initialize column order with default if store is empty
+			if (state.order.length === 0 && defaultColumnOrder.length > 0) {
+				state.setOrder(defaultColumnOrder);
+			}
+		}, 0);
+
+		return () => clearTimeout(timeoutId);
+	}, [store, initialSorting, defaultColumnOrder]);
+
+	// Clean up temp store on unmount (only if no storageKey)
+	useEffect(() => {
+		// Only clean up if this is a temp store (no storageKey)
+		if (storageKeyRef.current) return;
+
+		return () => {
+			if (!tempStoreKeyRef.current) return;
+
+			// Remove from localStorage
+			// Zustand persist doesn't automatically remove entries on unmount
+			// no need to clear the store, it will be gc'ed automatically when the component unmounts
+			try {
+				localStorage.removeItem(tempStoreKeyRef.current);
+			} catch (error) {
+				console.warn(
+					"Failed to remove non-persistent store from localStorage:",
+					error,
+				);
+			}
+		};
+	}, []);
+
+	// Subscribe to store state using Zustand hooks
+	const sorting = useStore(store, (state) => state.sorting);
+	const columnFilters = useStore(store, (state) => state.filters);
+	const columnSizing = useStore(store, (state) => state.sizing);
+	const columnOrder = useStore(store, (state) => state.order);
+	const columnVisibility = useStore(store, (state) => state.visibility);
+
+	// Get setters from store
+	const setSorting = store.getState().setSorting;
+	const setFilters = store.getState().setFilters;
+	const setSizing = store.getState().setSizing;
+	const setOrder = store.getState().setOrder;
+	const setVisibility = store.getState().setVisibility;
+
+	// Handlers that work with updater functions
 	const handleSortingChange = (
 		updater: SortingState | ((old: SortingState) => SortingState),
 	) => {
-		setSorting((old) => {
-			const newSorting = typeof updater === "function" ? updater(old) : updater;
-
-			// Save to localStorage if tableStorage is available
-			if (tableStorage) {
-				try {
-					tableStorage.setSorting(newSorting);
-				} catch (error) {
-					console.warn("Failed to save sorting state to localStorage:", error);
-				}
-			}
-
-			return newSorting;
-		});
+		if (!setSorting) return;
+		const current = store?.getState().sorting || [];
+		const newSorting =
+			typeof updater === "function" ? updater(current) : updater;
+		setSorting(newSorting);
 	};
 
-	// Save column sizing state to localStorage whenever it changes
 	const handleColumnSizingChange = (
 		updater:
 			| ColumnSizingState
 			| ((old: ColumnSizingState) => ColumnSizingState),
 	) => {
-		setColumnSizing((old) => {
-			const newSizing = typeof updater === "function" ? updater(old) : updater;
-
-			// Save to localStorage if tableStorage is available
-			if (tableStorage) {
-				try {
-					tableStorage.setSizing(newSizing);
-				} catch (error) {
-					console.warn(
-						"Failed to save column sizing state to localStorage:",
-						error,
-					);
-				}
-			}
-
-			return newSizing;
-		});
+		if (!setSizing) return;
+		const current = store?.getState().sizing || {};
+		const newSizing =
+			typeof updater === "function" ? updater(current) : updater;
+		setSizing(newSizing);
 	};
 
-	// Save column visibility state to localStorage whenever it changes
 	const handleColumnVisibilityChange = (
 		updater: VisibilityState | ((old: VisibilityState) => VisibilityState),
 	) => {
-		setColumnVisibility((old: VisibilityState) => {
-			const newVisibility =
-				typeof updater === "function" ? updater(old) : updater;
-
-			// Save to localStorage if tableStorage is available
-			if (tableStorage) {
-				try {
-					tableStorage.setVisibility(newVisibility);
-				} catch (error) {
-					console.warn(
-						"Failed to save column visibility state to localStorage:",
-						error,
-					);
-				}
-			}
-
-			return newVisibility;
-		});
+		if (!setVisibility) return;
+		const current = store?.getState().visibility || {};
+		const newVisibility =
+			typeof updater === "function" ? updater(current) : updater;
+		setVisibility(newVisibility);
 	};
 
-	// Save column order state to localStorage whenever it changes
 	const handleColumnOrderChange = (
 		updater: ColumnOrderState | ((old: ColumnOrderState) => ColumnOrderState),
 	) => {
-		setColumnOrder((old) => {
-			const newOrder = typeof updater === "function" ? updater(old) : updater;
-
-			// Save to localStorage if tableStorage is available
-			if (tableStorage) {
-				try {
-					tableStorage.setOrder(newOrder);
-				} catch (error) {
-					console.warn("Failed to save column order to localStorage:", error);
-				}
-			}
-
-			return newOrder;
-		});
+		if (!setOrder) return;
+		const current = store?.getState().order || defaultColumnOrder;
+		const newOrder = typeof updater === "function" ? updater(current) : updater;
+		setOrder(newOrder);
 	};
 
-	// Save column filters state to localStorage whenever it changes
 	const handleColumnFiltersChange = (
 		updater:
 			| ColumnFiltersState
 			| ((old: ColumnFiltersState) => ColumnFiltersState),
 	) => {
-		setColumnFilters((old) => {
-			const newFilters = typeof updater === "function" ? updater(old) : updater;
-
-			// Save to localStorage if tableStorage is available
-			if (tableStorage) {
-				try {
-					tableStorage.setFilters(newFilters);
-				} catch (error) {
-					console.warn("Failed to save column filters to localStorage:", error);
-				}
-			}
-
-			return newFilters;
-		});
+		if (!setFilters) return;
+		const current = store?.getState().filters || [];
+		const newFilters =
+			typeof updater === "function" ? updater(current) : updater;
+		setFilters(newFilters);
 	};
 
 	// Handle column reordering
