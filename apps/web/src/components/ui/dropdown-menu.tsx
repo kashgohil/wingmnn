@@ -120,13 +120,14 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 	<DropdownMenuPrimitive.CheckboxItem
 		ref={ref}
 		className={cn(
-			"relative flex cursor-default select-none items-center gap-2 rounded-none py-2 pl-8 pr-3 text-sm font-mono text-foreground/90 outline-none transition-[background-color,color] data-highlighted:bg-accent data-highlighted:text-foreground data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
+			"relative flex cursor-default select-none items-center gap-2 rounded-none py-2 pl-3 pr-8 text-sm font-mono text-foreground/90 outline-none transition-[background-color,color] data-highlighted:bg-accent data-highlighted:text-foreground data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
 			className,
 		)}
 		checked={checked}
 		{...props}
 	>
-		<span className="absolute left-2 flex size-3.5 items-center justify-center">
+		{children}
+		<span className="absolute right-2 flex size-3.5 items-center justify-center">
 			<DropdownMenuPrimitive.ItemIndicator>
 				<svg
 					className="size-4"
@@ -144,7 +145,6 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 				</svg>
 			</DropdownMenuPrimitive.ItemIndicator>
 		</span>
-		{children}
 	</DropdownMenuPrimitive.CheckboxItem>
 ));
 DropdownMenuCheckboxItem.displayName =

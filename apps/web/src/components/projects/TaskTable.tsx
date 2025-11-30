@@ -12,15 +12,15 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Task } from "@/lib/api/tasks.api";
 import { useDeleteTask } from "@/lib/hooks/use-tasks";
 import { useUserProfile } from "@/lib/hooks/use-users";
+import { PRIORITY_META, PRIORITY_ORDER } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 interface TaskTableProps {
@@ -63,8 +63,6 @@ function formatDate(value: string | null | undefined) {
 
 function TaskActionsCell({
 	task,
-	onEditTask,
-	onViewTask,
 }: {
 	task: Task;
 	onEditTask?: (task: Task) => void;
@@ -102,20 +100,6 @@ function TaskActionsCell({
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					{onViewTask && (
-						<>
-							<DropdownMenuItem onClick={() => onViewTask(task)}>
-								View details
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-						</>
-					)}
-					{onEditTask && (
-						<DropdownMenuItem onClick={() => onEditTask(task)}>
-							<Pencil className="mr-2 h-4 w-4" />
-							Edit
-						</DropdownMenuItem>
-					)}
 					<DropdownMenuItem
 						onClick={handleDelete}
 						className="text-destructive"
@@ -200,6 +184,41 @@ export function TaskTable({
 		"createdAt",
 	];
 
+	// Define filter options for columns with predefined values
+	const filterOptions = useMemo(() => {
+		const options: Record<
+			string,
+			Array<{
+				value: string;
+				label: string;
+				icon?: React.ComponentType<{ className?: string }>;
+				iconClassName?: string;
+				colorCode?: string;
+			}>
+		> = {};
+
+		// Priority filter options
+		options.priority = PRIORITY_ORDER.map((priority) => ({
+			value: priority,
+			label: PRIORITY_META[priority].label,
+			icon: PRIORITY_META[priority].icon,
+			iconClassName: PRIORITY_META[priority].iconClassName,
+		}));
+
+		// Status filter options
+		if (statusMap.size > 0) {
+			options.statusId = Array.from(statusMap.entries()).map(
+				([id, status]) => ({
+					value: id,
+					label: status.name,
+					colorCode: status.colorCode,
+				}),
+			);
+		}
+
+		return options;
+	}, [statusMap]);
+
 	const columns = useMemo<ColumnDef<Task>[]>(
 		() => [
 			{
@@ -273,15 +292,12 @@ export function TaskTable({
 					const progress = row.original.progress ?? 0;
 					return (
 						<div className="flex items-center gap-2">
-							<div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+							<div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
 								<div
 									className="h-full bg-primary transition-all"
 									style={{ width: `${progress}%` }}
 								/>
 							</div>
-							<span className="text-sm text-muted-foreground w-12 text-right">
-								{progress}%
-							</span>
 						</div>
 					);
 				},
@@ -323,13 +339,7 @@ export function TaskTable({
 				enableResizing: false,
 				enableSorting: false,
 				cell: ({ row }) => {
-					return (
-						<TaskActionsCell
-							task={row.original}
-							onEditTask={onEditTask}
-							onViewTask={onViewTask}
-						/>
-					);
+					return <TaskActionsCell task={row.original} />;
 				},
 			},
 		],
@@ -351,6 +361,7 @@ export function TaskTable({
 			data={tasks}
 			storageKey={finalStorageKey}
 			sortableColumns={sortableColumns}
+			filterOptions={filterOptions}
 			actionColumnId="actions"
 			className="retro-border bg-background"
 			isLoading={isLoading}

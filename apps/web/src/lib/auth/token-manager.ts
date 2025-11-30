@@ -2,10 +2,14 @@
  * Token Manager
  *
  * Handles storage, retrieval, and validation of authentication tokens.
- * Uses localStorage for access token storage.
+ * Extends LocalStorageManager for localStorage operations.
  */
 
 import { UserProfile } from "@wingmnn/types";
+import {
+	LocalStorageManager,
+	LocalStorageManagerImpl,
+} from "@/lib/storage/local-storage-manager";
 
 export interface TokenPayload {
 	userId: string;
@@ -30,7 +34,10 @@ export interface TokenManager {
 	decodeToken(token: string): TokenPayload | null;
 }
 
-class TokenManagerImpl implements TokenManager {
+class TokenManagerImpl
+	extends LocalStorageManagerImpl
+	implements TokenManager
+{
 	private readonly ACCESS_TOKEN_KEY = "access_token";
 	private readonly USER_DATA_KEY = "user_data";
 
@@ -39,7 +46,7 @@ class TokenManagerImpl implements TokenManager {
 	 * @returns The stored access token or null if not found
 	 */
 	getAccessToken(): string | null {
-		return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+		return this.getItem(this.ACCESS_TOKEN_KEY);
 	}
 
 	/**
@@ -47,14 +54,14 @@ class TokenManagerImpl implements TokenManager {
 	 * @param token The access token to store
 	 */
 	setAccessToken(token: string): void {
-		localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
+		this.setItem(this.ACCESS_TOKEN_KEY, token);
 	}
 
 	/**
 	 * Removes the access token from localStorage
 	 */
 	clearAccessToken(): void {
-		localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+		this.removeItem(this.ACCESS_TOKEN_KEY);
 		this.clearUserData(); // Also clear user data when clearing token
 	}
 
@@ -63,14 +70,7 @@ class TokenManagerImpl implements TokenManager {
 	 * @returns The stored user data or null if not found
 	 */
 	getUserData(): UserProfile | null {
-		const data = localStorage.getItem(this.USER_DATA_KEY);
-		if (!data) return null;
-
-		try {
-			return JSON.parse(data);
-		} catch {
-			return null;
-		}
+		return this.getJSON<UserProfile>(this.USER_DATA_KEY);
 	}
 
 	/**
@@ -78,14 +78,14 @@ class TokenManagerImpl implements TokenManager {
 	 * @param user The user data to store
 	 */
 	setUserData(user: UserProfile): void {
-		localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(user));
+		this.setJSON(this.USER_DATA_KEY, user);
 	}
 
 	/**
 	 * Removes the user data from localStorage
 	 */
 	clearUserData(): void {
-		localStorage.removeItem(this.USER_DATA_KEY);
+		this.removeItem(this.USER_DATA_KEY);
 	}
 
 	/**
