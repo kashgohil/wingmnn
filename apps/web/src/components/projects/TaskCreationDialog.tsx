@@ -457,8 +457,8 @@ export function TaskCreationDialog({
 									</div>
 
 									{/* Metadata Grid */}
-									{/* Row 1: Priority, Status, Assignee */}
-									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+									{/* Row 1: Priority, Status */}
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 										<div>
 											<Label htmlFor="task-priority">Priority</Label>
 											<form.Field name="priority">
@@ -577,7 +577,10 @@ export function TaskCreationDialog({
 												</p>
 											)}
 										</div>
+									</div>
 
+									{/* Row 2: Assignee, Tags */}
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 										<div>
 											<Label htmlFor="task-assignee">Assignee</Label>
 											<form.Field name="assignedTo">
@@ -632,9 +635,23 @@ export function TaskCreationDialog({
 												}}
 											</form.Field>
 										</div>
+
+										<div>
+											<Label>Tags</Label>
+											<form.Field name="tagIds">
+												{(field) => (
+													<TagPicker
+														projectId={projectId}
+														selectedTagIds={field.state.value}
+														onTagIdsChange={field.handleChange}
+														disabled={createTask.isPending}
+													/>
+												)}
+											</form.Field>
+										</div>
 									</div>
 
-									{/* Row 2: Start Date, Due Date, Estimated Hours, Estimated Points */}
+									{/* Row 3: Start Date, Due Date, Estimated Hours, Estimated Points */}
 									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 										<div>
 											<Label>Start Date</Label>
@@ -711,21 +728,6 @@ export function TaskCreationDialog({
 												)}
 											</form.Field>
 										</div>
-									</div>
-
-									{/* Tags */}
-									<div>
-										<Label>Tags</Label>
-										<form.Field name="tagIds">
-											{(field) => (
-												<TagPicker
-													projectId={projectId}
-													selectedTagIds={field.state.value}
-													onTagIdsChange={field.handleChange}
-													disabled={createTask.isPending}
-												/>
-											)}
-										</form.Field>
 									</div>
 
 									{/* Queued Subtasks List */}
