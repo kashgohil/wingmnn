@@ -1,6 +1,7 @@
 import { ModuleColorProvider } from "@/components/ModuleColorProvider";
 import { KanbanBoard } from "@/components/projects/KanbanBoard";
 import { PriorityLabel } from "@/components/projects/PriorityLabel";
+import { ProjectAnalytics } from "@/components/projects/ProjectAnalytics";
 import { ProjectCalendar } from "@/components/projects/ProjectCalendar";
 import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
 import { TaskTable } from "@/components/projects/TaskTable";
@@ -31,7 +32,6 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getProject, type Project } from "@/lib/api/projects.api";
-import type { Task } from "@/lib/api/tasks.api";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useProject, useUpdateProjectStatus } from "@/lib/hooks/use-projects";
 import { useTasks } from "@/lib/hooks/use-tasks";
@@ -39,7 +39,6 @@ import { useUserProfile } from "@/lib/hooks/use-users";
 import { useWorkflow } from "@/lib/hooks/use-workflows";
 import { generateMetadata } from "@/lib/metadata";
 import { getModuleBySlug } from "@/lib/modules";
-import { type PriorityValue } from "@/lib/priority";
 import { toast } from "@/lib/toast";
 import { createFileRoute } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
@@ -181,40 +180,6 @@ function ProjectDetailsPage() {
 		}
 		return map;
 	}, [workflow]);
-
-	const taskStats = useMemo(() => {
-		const stats = {
-			total: projectTasks.length,
-			completed: 0,
-			inProgress: 0,
-			overdue: 0,
-			upcoming: 0,
-		};
-
-		if (!projectTasks.length) {
-			return stats;
-		}
-
-		const now = Date.now();
-
-		projectTasks.forEach((task) => {
-			if (task.progress === 100) {
-				stats.completed += 1;
-				return;
-			}
-			stats.inProgress += 1;
-			if (task.dueDate) {
-				const due = new Date(task.dueDate).getTime();
-				if (due < now) {
-					stats.overdue += 1;
-				} else {
-					stats.upcoming += 1;
-				}
-			}
-		});
-
-		return stats;
-	}, [projectTasks]);
 
 	const timelineEntries = useMemo(() => {
 		return [...projectTasks]
@@ -688,38 +653,11 @@ function ProjectDetailsPage() {
 								value="analytics"
 								className="mt-6 space-y-6"
 							>
-								{tasksLoading ? (
-									<LoadingState label="Loading analytics..." />
-								) : (
-									<>
-										<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-											<SummaryStat
-												label="Total tasks"
-												value={taskStats.total}
-											/>
-											<SummaryStat
-												label="Completed"
-												value={taskStats.completed}
-												trend="positive"
-											/>
-											<SummaryStat
-												label="In progress"
-												value={taskStats.inProgress}
-											/>
-											<SummaryStat
-												label="Overdue"
-												value={taskStats.overdue}
-												trend={taskStats.overdue ? "negative" : undefined}
-											/>
-										</div>
-
-										<ProjectAnalyticsPanel
-											tasks={projectTasks}
-											loading={false}
-											statusMap={statusMap}
-										/>
-									</>
-								)}
+								<ProjectAnalytics
+									tasks={projectTasks}
+									loading={tasksLoading}
+									statusMap={statusMap}
+								/>
 							</TabsContent>
 						</Tabs>
 					</div>
@@ -728,40 +666,6 @@ function ProjectDetailsPage() {
 				<ProjectsDialogs />
 			</ModuleColorProvider>
 		</ProtectedRoute>
-	);
-}
-
-function SummaryStat({
-	label,
-	value,
-	trend,
-}: {
-	label: string;
-	value: number;
-	trend?: "positive" | "negative";
-}) {
-	return (
-		<Card>
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="font-bold">{label}</CardTitle>
-				{trend === "positive" && (
-					<span className="text-[11px] font-semibold text-emerald-500">
-						On track
-					</span>
-				)}
-				{trend === "negative" && (
-					<span className="text-[11px] font-semibold text-destructive">
-						Needs attention
-					</span>
-				)}
-			</CardHeader>
-			<CardContent>
-				<p className="text-3xl font-bold">{value}</p>
-				<p className="text-xs text-muted-foreground mt-1">
-					vs. previous period
-				</p>
-			</CardContent>
-		</Card>
 	);
 }
 
@@ -798,101 +702,6 @@ function TabTrigger({
 			<IconComponent className="h-4 w-4" />
 			{label}
 		</TabsTrigger>
-	);
-}
-
-function ProjectAnalyticsPanel({
-	tasks,
-	loading,
-	statusMap,
-}: {
-	tasks: Task[];
-	loading: boolean;
-	statusMap: Map<string, { name: string; colorCode: string }>;
-}) {
-	if (loading) {
-		return <LoadingState label="Loading analytics..." />;
-	}
-
-	if (!tasks.length) {
-		return <EmptyState message="Add tasks to unlock analytics." />;
-	}
-
-	const priorityBreakdown = tasks.reduce<Record<string, number>>(
-		(acc, task) => {
-			acc[task.priority] = (acc[task.priority] || 0) + 1;
-			return acc;
-		},
-		{},
-	);
-
-	const statusBreakdown = tasks.reduce<Record<string, number>>((acc, task) => {
-		const key = task.statusId ?? "unassigned";
-		acc[key] = (acc[key] || 0) + 1;
-		return acc;
-	}, {});
-
-	return (
-		<div className="grid gap-4 lg:grid-cols-2">
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Priority</CardTitle>
-					<span className="text-xs text-muted-foreground">Breakdown</span>
-				</CardHeader>
-				<CardContent className="space-y-2">
-					{Object.entries(priorityBreakdown).map(([priority, count]) => {
-						const typedPriority = priority as PriorityValue;
-						return (
-							<div
-								key={priority}
-								className="flex items-center justify-between text-sm"
-							>
-								<PriorityLabel
-									priority={typedPriority}
-									className="text-sm text-muted-foreground"
-									iconClassName="size-3.5"
-								/>
-								<span className="font-semibold">{count}</span>
-							</div>
-						);
-					})}
-				</CardContent>
-			</Card>
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Status</CardTitle>
-					<span className="text-xs text-muted-foreground">Snapshot</span>
-				</CardHeader>
-				<CardContent className="space-y-2">
-					{Object.entries(statusBreakdown).map(([statusId, count]) => {
-						const statusInfo = statusMap.get(statusId);
-						return (
-							<div
-								key={statusId}
-								className="flex items-center justify-between text-sm"
-							>
-								<span className="inline-flex items-center gap-1.5 text-muted-foreground">
-									{statusId === "unassigned" ? (
-										"Unassigned"
-									) : (
-										<>
-											<div
-												className="w-2 h-2 rounded-full"
-												style={{
-													backgroundColor: statusInfo?.colorCode ?? "#808080",
-												}}
-											/>
-											{statusInfo?.name ?? `Status ${statusId.slice(0, 6)}`}
-										</>
-									)}
-								</span>
-								<span className="font-semibold">{count}</span>
-							</div>
-						);
-					})}
-				</CardContent>
-			</Card>
-		</div>
 	);
 }
 
