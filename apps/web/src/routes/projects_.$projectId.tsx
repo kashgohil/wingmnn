@@ -1,6 +1,7 @@
 import { ModuleColorProvider } from "@/components/ModuleColorProvider";
 import { KanbanBoard } from "@/components/projects/KanbanBoard";
 import { PriorityLabel } from "@/components/projects/PriorityLabel";
+import { ProjectCalendar } from "@/components/projects/ProjectCalendar";
 import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
 import { TaskTable } from "@/components/projects/TaskTable";
 import { useProjectsDialogs } from "@/components/projects/useProjectsDialogs";
@@ -230,26 +231,6 @@ function ProjectDetailsPage() {
 				progress: task.progress ?? 0,
 				description: task.description,
 			}));
-	}, [projectTasks]);
-
-	const calendarBuckets = useMemo(() => {
-		const buckets: Record<string, typeof projectTasks> = {};
-		projectTasks.forEach((task) => {
-			const due = task.dueDate
-				? new Date(task.dueDate)
-				: task.startDate
-				? new Date(task.startDate)
-				: null;
-			const key = due
-				? due.toLocaleDateString(undefined, {
-						month: "short",
-						year: "numeric",
-				  })
-				: "No date";
-			buckets[key] = buckets[key] || [];
-			buckets[key].push(task);
-		});
-		return buckets;
 	}, [projectTasks]);
 
 	const infoDetails = useMemo(() => {
@@ -688,48 +669,19 @@ function ProjectDetailsPage() {
 
 							<TabsContent
 								value="calendar"
-								className="mt-6"
+								className="m-0 flex-1 overflow-hidden"
 							>
-								<section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
-									{tasksLoading ? (
-										<LoadingState label="Loading calendar..." />
-									) : Object.keys(calendarBuckets).length ? (
-										<div className="grid gap-4 md:grid-cols-2">
-											{Object.entries(calendarBuckets).map(
-												([bucket, tasks]) => (
-													<Card key={bucket}>
-														<CardHeader>
-															<CardTitle className="text-base font-semibold">
-																{bucket}{" "}
-																<span className="text-sm text-muted-foreground">
-																	({tasks.length})
-																</span>
-															</CardTitle>
-														</CardHeader>
-														<CardContent className="space-y-3">
-															{tasks.map((task) => (
-																<div
-																	key={task.id}
-																	className="rounded-none border border-dashed border-border/70 p-3"
-																>
-																	<p className="font-medium">{task.title}</p>
-																	<p className="text-xs text-muted-foreground">
-																		Due{" "}
-																		{task.dueDate
-																			? formatDate(task.dueDate)
-																			: "TBD"}
-																	</p>
-																</div>
-															))}
-														</CardContent>
-													</Card>
-												),
-											)}
-										</div>
-									) : (
-										<EmptyState message="Dates haven't been scheduled for this project." />
-									)}
-								</section>
+								<ProjectCalendar
+									project={project ?? null}
+									workflow={
+										workflow
+											? {
+													statuses: workflow.statuses ?? [],
+											  }
+											: null
+									}
+									projectId={projectId}
+								/>
 							</TabsContent>
 
 							<TabsContent
@@ -791,7 +743,7 @@ function SummaryStat({
 	return (
 		<Card>
 			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="text-sm font-medium">{label}</CardTitle>
+				<CardTitle className="font-bold">{label}</CardTitle>
 				{trend === "positive" && (
 					<span className="text-[11px] font-semibold text-emerald-500">
 						On track
