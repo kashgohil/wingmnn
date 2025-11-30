@@ -252,11 +252,23 @@ export class TaskService {
 			}
 		}
 
+		// Calculate the next task number for this project
+		// Use COALESCE to handle the case where no tasks exist yet (start at 1)
+		const maxTaskNumberResult = await db
+			.select({
+				maxTaskNumber: sql<number>`COALESCE(MAX(${tasks.taskNumber}), 0)`,
+			})
+			.from(tasks)
+			.where(eq(tasks.projectId, data.projectId));
+
+		const nextTaskNumber = (maxTaskNumberResult[0]?.maxTaskNumber ?? 0) + 1;
+
 		const result = await db
 			.insert(tasks)
 			.values({
 				id: crypto.randomUUID(),
 				projectId: data.projectId,
+				taskNumber: nextTaskNumber,
 				title: data.title,
 				description: data.description || null,
 				statusId,

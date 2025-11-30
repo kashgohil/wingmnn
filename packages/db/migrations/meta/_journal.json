@@ -36,6 +36,13 @@
       "when": 1764258958167,
       "tag": "0004_jittery_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1764490387875,
+      "tag": "0005_fair_kat_farrell",
+      "breakpoints": true
     }
   ]
 }

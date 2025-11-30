@@ -9,6 +9,7 @@ import {
 	primaryKey,
 	text,
 	timestamp,
+	unique,
 } from "drizzle-orm/pg-core";
 import { basicFields } from "./basic";
 import { projects, tags } from "./projects";
@@ -56,11 +57,7 @@ export const tasks = pgTable(
 		projectId: text("project_id")
 			.notNull()
 			.references(() => projects.id, { onDelete: "cascade" }),
-		taskNumber: integer("task_number")
-			.generatedByDefaultAsIdentity({
-				name: "tasks_task_number_seq",
-			})
-			.notNull(),
+		taskNumber: integer("task_number").notNull(),
 		title: text("title").notNull(),
 		description: text("description"),
 		statusId: text("status_id")
@@ -80,6 +77,10 @@ export const tasks = pgTable(
 		index("tasks_status_id_idx").on(table.statusId),
 		index("tasks_assigned_to_idx").on(table.assignedTo),
 		index("tasks_deleted_at_idx").on(table.deletedAt),
+		unique("tasks_project_id_task_number_unique").on(
+			table.projectId,
+			table.taskNumber,
+		),
 	],
 );
 
