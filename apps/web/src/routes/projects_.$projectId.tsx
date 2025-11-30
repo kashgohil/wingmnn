@@ -40,6 +40,7 @@ import { useWorkflow } from "@/lib/hooks/use-workflows";
 import { generateMetadata } from "@/lib/metadata";
 import { getModuleBySlug } from "@/lib/modules";
 import { toast } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -277,8 +278,13 @@ function ProjectDetailsPage() {
 	return (
 		<ProtectedRoute>
 			<ModuleColorProvider moduleSlug="projects">
-				<div className="h-screen text-foreground p-6 md:p-8">
-					<div className="mx-auto flex max-w-7xl flex-col gap-8 h-full">
+				<div className="h-screen text-foreground p-6 md:p-8 overflow-y-auto">
+					<div
+						className={cn(
+							"mx-auto flex max-w-7xl flex-col gap-8",
+							activeView === "analytics" ? "" : "h-full",
+						)}
+					>
 						<header className="flex flex-col gap-6 rounded-none">
 							<div className="flex flex-wrap items-center justify-between gap-4">
 								<div className="flex flex-wrap items-center gap-4">

@@ -144,7 +144,7 @@ export function ProjectCalendar({
 						<div className="text-muted-foreground">Loading calendar...</div>
 					</div>
 				) : (
-					<div className="flex-1 overflow-hidden rounded-none bg-card/70">
+					<div className="flex-1 rounded-none bg-card/70 overflow-y-auto">
 						{view === "month" && (
 							<MonthView
 								items={items}
