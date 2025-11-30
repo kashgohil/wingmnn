@@ -2,6 +2,7 @@ import { ModuleColorProvider } from "@/components/ModuleColorProvider";
 import { KanbanBoard } from "@/components/projects/KanbanBoard";
 import { PriorityLabel } from "@/components/projects/PriorityLabel";
 import { ProjectsDialogs } from "@/components/projects/ProjectsDialogs";
+import { TaskTable } from "@/components/projects/TaskTable";
 import { useProjectsDialogs } from "@/components/projects/useProjectsDialogs";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RichTextRenderer } from "@/components/rich-text/RichTextRenderer";
@@ -621,63 +622,22 @@ function ProjectDetailsPage() {
 
 							<TabsContent
 								value="list"
-								className="mt-6"
+								className="m-0 flex-1"
 							>
-								<section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
-									{tasksLoading ? (
-										<LoadingState label="Loading tasks..." />
-									) : projectTasks.length ? (
-										<Card>
-											<CardHeader>
-												<CardTitle>Task List</CardTitle>
-											</CardHeader>
-											<CardContent className="overflow-x-auto">
-												<table className="min-w-full text-sm">
-													<thead>
-														<tr className="text-left text-muted-foreground">
-															<th className="py-2 pr-4 font-medium">Title</th>
-															<th className="py-2 pr-4 font-medium">
-																Priority
-															</th>
-															<th className="py-2 pr-4 font-medium">Due</th>
-															<th className="py-2 pr-4 font-medium">
-																Progress
-															</th>
-														</tr>
-													</thead>
-													<tbody>
-														{projectTasks.map((task) => (
-															<tr
-																key={task.id}
-																className="border-t border-border/80"
-															>
-																<td className="py-3 pr-4 font-medium">
-																	{task.title}
-																</td>
-																<td className="py-3 pr-4">
-																	<PriorityLabel
-																		priority={task.priority}
-																		className="text-sm"
-																	/>
-																</td>
-																<td className="py-3 pr-4">
-																	{task.dueDate
-																		? formatDate(task.dueDate)
-																		: "—"}
-																</td>
-																<td className="py-3 pr-4">
-																	{task.progress ?? 0}%
-																</td>
-															</tr>
-														))}
-													</tbody>
-												</table>
-											</CardContent>
-										</Card>
-									) : (
-										<EmptyState message="No tasks have been added to this project." />
-									)}
-								</section>
+								<TaskTable
+									isLoading={tasksLoading}
+									tasks={projectTasks}
+									statusMap={statusMap}
+									projectId={projectId}
+									onEditTask={(task) => {
+										// TODO: Implement task edit dialog
+										console.log("Edit task:", task);
+									}}
+									onViewTask={(task) => {
+										// TODO: Implement task view dialog
+										console.log("View task:", task);
+									}}
+								/>
 							</TabsContent>
 
 							<TabsContent
