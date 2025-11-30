@@ -125,7 +125,7 @@ export function ProjectCalendar({
 
 	return (
 		<CalendarDndContext>
-			<div className="flex h-full flex-col retro-border">
+			<div className="flex h-full flex-col retro-border bg-card/70">
 				<CalendarToolbar
 					view={view}
 					onViewChange={setView}
@@ -144,7 +144,7 @@ export function ProjectCalendar({
 						<div className="text-muted-foreground">Loading calendar...</div>
 					</div>
 				) : (
-					<div className="flex-1 rounded-none bg-card/70 overflow-y-auto">
+					<div className="flex-1 rounded-none overflow-y-auto">
 						{view === "month" && (
 							<MonthView
 								items={items}

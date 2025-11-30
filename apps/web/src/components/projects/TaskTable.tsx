@@ -363,7 +363,7 @@ export function TaskTable({
 			sortableColumns={sortableColumns}
 			filterOptions={filterOptions}
 			actionColumnId="actions"
-			className="retro-border bg-background"
+			className="retro-border bg-card/70"
 			isLoading={isLoading}
 		/>
 	);

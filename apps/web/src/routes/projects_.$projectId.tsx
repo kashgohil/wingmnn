@@ -657,7 +657,7 @@ function ProjectDetailsPage() {
 
 							<TabsContent
 								value="analytics"
-								className="mt-6 space-y-6"
+								className="m-0 flex-1"
 							>
 								<ProjectAnalytics
 									tasks={projectTasks}

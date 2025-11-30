@@ -219,20 +219,20 @@ export function ProjectAnalytics({
 		<div className="space-y-6">
 			{/* Summary Stats */}
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<SummaryStat
+				<StatCard
 					label="Total tasks"
 					value={taskStats.total}
 				/>
-				<SummaryStat
+				<StatCard
 					label="Completed"
 					value={taskStats.completed}
 					trend="positive"
 				/>
-				<SummaryStat
+				<StatCard
 					label="In progress"
 					value={taskStats.inProgress}
 				/>
-				<SummaryStat
+				<StatCard
 					label="Overdue"
 					value={taskStats.overdue}
 					trend={taskStats.overdue ? "negative" : undefined}
@@ -241,27 +241,34 @@ export function ProjectAnalytics({
 
 			{/* Additional Metrics */}
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<MetricCard
+				<StatCard
 					label="Completion Rate"
 					value={`${taskStats.completionRate}%`}
 					description={`${taskStats.completed} of ${taskStats.total} tasks`}
 				/>
-				<MetricCard
+				<StatCard
 					label="Average Progress"
 					value={`${taskStats.averageProgress}%`}
 					description="Across all tasks"
 				/>
-				<MetricCard
+				<StatCard
 					label="Upcoming"
 					value={taskStats.upcoming}
 					description="Tasks with future due dates"
 				/>
-				<MetricCard
+				<StatCard
 					label="Tasks with Due Dates"
 					value={tasks.filter((t) => t.dueDate).length}
 					description="Tasks scheduled"
 				/>
 			</div>
+
+			{/* Detailed Breakdowns */}
+			<ProjectAnalyticsPanel
+				tasks={tasks}
+				loading={false}
+				statusMap={statusMap}
+			/>
 
 			{/* Task Completion Trend */}
 			<Card>
@@ -361,25 +368,20 @@ export function ProjectAnalytics({
 					)}
 				</CardContent>
 			</Card>
-
-			{/* Detailed Breakdowns */}
-			<ProjectAnalyticsPanel
-				tasks={tasks}
-				loading={false}
-				statusMap={statusMap}
-			/>
 		</div>
 	);
 }
 
-function SummaryStat({
+function StatCard({
 	label,
 	value,
 	trend,
+	description,
 }: {
 	label: string;
-	value: number;
+	value: string | number;
 	trend?: "positive" | "negative";
+	description?: string;
 }) {
 	return (
 		<Card>
@@ -395,30 +397,6 @@ function SummaryStat({
 						Needs attention
 					</span>
 				)}
-			</CardHeader>
-			<CardContent>
-				<p className="text-3xl font-bold">{value}</p>
-				<p className="text-xs text-muted-foreground mt-1">
-					vs. previous period
-				</p>
-			</CardContent>
-		</Card>
-	);
-}
-
-function MetricCard({
-	label,
-	value,
-	description,
-}: {
-	label: string;
-	value: string | number;
-	description?: string;
-}) {
-	return (
-		<Card>
-			<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-				<CardTitle className="font-bold">{label}</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<p className="text-2xl font-bold">{value}</p>
@@ -447,6 +425,107 @@ function ProjectAnalyticsPanel({
 	loading: boolean;
 	statusMap: Map<string, { name: string; colorCode: string }>;
 }) {
+	const breakdowns = useMemo(() => {
+		const priorityBreakdown = tasks.reduce<Record<string, number>>(
+			(acc, task) => {
+				acc[task.priority] = (acc[task.priority] || 0) + 1;
+				return acc;
+			},
+			{},
+		);
+
+		const statusBreakdown = tasks.reduce<Record<string, number>>(
+			(acc, task) => {
+				const key = task.statusId ?? "unassigned";
+				acc[key] = (acc[key] || 0) + 1;
+				return acc;
+			},
+			{},
+		);
+
+		const assignedBreakdown = tasks.reduce<Record<string, number>>(
+			(acc, task) => {
+				const key = task.assignedTo ?? "unassigned";
+				acc[key] = (acc[key] || 0) + 1;
+				return acc;
+			},
+			{},
+		);
+
+		const dueDateBreakdown = tasks.reduce(
+			(acc, task) => {
+				if (task.dueDate) {
+					acc.withDueDate++;
+				} else {
+					acc.withoutDueDate++;
+				}
+				return acc;
+			},
+			{ withDueDate: 0, withoutDueDate: 0 },
+		);
+
+		const progressBreakdown = tasks.reduce(
+			(acc, task) => {
+				const progress = task.progress ?? 0;
+				if (progress === 0) {
+					acc.notStarted++;
+				} else if (progress < 100) {
+					acc.inProgress++;
+				} else {
+					acc.completed++;
+				}
+				return acc;
+			},
+			{ notStarted: 0, inProgress: 0, completed: 0 },
+		);
+
+		const estimatedHoursBreakdown = tasks.reduce(
+			(acc, task) => {
+				if (task.estimatedHours) {
+					acc.withEstimate++;
+					acc.totalHours += task.estimatedHours;
+				} else {
+					acc.withoutEstimate++;
+				}
+				return acc;
+			},
+			{ withEstimate: 0, withoutEstimate: 0, totalHours: 0 },
+		);
+
+		const recentActivity = tasks.reduce(
+			(acc, task) => {
+				const now = Date.now();
+				const createdDate = new Date(task.createdAt).getTime();
+				const updatedDate = new Date(task.updatedAt).getTime();
+				const daysSinceCreated = Math.floor(
+					(now - createdDate) / (1000 * 60 * 60 * 24),
+				);
+				const daysSinceUpdated = Math.floor(
+					(now - updatedDate) / (1000 * 60 * 60 * 24),
+				);
+
+				if (daysSinceCreated <= 7) {
+					acc.createdLastWeek++;
+				}
+				if (daysSinceUpdated <= 7) {
+					acc.updatedLastWeek++;
+				}
+				return acc;
+			},
+			{ createdLastWeek: 0, updatedLastWeek: 0 },
+		);
+
+		return {
+			priorityBreakdown,
+			statusBreakdown,
+			assignedBreakdown,
+			dueDateBreakdown,
+			progressBreakdown,
+			estimatedHoursBreakdown,
+			recentActivity,
+		};
+	}, [tasks]);
+
 	if (loading) {
 		return <LoadingState label="Loading analytics..." />;
 	}
@@ -455,80 +534,203 @@ function ProjectAnalyticsPanel({
 		return <EmptyState message="Add tasks to unlock analytics." />;
 	}
 
-	const priorityBreakdown = tasks.reduce<Record<string, number>>(
-		(acc, task) => {
-			acc[task.priority] = (acc[task.priority] || 0) + 1;
-			return acc;
-		},
-		{},
-	);
-
-	const statusBreakdown = tasks.reduce<Record<string, number>>((acc, task) => {
-		const key = task.statusId ?? "unassigned";
-		acc[key] = (acc[key] || 0) + 1;
-		return acc;
-	}, {});
-
 	return (
-		<div className="grid gap-4 lg:grid-cols-2">
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Priority</CardTitle>
-					<span className="text-xs text-muted-foreground">Breakdown</span>
-				</CardHeader>
-				<CardContent className="space-y-2">
-					{Object.entries(priorityBreakdown).map(([priority, count]) => {
-						const typedPriority = priority as PriorityValue;
-						return (
-							<div
-								key={priority}
-								className="flex items-center justify-between text-sm"
-							>
-								<PriorityLabel
-									priority={typedPriority}
-									className="text-sm text-muted-foreground"
-									iconClassName="size-3.5"
-								/>
-								<span className="font-semibold">{count}</span>
-							</div>
-						);
-					})}
-				</CardContent>
-			</Card>
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">Status</CardTitle>
-					<span className="text-xs text-muted-foreground">Snapshot</span>
-				</CardHeader>
-				<CardContent className="space-y-2">
-					{Object.entries(statusBreakdown).map(([statusId, count]) => {
-						const statusInfo = statusMap.get(statusId);
-						return (
-							<div
-								key={statusId}
-								className="flex items-center justify-between text-sm"
-							>
-								<span className="inline-flex items-center gap-1.5 text-muted-foreground">
-									{statusId === "unassigned" ? (
-										"Unassigned"
-									) : (
-										<>
-											<div
-												className="w-2 h-2 rounded-full"
-												style={{
-													backgroundColor: statusInfo?.colorCode ?? "#808080",
-												}}
-											/>
-											{statusInfo?.name ?? `Status ${statusId.slice(0, 6)}`}
-										</>
-									)}
+		<div className="space-y-4">
+			{/* Main Breakdowns */}
+			<div className="grid gap-4 lg:grid-cols-2">
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="font-bold">Priority</CardTitle>
+						<span className="text-xs text-muted-foreground">Breakdown</span>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						{Object.entries(breakdowns.priorityBreakdown).map(
+							([priority, count]) => {
+								const typedPriority = priority as PriorityValue;
+								return (
+									<div
+										key={priority}
+										className="flex items-center justify-between text-sm"
+									>
+										<PriorityLabel
+											priority={typedPriority}
+											className="text-sm text-muted-foreground"
+											iconClassName="size-3.5"
+										/>
+										<span className="font-semibold">{count}</span>
+									</div>
+								);
+							},
+						)}
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="font-bold">Status</CardTitle>
+						<span className="text-xs text-muted-foreground">Snapshot</span>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						{Object.entries(breakdowns.statusBreakdown).map(
+							([statusId, count]) => {
+								const statusInfo = statusMap.get(statusId);
+								return (
+									<div
+										key={statusId}
+										className="flex items-center justify-between text-sm"
+									>
+										<span className="inline-flex items-center gap-1.5 text-muted-foreground">
+											{statusId === "unassigned" ? (
+												"Unassigned"
+											) : (
+												<>
+													<div
+														className="w-2 h-2 rounded-full"
+														style={{
+															backgroundColor:
+																statusInfo?.colorCode ?? "#808080",
+														}}
+													/>
+													{statusInfo?.name ?? `Status ${statusId.slice(0, 6)}`}
+												</>
+											)}
+										</span>
+										<span className="font-semibold">{count}</span>
+									</div>
+								);
+							},
+						)}
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Additional Breakdowns */}
+			<div className="grid gap-4 lg:grid-cols-3">
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="font-bold">Progress</CardTitle>
+						<span className="text-xs text-muted-foreground">Status</span>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">Not Started</span>
+							<span className="font-semibold">
+								{breakdowns.progressBreakdown.notStarted}
+							</span>
+						</div>
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">In Progress</span>
+							<span className="font-semibold">
+								{breakdowns.progressBreakdown.inProgress}
+							</span>
+						</div>
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">Completed</span>
+							<span className="font-semibold">
+								{breakdowns.progressBreakdown.completed}
+							</span>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="font-bold">Due Dates</CardTitle>
+						<span className="text-xs text-muted-foreground">Schedule</span>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">With Due Date</span>
+							<span className="font-semibold">
+								{breakdowns.dueDateBreakdown.withDueDate}
+							</span>
+						</div>
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">Without Due Date</span>
+							<span className="font-semibold">
+								{breakdowns.dueDateBreakdown.withoutDueDate}
+							</span>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="font-bold">Time Estimates</CardTitle>
+						<span className="text-xs text-muted-foreground">Hours</span>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">With Estimate</span>
+							<span className="font-semibold">
+								{breakdowns.estimatedHoursBreakdown.withEstimate}
+							</span>
+						</div>
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">Without Estimate</span>
+							<span className="font-semibold">
+								{breakdowns.estimatedHoursBreakdown.withoutEstimate}
+							</span>
+						</div>
+						{breakdowns.estimatedHoursBreakdown.totalHours > 0 && (
+							<div className="flex items-center justify-between text-sm pt-2 border-t">
+								<span className="text-muted-foreground">Total Hours</span>
+								<span className="font-semibold">
+									{breakdowns.estimatedHoursBreakdown.totalHours.toFixed(1)}h
 								</span>
-								<span className="font-semibold">{count}</span>
 							</div>
-						);
-					})}
-				</CardContent>
-			</Card>
+						)}
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Recent Activity */}
+			<div className="grid gap-4 lg:grid-cols-2">
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="font-bold">Recent Activity</CardTitle>
+						<span className="text-xs text-muted-foreground">Last 7 Days</span>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">Tasks Created</span>
+							<span className="font-semibold">
+								{breakdowns.recentActivity.createdLastWeek}
+							</span>
+						</div>
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">Tasks Updated</span>
+							<span className="font-semibold">
+								{breakdowns.recentActivity.updatedLastWeek}
+							</span>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="font-bold">Assignment</CardTitle>
+						<span className="text-xs text-muted-foreground">Distribution</span>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">Assigned</span>
+							<span className="font-semibold">
+								{Object.values(breakdowns.assignedBreakdown).reduce(
+									(sum, count) => sum + count,
+									0,
+								) - (breakdowns.assignedBreakdown.unassigned || 0)}
+							</span>
+						</div>
+						<div className="flex items-center justify-between text-sm">
+							<span className="text-muted-foreground">Unassigned</span>
+							<span className="font-semibold">
+								{breakdowns.assignedBreakdown.unassigned || 0}
+							</span>
+						</div>
+					</CardContent>
+				</Card>
+			</div>
 		</div>
 	);
 }

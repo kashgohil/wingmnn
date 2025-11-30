@@ -75,7 +75,7 @@ export function CalendarToolbar({
 	};
 
 	return (
-		<div className="flex flex-wrap items-center justify-between gap-4 rounded-none border-b-2 border-border bg-card/70 p-4">
+		<div className="flex flex-wrap items-center justify-between gap-4 rounded-none border-b-2 border-border p-4">
 			<div className="flex items-center gap-2">
 				<Button
 					variant="outline"
