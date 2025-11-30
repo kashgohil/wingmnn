@@ -589,7 +589,7 @@ export function TaskCreationDialog({
 										</div>
 
 										<div>
-											<Label>Status</Label>
+											<Label htmlFor="task-status">Status</Label>
 											{workflowId ? (
 												<form.Field name="statusId">
 													{(field) => (
@@ -604,7 +604,10 @@ export function TaskCreationDialog({
 																workflowLoading
 															}
 														>
-															<SelectTrigger className="mt-2">
+															<SelectTrigger
+																id="task-status"
+																className="mt-2"
+															>
 																<SelectValue
 																	placeholder={
 																		workflowLoading
@@ -665,7 +668,7 @@ export function TaskCreationDialog({
 										</div>
 
 										<div>
-											<Label>Assignee</Label>
+											<Label htmlFor="task-assignee">Assignee</Label>
 											<form.Field name="assignedTo">
 												{(field) => {
 													const userMembers = projectMembers.filter(
@@ -697,7 +700,10 @@ export function TaskCreationDialog({
 															}
 															disabled={createTask.isPending}
 														>
-															<SelectTrigger className="mt-2">
+															<SelectTrigger
+																id="task-assignee"
+																className="mt-2"
+															>
 																<SelectValue placeholder="Unassigned" />
 															</SelectTrigger>
 															<SelectContent>
@@ -1284,7 +1290,7 @@ export function TaskCreationDialog({
 
 											<div className="grid grid-cols-2 gap-3">
 												<div>
-													<Label>Priority</Label>
+													<Label htmlFor="subtask-priority">Priority</Label>
 													<Select
 														value={subtaskForm.priority}
 														onValueChange={(
@@ -1299,7 +1305,10 @@ export function TaskCreationDialog({
 															createTask.isPending || createSubtask.isPending
 														}
 													>
-														<SelectTrigger className="mt-2">
+														<SelectTrigger
+															id="subtask-priority"
+															className="mt-2"
+														>
 															<SelectValue asChild>
 																<PriorityLabel
 																	priority={subtaskForm.priority}
@@ -1324,7 +1333,7 @@ export function TaskCreationDialog({
 												</div>
 
 												<div>
-													<Label>Status</Label>
+													<Label htmlFor="subtask-status">Status</Label>
 													{subtaskWorkflowId ? (
 														<Select
 															value={subtaskForm.statusId}
@@ -1340,7 +1349,10 @@ export function TaskCreationDialog({
 																createSubtask.isPending
 															}
 														>
-															<SelectTrigger className="mt-2">
+															<SelectTrigger
+																id="subtask-status"
+																className="mt-2"
+															>
 																<SelectValue
 																	placeholder={
 																		subtaskWorkflowLoading
@@ -1401,7 +1413,7 @@ export function TaskCreationDialog({
 											</div>
 
 											<div>
-												<Label>Assignee</Label>
+												<Label htmlFor="subtask-assignee">Assignee</Label>
 												<Select
 													value={subtaskForm.assignedTo}
 													onValueChange={(value) =>
@@ -1414,7 +1426,10 @@ export function TaskCreationDialog({
 														createTask.isPending || createSubtask.isPending
 													}
 												>
-													<SelectTrigger className="mt-2">
+													<SelectTrigger
+														id="subtask-assignee"
+														className="mt-2"
+													>
 														<SelectValue placeholder="Unassigned" />
 													</SelectTrigger>
 													<SelectContent>
