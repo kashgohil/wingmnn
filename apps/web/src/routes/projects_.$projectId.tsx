@@ -616,8 +616,6 @@ function ProjectDetailsPage() {
 									isLoading={tasksLoading}
 									statuses={workflow?.statuses ?? []}
 								/>
-								{/* <section className="rounded-none retro-border bg-card/70 p-4 md:p-6">
-								</section> */}
 							</TabsContent>
 
 							<TabsContent
